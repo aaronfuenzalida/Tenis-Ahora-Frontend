@@ -93,7 +93,7 @@ export default function ReportsPage() {
         
         {/* Printable Official Header */}
         <div className="text-center border-b border-dashed border-slate-300 pb-4">
-          <h2 className="text-xl font-black text-tennis-900 uppercase">CLUB TENIS AHORA — SISTEMA DE GESTIÓN</h2>
+          <h2 className="text-xl font-black text-tennis-900 uppercase">CLUB TENIS AHORA</h2>
           <p className="text-xs text-slate-500">Informe Oficial Emitido para Dirección y Auditoría</p>
           <p className="text-[10px] text-slate-400">Fecha de emisión: {new Date().toLocaleString()}</p>
         </div>

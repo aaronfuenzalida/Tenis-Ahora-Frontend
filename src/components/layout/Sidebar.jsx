@@ -47,7 +47,7 @@ export default function Sidebar({ isOpen, onClose }) {
     {
       group: 'Caja y Administración',
       items: [
-        { name: 'Caja y Recibos (QR)', to: '/admin/caja', icon: DollarSign },
+        { name: 'Caja y Recibos', to: '/admin/caja', icon: DollarSign },
         { name: 'Padrón de Usuarios', to: '/admin/usuarios', icon: Users },
         { name: 'Reportes y Estadísticas', to: '/admin/reportes', icon: BarChart3 }
       ]

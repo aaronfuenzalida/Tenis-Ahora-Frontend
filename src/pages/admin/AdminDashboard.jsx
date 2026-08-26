@@ -99,11 +99,8 @@ export default function AdminDashboard() {
               
             </div>
           </div>
-          <div className="text-2xl font-black text-slate-900 mt-2">
+          <div className="text-3xl font-black text-slate-900 mt-2">
             ${totalDailyRevenue.toLocaleString('es-AR')}
-          </div>
-          <div className="flex items-center gap-1 text-[11px] text-emerald-600 font-semibold mt-1">
-            <TrendingUp className="w-3.5 h-3.5" /> +18.4% vs semana anterior
           </div>
         </div>
 

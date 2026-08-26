@@ -365,7 +365,7 @@ export default function BookCourtPage() {
                       className="font-bold text-slate-800 bg-slate-100 px-2 py-1 rounded-lg outline-none"
                     >
                       <option value={1}>1 Hora</option>
-                      <option value={2}>2 Horas (Máximo reglamentario)</option>
+                      <option value={2}>2 Horas (max)</option>
                     </select>
                   </div>
                 </div>
@@ -625,7 +625,7 @@ export default function BookCourtPage() {
                 onClick={handleProceedPayment}
                 className="w-full py-3.5 px-4 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-extrabold text-sm shadow-md hover:shadow-glow-green flex items-center justify-center gap-2 transition-all"
               >
-                Pagar Seña y Confirmar Reserva (${deposit50.toLocaleString('es-AR')})
+                Pagar seña y confirmar reserva
                 <ChevronRight className="w-4 h-4" />
               </button>
 
