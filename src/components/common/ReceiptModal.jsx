@@ -19,7 +19,7 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
           <div className="flex justify-center mb-1">
             <Logo variant="vertical" theme="light" size="md" />
           </div>
-          <p className="text-xs text-slate-500 mt-1">Sistema de Alquiler de Canchas & Complejo Deportivo</p>
+          <p className="text-xs text-slate-500 mt-1">Sistema de Alquiler de Canchas y Complejo Deportivo</p>
           <p className="text-[11px] text-slate-400">CUIT: 30-71889922-4 | Av. San Martín 1420, Bs. As.</p>
           
           <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold border border-emerald-200">
