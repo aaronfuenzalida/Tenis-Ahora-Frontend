@@ -78,9 +78,6 @@ export default function ClientDashboard() {
               {upcomingBooking ? `${upcomingBooking.startTime} hs (${upcomingBooking.surfaceType})` : 'Disponibilidad abierta'}
             </span>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-tennis-50 text-tennis-600 flex items-center justify-center">
-            <Calendar className="w-6 h-6" />
-          </div>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
@@ -88,11 +85,8 @@ export default function ClientDashboard() {
             <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Torneo Activo</span>
             <div className="text-lg font-black text-slate-800 mt-1">Abierto Primavera</div>
             <span className="text-xs text-emerald-600 font-semibold flex items-center gap-1">
-              <CheckCircle2 className="w-3 h-3" /> Clasificado a Semis
+              Clasificado a Semis
             </span>
-          </div>
-          <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
-            <Trophy className="w-6 h-6" />
           </div>
         </div>
 
@@ -102,9 +96,6 @@ export default function ClientDashboard() {
             <div className="text-lg font-black text-slate-800 mt-1">Martes 19:00 hs</div>
             <span className="text-xs text-slate-500 font-medium">Prof. Álvarez (AAT Lic)</span>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-            <GraduationCap className="w-6 h-6" />
-          </div>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
@@ -112,9 +103,6 @@ export default function ClientDashboard() {
             <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Estado de Saldo</span>
             <div className="text-lg font-black text-tennis-700 mt-1">Al día</div>
             <span className="text-xs text-slate-500">Seña 50% cubierta</span>
-          </div>
-          <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-            <CreditCard className="w-6 h-6" />
           </div>
         </div>
 
