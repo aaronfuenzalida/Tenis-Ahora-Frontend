@@ -5,6 +5,11 @@ on:
     branches:
       - main
 
+permissions:
+  checks: write
+  contents: read
+  pull-requests: write
+
 jobs:
   build_and_deploy:
     name: Build & Deploy
@@ -25,9 +30,6 @@ jobs:
 
       - name: Build project
         run: npm run build
-        env:
-          # Agrega aquí tus variables de entorno de Vite si las necesitas
-          # VITE_API_URL: ${{ secrets.VITE_API_URL }}
 
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
