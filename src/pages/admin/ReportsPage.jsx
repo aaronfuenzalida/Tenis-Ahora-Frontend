@@ -44,7 +44,7 @@ export default function ReportsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 no-print">
         <div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-            Generador de Reportes & Estadísticas
+            Generador de Reportes y Estadísticas
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
             Reportes oficiales del club: <strong>Ingresos financieros, Asistencias, Reservas y Tipos de Canchas</strong>.
@@ -66,8 +66,8 @@ export default function ReportsPage() {
         {[
           { id: 'ingresos', label: '1. Reporte de Ingresos', icon: DollarSign },
           { id: 'asistencia', label: '2. Reporte de Asistencia', icon: Users },
-          { id: 'reservas', label: '3. Reporte de Reservas & Ocupación', icon: Calendar },
-          { id: 'canchas', label: '4. Reporte de Canchas & Superficies', icon: Layers }
+          { id: 'reservas', label: '3. Reporte de Reservas y Ocupación', icon: Calendar },
+          { id: 'canchas', label: '4. Reporte de Canchas y Superficies', icon: Layers }
         ].map(tab => {
           const Icon = tab.icon;
           return (
@@ -122,7 +122,7 @@ export default function ReportsPage() {
               </div>
 
               <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200">
-                <span className="text-[10px] uppercase font-bold text-slate-400">Cuotas Clases & Torneos:</span>
+                <span className="text-[10px] uppercase font-bold text-slate-400">Cuotas Clases y Torneos:</span>
                 <div className="text-lg font-black text-slate-800 mt-1">$90.000 ARS</div>
                 <span className="text-[11px] text-tennis-700 font-semibold">12 Socios inscriptos</span>
               </div>
@@ -156,7 +156,7 @@ export default function ReportsPage() {
         {/* TAB 2: Reporte de Asistencia */}
         {activeTab === 'asistencia' && (
           <div className="space-y-6">
-            <h3 className="text-base font-extrabold text-slate-900">Reporte de Asistencia a Clases & Entrenamientos</h3>
+            <h3 className="text-base font-extrabold text-slate-900">Reporte de Asistencia a Clases y Entrenamientos</h3>
             
             <div className="space-y-4">
               {classes.map(cls => (
@@ -233,7 +233,7 @@ export default function ReportsPage() {
                 <tr className="border-b border-slate-200 font-bold text-slate-500 uppercase bg-slate-50">
                   <th className="py-2.5 px-3">Reserva N°</th>
                   <th className="py-2.5 px-3">Cancha</th>
-                  <th className="py-2.5 px-3">Fecha & Turno</th>
+                  <th className="py-2.5 px-3">Fecha y Turno</th>
                   <th className="py-2.5 px-3">Modalidad</th>
                   <th className="py-2.5 px-3 text-center">Estado</th>
                 </tr>

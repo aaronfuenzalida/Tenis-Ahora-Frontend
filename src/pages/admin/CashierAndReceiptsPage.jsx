@@ -85,7 +85,7 @@ export default function CashierAndReceiptsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 no-print">
         <div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-            Caja, Cobros, Descuentos & Recibos Fiscales
+            Caja, Cobros, Descuentos y Recibos Fiscales
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
             Recepción y registro de cobros (alquileres, torneos, clases). Medios de pago: Débito, Crédito, Mercado Pago (QR) y Efectivo.
@@ -203,7 +203,7 @@ export default function CashierAndReceiptsPage() {
                       className="px-3 py-1.5 rounded-xl bg-tennis-50 hover:bg-tennis-100 text-tennis-800 font-bold text-xs border border-tennis-200 inline-flex items-center gap-1"
                     >
                       <Printer className="w-3.5 h-3.5" />
-                      Ver & Imprimir
+                      Ver y Imprimir
                     </button>
                   </td>
                 </tr>

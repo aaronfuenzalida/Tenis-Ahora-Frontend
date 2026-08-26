@@ -25,31 +25,31 @@ export default function Sidebar({ isOpen, onClose }) {
       ]
     },
     {
-      group: 'Canchas & Reservas',
+      group: 'Canchas y Reservas',
       items: [
         { name: 'Gestión de Canchas', to: '/admin/canchas', icon: Layers },
         { name: 'Control de Reservas', to: '/admin/reservas', icon: Calendar }
       ]
     },
     {
-      group: 'Inventario & Equipamiento',
+      group: 'Inventario y Equipamiento',
       items: [
         { name: 'Stock de Materiales', to: '/admin/stock', icon: Package }
       ]
     },
     {
-      group: 'Competición & Enseñanza',
+      group: 'Competición y Enseñanza',
       items: [
-        { name: 'Torneos & Fixtures', to: '/admin/torneos', icon: Trophy },
-        { name: 'Profesores & Clases', to: '/admin/profesores-clases', icon: GraduationCap}
+        { name: 'Torneos y Fixtures', to: '/admin/torneos', icon: Trophy },
+        { name: 'Profesores y Clases', to: '/admin/profesores-clases', icon: GraduationCap}
       ]
     },
     {
-      group: 'Caja & Administración',
+      group: 'Caja y Administración',
       items: [
-        { name: 'Caja & Recibos (QR)', to: '/admin/caja', icon: DollarSign },
+        { name: 'Caja y Recibos (QR)', to: '/admin/caja', icon: DollarSign },
         { name: 'Padrón de Usuarios', to: '/admin/usuarios', icon: Users },
-        { name: 'Reportes & Estadísticas', to: '/admin/reportes', icon: BarChart3 }
+        { name: 'Reportes y Estadísticas', to: '/admin/reportes', icon: BarChart3 }
       ]
     }
   ];

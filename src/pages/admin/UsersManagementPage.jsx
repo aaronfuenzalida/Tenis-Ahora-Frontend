@@ -80,7 +80,7 @@ export default function UsersManagementPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 no-print">
         <div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-            Padrón de Usuarios & Socios
+            Padrón de Usuarios y Socios
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
             Registro, modificación, consulta, eliminación e impresión de fichas de socios del club.

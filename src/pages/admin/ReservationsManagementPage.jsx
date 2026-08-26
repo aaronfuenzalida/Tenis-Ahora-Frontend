@@ -78,7 +78,7 @@ export default function ReservationsManagementPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-            Control de Reservas & Liquidación de Saldos
+            Control de Reservas y Liquidación de Saldos
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
             Gestión de señas del 50%, cobro del 50% al finalizar partido, y aplicación de política de cancelación (mínimo 6hs de antelación).
@@ -136,8 +136,8 @@ export default function ReservationsManagementPage() {
             <thead>
               <tr className="border-b border-slate-200 text-slate-400 font-bold uppercase bg-slate-50/50">
                 <th className="py-3 px-3">Código</th>
-                <th className="py-3 px-3">Cancha & Horario</th>
-                <th className="py-3 px-3">Titular & Jugadores</th>
+                <th className="py-3 px-3">Cancha y Horario</th>
+                <th className="py-3 px-3">Titular y Jugadores</th>
                 <th className="py-3 px-3">Seña 50% (Cobrada)</th>
                 <th className="py-3 px-3">Saldo 50% (Pendiente)</th>
                 <th className="py-3 px-3 text-center">Estado</th>

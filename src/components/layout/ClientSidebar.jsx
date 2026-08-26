@@ -32,17 +32,17 @@ export default function ClientSidebar({ isOpen, onClose }) {
       icon: Calendar
     },
     {
-      name: 'Torneos & Fixtures',
+      name: 'Torneos y Fixtures',
       to: '/app/torneos',
       icon: Trophy
     },
     {
-      name: 'Clases & Profesores',
+      name: 'Clases y Profesores',
       to: '/app/clases',
       icon: GraduationCap,
     },
     {
-      name: 'Mis Pagos & Recibos',
+      name: 'Mis Pagos y Recibos',
       to: '/app/mis-pagos',
       icon: Receipt
     }

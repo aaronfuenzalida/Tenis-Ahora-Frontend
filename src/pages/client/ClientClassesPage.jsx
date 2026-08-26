@@ -47,7 +47,7 @@ export default function ClientClassesPage() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-            Clases, Entrenamientos & Profesores
+            Clases, Entrenamientos y Profesores
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
             Escuela de tenis para adultos y menores. Todos los profesores cuentan con <strong>Título Habilitante AAT / ITF</strong> verificado. Cupo máximo de 30 alumnos por clase.

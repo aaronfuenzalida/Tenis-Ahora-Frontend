@@ -92,7 +92,7 @@ export default function TournamentsManagementPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 no-print">
         <div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-            Organización de Torneos, Fixtures & Resultados
+            Organización de Torneos, Fixtures y Resultados
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
             Categorías Masculino y Femenino, Singles y Parejas en Ladrillo, Cemento y Pasto. Conforme a las reglas de la Asociación de Tenis.

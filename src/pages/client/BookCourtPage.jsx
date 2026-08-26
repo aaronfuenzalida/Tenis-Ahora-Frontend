@@ -485,7 +485,7 @@ export default function BookCourtPage() {
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-bold uppercase text-slate-700">
-                  5. Alquiler de Equipamiento & Stock
+                  5. Alquiler de Equipamiento y Stock
                 </h3>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
                   Control de Stock Activo
@@ -561,7 +561,7 @@ export default function BookCourtPage() {
             {/* Payment Method & Total Breakdown */}
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
               <h3 className="text-xs font-bold uppercase text-slate-700">
-                6. Medio de Pago & Seña Obligatoria (50%)
+                6. Medio de Pago y Seña Obligatoria del 50%
               </h3>
 
               <div className="grid grid-cols-3 gap-2">

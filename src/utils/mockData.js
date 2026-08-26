@@ -425,7 +425,7 @@ export const INITIAL_CLASSES = [
   },
   {
     id: 'cls-02',
-    name: 'Clínica de Iniciación & Fundamentos',
+    name: 'Clínica de Iniciación y Fundamentos',
     type: 'grupal',
     coachId: 'coach-02',
     coachName: 'Entrenadora Valeria Morales',

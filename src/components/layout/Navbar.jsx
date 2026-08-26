@@ -94,7 +94,7 @@ export default function Navbar({ isAdminLayout = false, onToggleSidebar }) {
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                 }`}
               >
-                Torneos & Fixtures
+                Torneos y Fixtures
               </Link>
               <Link
                 to="/app/clases"
@@ -104,7 +104,7 @@ export default function Navbar({ isAdminLayout = false, onToggleSidebar }) {
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                 }`}
               >
-                Clases & Profesores
+                Clases y Profesores
               </Link>
               <Link
                 to="/app/mis-pagos"
@@ -114,7 +114,7 @@ export default function Navbar({ isAdminLayout = false, onToggleSidebar }) {
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                 }`}
               >
-                Mis Pagos & Recibos
+                Mis Pagos y Recibos
               </Link>
             </nav>
           )}

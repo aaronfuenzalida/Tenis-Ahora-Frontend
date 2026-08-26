@@ -142,7 +142,7 @@ export default function AdminDashboard() {
         {/* Torneos en curso */}
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Torneos & Fixtures</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Torneos y Fixtures</span>
             <div className="w-8 h-8 rounded-lg flex items-center justify-center">
               
             </div>
@@ -161,7 +161,7 @@ export default function AdminDashboard() {
       <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-base font-extrabold text-slate-900">Estado de Canchas & Disponibilidad</h2>
+            <h2 className="text-base font-extrabold text-slate-900">Estado de Canchas y Disponibilidad</h2>
             <p className="text-xs text-slate-500">Ladrillo, Cemento y Pasto con control de mantenimiento</p>
           </div>
           <Link to="/admin/canchas" className="text-xs font-bold text-tennis-700 hover:underline flex items-center gap-1">
@@ -212,7 +212,7 @@ export default function AdminDashboard() {
         <div className="lg:col-span-8 bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-base font-extrabold text-slate-900">Reservas Recientes & Liquidación</h2>
+              <h2 className="text-base font-extrabold text-slate-900">Reservas Recientes y Liquidación</h2>
               <p className="text-xs text-slate-500">Control de seña del 50% y cobro de saldo final</p>
             </div>
             <Link to="/admin/reservas" className="text-xs font-bold text-tennis-700 hover:underline">
@@ -225,7 +225,7 @@ export default function AdminDashboard() {
               <thead>
                 <tr className="border-b border-slate-200 text-slate-400 font-bold uppercase bg-slate-50/50">
                   <th className="py-2.5 px-3">Cancha / Turno</th>
-                  <th className="py-2.5 px-3">Titular & Jugadores</th>
+                  <th className="py-2.5 px-3">Titular y Jugadores</th>
                   <th className="py-2.5 px-3">Seña 50%</th>
                   <th className="py-2.5 px-3">Saldo 50%</th>
                   <th className="py-2.5 px-3 text-center">Estado</th>

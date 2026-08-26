@@ -40,7 +40,7 @@ export default function ClientPaymentsPage() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-            Mis Pagos, Señas & Recibos Oficiales
+            Mis Pagos, Señas y Recibos Oficiales
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
             Historial de transacciones de alquiler de canchas, señas del 50%, torneos y comprobantes digitales con código QR.
@@ -131,7 +131,7 @@ export default function ClientPaymentsPage() {
                       className="px-3 py-1.5 rounded-xl bg-tennis-50 hover:bg-tennis-100 text-tennis-800 font-bold text-xs border border-tennis-200 inline-flex items-center gap-1.5 transition-colors"
                     >
                       <Printer className="w-3.5 h-3.5" />
-                      Ver Recibo & QR
+                      Ver Recibo y QR
                     </button>
                   </td>
                 </tr>

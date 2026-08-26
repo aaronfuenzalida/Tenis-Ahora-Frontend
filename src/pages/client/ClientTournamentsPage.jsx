@@ -34,7 +34,7 @@ export default function ClientTournamentsPage() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-            Torneos & Cuadros de Juego (Fixtures)
+            Torneos y Cuadros de Juego (Fixtures)
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
             Competencias oficiales del club: Masculinos, Femeninos, Singles y Dobles en todas las superficies (Ladrillo, Cemento, Pasto).
