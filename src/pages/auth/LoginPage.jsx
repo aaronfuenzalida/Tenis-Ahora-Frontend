@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { mensajeDeError } from '../../services/api';
 import Logo from '../../components/common/Logo';
 import { 
   User, 
@@ -15,32 +16,40 @@ import {
 } from 'lucide-react';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('socio@gmail.com');
-  const [password, setPassword] = useState('tenis1234');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogin = async (e, forcedRole = null, forcedEmail = null) => {
+  const handleLogin = async (e) => {
     if (e) e.preventDefault();
     setError('');
     setLoading(true);
 
     try {
-      const emailToUse = forcedEmail || email;
-      const loggedUser = await login(emailToUse, password, forcedRole);
+      // El rol lo decide el backend (Rol.Socio / Rol.Empleado), no la pantalla.
+      const loggedUser = await login(email, password);
       if (loggedUser.role === 'admin') {
         navigate('/admin');
       } else {
         navigate('/app/dashboard');
       }
     } catch (err) {
-      setError('Credenciales inválidas o error de conexión');
+      setError(mensajeDeError(err, 'No se pudo iniciar sesión.'));
     } finally {
       setLoading(false);
     }
+  };
+
+  // Los accesos rápidos solo completan el formulario: las credenciales tienen
+  // que existir en la base (registralas una vez desde /register).
+  const completarCredenciales = (demoEmail, demoPassword) => {
+    setError('');
+    setEmail(demoEmail);
+    setPassword(demoPassword);
   };
 
   return (
@@ -86,7 +95,7 @@ export default function LoginPage() {
           <div className="mb-6">
             <h2 className="text-2xl font-black text-slate-900 tracking-tight">Iniciar Sesión</h2>
             <p className="text-sm text-slate-500 mt-1">
-              Ingresá con tus credenciales o utilizá los accesos rápidos de demostración:
+              Ingresá con tus credenciales. Los accesos rápidos completan el formulario con las cuentas de prueba:
             </p>
           </div>
 
@@ -94,24 +103,24 @@ export default function LoginPage() {
           <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-200">
             <button
               type="button"
-              onClick={(e) => handleLogin(e, 'client', 'socio@tenisahora.com')}
+              onClick={() => completarCredenciales('socio@tenisahora.com', 'Tenis1234')}
               className="p-3 bg-white hover:bg-tennis-50 border border-slate-200 hover:border-tennis-300 rounded-xl text-left transition-all shadow-sm group"
             >
               <div className="flex items-center justify-between">
                 <span className="text-xs font-extrabold text-tennis-700 uppercase tracking-wide">DEMO</span>
               </div>
-              <div className="font-bold text-sm text-slate-900 mt-1">Ingresar como Socio</div>
+              <div className="font-bold text-sm text-slate-900 mt-1">Completar como Socio</div>
             </button>
 
             <button
               type="button"
-              onClick={(e) => handleLogin(e, 'admin', 'admin@tenisahora.com')}
+              onClick={() => completarCredenciales('admin@tenisahora.com', 'Tenis1234')}
               className="p-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-left transition-all shadow-sm group"
             >
               <div className="flex items-center justify-between">
                 <span className="text-xs font-extrabold text-tennis-400 uppercase tracking-wide">DEMO</span>
               </div>
-              <div className="font-bold text-sm text-white mt-1">Panel de Admin</div>
+              <div className="font-bold text-sm text-white mt-1">Completar como Empleado</div>
             </button>
           </div>
 
@@ -153,7 +162,7 @@ export default function LoginPage() {
                 <label className="block text-xs font-bold text-slate-700 uppercase">
                   Contraseña
                 </label>
-                <a href="#forgot" onClick={(e) => { e.preventDefault(); alert('Utilice la clave demo: tenis1234'); }} className="text-xs text-tennis-600 hover:underline">
+                <a href="#forgot" onClick={(e) => { e.preventDefault(); alert('Recuperación de clave no implementada todavía.'); }} className="text-xs text-tennis-600 hover:underline">
                   ¿Olvidaste tu clave?
                 </a>
               </div>
@@ -177,7 +186,7 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full py-3 px-4 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-bold text-sm shadow-md hover:shadow-glow-green flex items-center justify-center gap-2 transition-all disabled:opacity-50 mt-2"
             >
-              {loading ? 'Validando token JWT...' : 'Ingresar al Sistema'}
+              {loading ? 'Validando credenciales...' : 'Ingresar al Sistema'}
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>

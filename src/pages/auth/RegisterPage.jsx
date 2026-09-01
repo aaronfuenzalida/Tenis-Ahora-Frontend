@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { mensajeDeError } from '../../services/api';
 import Logo from '../../components/common/Logo';
 import { User, Mail, Phone, MapPin, Lock, CreditCard, ArrowRight, CheckCircle2 } from 'lucide-react';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
-    name: '',
+    nombre: '',
+    apellido: '',
     dni: '',
     email: '',
     phone: '',
@@ -38,7 +40,7 @@ export default function RegisterPage() {
       await register(formData);
       navigate('/app/dashboard');
     } catch (err) {
-      setError('Error al registrar usuario');
+      setError(mensajeDeError(err, 'No se pudo completar el registro.'));
     } finally {
       setLoading(false);
     }
@@ -70,10 +72,10 @@ export default function RegisterPage() {
         <form onSubmit={handleRegister} className="mt-6 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             
-            {/* Nombre Completo */}
+            {/* Nombre */}
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                Nombre y Apellido *
+                Nombre *
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
@@ -81,17 +83,39 @@ export default function RegisterPage() {
                 </div>
                 <input
                   type="text"
-                  name="name"
+                  name="nombre"
                   required
-                  value={formData.name}
+                  value={formData.nombre}
                   onChange={handleChange}
-                  placeholder="Guillermo Vilas"
+                  placeholder="Guillermo"
                   className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-tennis-500/20 focus:border-tennis-600 outline-none"
                 />
               </div>
             </div>
 
-            {/* DNI */}
+            {/* Apellido */}
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
+                Apellido *
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                  <User className="w-4 h-4" />
+                </div>
+                <input
+                  type="text"
+                  name="apellido"
+                  required
+                  value={formData.apellido}
+                  onChange={handleChange}
+                  placeholder="Vilas"
+                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-tennis-500/20 focus:border-tennis-600 outline-none"
+                />
+              </div>
+            </div>
+
+            {/* DNI — TODO: la entidad Usuario del backend todavia no tiene columna Dni,
+                asi que este dato no se envia ni se persiste. */}
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
                 Documento (DNI) *
@@ -155,7 +179,7 @@ export default function RegisterPage() {
             </div>
 
             {/* Dirección */}
-            <div className="sm:col-span-2">
+            <div>
               <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
                 Dirección / Domicilio *
               </label>

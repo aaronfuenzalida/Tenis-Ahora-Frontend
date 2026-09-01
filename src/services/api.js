@@ -14,7 +14,7 @@ import {
 
 // Create base Axios instance
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5090/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json'
@@ -43,6 +43,41 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+/**
+ * Traduce un error de axios al mensaje que mostramos en pantalla.
+ * El backend responde { "error": "..." } desde ManejoErroresMiddleware.
+ */
+export function mensajeDeError(err, fallback = 'Ocurrió un error inesperado.') {
+  if (err?.response?.data?.error) return err.response.data.error;
+  if (err?.response?.status === 401) return 'Credenciales inválidas.';
+  if (err?.code === 'ERR_NETWORK' || err?.code === 'ECONNABORTED') {
+    return 'No se pudo conectar con el servidor. Verificá que la API esté levantada.';
+  }
+  return fallback;
+}
+
+// ---- Auth: único módulo conectado al backend real (TenisAhora.API) ----
+export const authService = {
+  // POST /api/auth/login -> AuthResponseDto
+  async login(email, password) {
+    const { data } = await api.post('/auth/login', { email, password });
+    return data;
+  },
+
+  // POST /api/auth/registrar -> AuthResponseDto
+  async registrar({ nombre, apellido, direccion, email, numeroTelefono, password }) {
+    const { data } = await api.post('/auth/registrar', {
+      nombre,
+      apellido,
+      direccion,
+      email,
+      numeroTelefono,
+      password
+    });
+    return data;
+  }
+};
 
 // Local State Store for Mocking CRUD operations in memory
 let courtsStore = [...INITIAL_COURTS];

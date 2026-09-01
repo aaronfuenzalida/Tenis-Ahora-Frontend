@@ -1,14 +1,42 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { 
-  getStoredToken, 
-  getStoredUser, 
-  setStoredToken, 
-  removeStoredToken, 
-  createMockToken 
+import {
+  getStoredToken,
+  getStoredUser,
+  setStoredToken,
+  setStoredUser,
+  removeStoredToken
 } from '../utils/jwt';
-import { INITIAL_USERS } from '../utils/mockData';
+import { authService } from '../services/api';
 
 const AuthContext = createContext(null);
+
+// El backend define los roles en Domain/Enums/Rol.cs; el front usa 'client' / 'admin'.
+const ROL_BACKEND_A_FRONT = {
+  Socio: 'client',
+  Empleado: 'admin'
+};
+
+/**
+ * Adapta el AuthResponseDto de la API a la forma de usuario que consumen las páginas.
+ */
+function mapearUsuario(data) {
+  const nombreCompleto = `${data.nombre ?? ''} ${data.apellido ?? ''}`.trim();
+
+  return {
+    id: String(data.id),
+    name: nombreCompleto || data.email,
+    nombre: data.nombre,
+    apellido: data.apellido,
+    email: data.email,
+    phone: data.numeroTelefono ?? '',
+    address: data.direccion ?? '',
+    role: ROL_BACKEND_A_FRONT[data.rol] ?? 'client',
+    rolBackend: data.rol,
+    // TODO: la entidad Usuario del backend todavía no guarda DNI ni número de socio.
+    dni: '',
+    memberNumber: `TA-${String(data.id).padStart(4, '0')}`
+  };
+}
 
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(null);
@@ -24,61 +52,40 @@ export function AuthProvider({ children }) {
       setToken(savedToken);
       setUser(savedUser);
     } else {
-      // Default to guest/unauthenticated on first load so welcome login is displayed
+      // Sesión vencida o inexistente: arrancamos como invitado y se muestra el login
+      removeStoredToken();
       setToken(null);
       setUser(null);
     }
     setLoading(false);
   }, []);
 
-  const login = async (email, password, roleHint = null) => {
-    // Look up user in mock users or construct a profile
-    let matchedUser = INITIAL_USERS.find(u => u.email.toLowerCase() === email.toLowerCase());
-    
-    if (!matchedUser) {
-      // Fallback dynamic user
-      matchedUser = {
-        id: `usr-${Date.now()}`,
-        name: email.split('@')[0].replace('.', ' ').toUpperCase(),
-        email: email,
-        role: roleHint || (email.includes('admin') ? 'admin' : 'client'),
-        dni: '38.452.129',
-        phone: '+54 11 4892-1234',
-        address: 'Buenos Aires, Argentina',
-        memberNumber: 'TA-8821'
-      };
-    }
-
-    if (roleHint) {
-      matchedUser = { ...matchedUser, role: roleHint };
-    }
-
-    const generatedJwt = createMockToken(matchedUser);
-    setStoredToken(generatedJwt);
-    setToken(generatedJwt);
-    setUser(matchedUser);
-    return matchedUser;
+  const guardarSesion = (data) => {
+    const usuario = mapearUsuario(data);
+    setStoredToken(data.token);
+    setStoredUser(usuario);
+    setToken(data.token);
+    setUser(usuario);
+    return usuario;
   };
 
-  const register = async (formData) => {
-    const newUser = {
-      id: `usr-${Date.now()}`,
-      name: formData.name,
-      email: formData.email,
-      dni: formData.dni,
-      phone: formData.phone,
-      address: formData.address,
-      role: 'client',
-      memberNumber: `TA-${Math.floor(1000 + Math.random() * 9000)}`,
-      memberSince: new Date().toISOString().split('T')[0],
-      activeDiscounts: []
-    };
+  // POST /api/auth/login — lanza el error de axios para que la página muestre el mensaje
+  const login = async (email, password) => {
+    const data = await authService.login(email, password);
+    return guardarSesion(data);
+  };
 
-    const generatedJwt = createMockToken(newUser);
-    setStoredToken(generatedJwt);
-    setToken(generatedJwt);
-    setUser(newUser);
-    return newUser;
+  // POST /api/auth/registrar
+  const register = async (formData) => {
+    const data = await authService.registrar({
+      nombre: formData.nombre,
+      apellido: formData.apellido,
+      direccion: formData.address,
+      email: formData.email,
+      numeroTelefono: formData.phone,
+      password: formData.password
+    });
+    return guardarSesion(data);
   };
 
   const logout = () => {
@@ -87,17 +94,16 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
+  /**
+   * Solo para la demo: alterna la vista socio/admin sin volver a pedir token.
+   * El rol real viaja firmado dentro del JWT, así que cuando los endpoints de
+   * administración estén protegidos con [Authorize(Roles = "Empleado")] esto
+   * deja de servir y hay que borrarlo.
+   */
   const switchRole = (newRole) => {
     if (!user) return;
-    const updatedUser = {
-      ...user,
-      role: newRole,
-      name: newRole === 'admin' ? 'Administrador General' : (user.name === 'Administrador General' ? 'Federico Gómez' : user.name),
-      email: newRole === 'admin' ? 'admin@tenisahora.com' : 'socio@tenisahora.com'
-    };
-    const newToken = createMockToken(updatedUser);
-    setStoredToken(newToken);
-    setToken(newToken);
+    const updatedUser = { ...user, role: newRole };
+    setStoredUser(updatedUser);
     setUser(updatedUser);
   };
 
