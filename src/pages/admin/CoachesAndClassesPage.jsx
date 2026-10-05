@@ -273,7 +273,7 @@ export default function CoachesAndClassesPage() {
         </div>
       </div>
 
-      {/* Interactive Visual Attendance Matrix Modal (RF078 a RF085 & RF067) */}
+      {/* Interactive Visual Attendance Matrix Modal */}
       <AttendanceMatrixModal
         isOpen={!!selectedClassForAttendance}
         onClose={() => setSelectedClassForAttendance(null)}

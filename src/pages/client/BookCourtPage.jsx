@@ -125,17 +125,17 @@ export default function BookCourtPage() {
     setPlayers(updated);
   };
 
-  // Check for duplicate DNIs (RF034/RF035)
+  // Check for duplicate DNIs
   const participantDnis = players.map(p => cleanDNI(p.dni)).filter(Boolean);
   const duplicateDnis = participantDnis.filter((d, idx) => participantDnis.indexOf(d) !== idx);
 
-  // Pricing calculations (RD03, RD04, RD06)
+  // Pricing calculations
   const courtPricePerHour = selectedCourt ? selectedCourt.pricePerHour : 4800;
   const courtTotal = courtPricePerHour * durationHours;
-  const equipmentTotal = 0; // RD06: Los ítems de stock no tienen costo extra para la reserva
+  const equipmentTotal = 0; // Los ítems de stock no tienen costo extra para la reserva
   const totalReservation = courtTotal;
-  const deposit50 = totalReservation * 0.5; // RD03: 50% de seña para confirmar
-  const remaining50 = totalReservation * 0.5; // RD04: 50% al finalizar el tiempo de alquiler
+  const deposit50 = totalReservation * 0.5; // 50% de seña para confirmar
+  const remaining50 = totalReservation * 0.5; // 50% al finalizar el tiempo de alquiler
 
   // Stock items helpers (RD05: solo redes, pelotas y raquetas; RD06/RD07: bloqueo si no hay stock)
   const ballStock = stock.find(s => s.category === 'Pelotas');
@@ -171,7 +171,7 @@ export default function BookCourtPage() {
     // Validate player names (Nombre y Apellido)
     const incompleteNames = players.some(p => !p.name || p.name.trim().split(/\s+/).length < 2);
     if (incompleteNames) {
-      alert('Por favor complete Nombre y Apellido de todos los participantes del partido (RF034 / RF035).');
+      alert('Por favor complete Nombre y Apellido de todos los participantes del partido.');
       return;
     }
 
@@ -184,7 +184,7 @@ export default function BookCourtPage() {
 
     // Validate unique DNIs
     if (duplicateDnis.length > 0) {
-      alert('No se permiten DNIs duplicados entre los participantes del partido (RF034 / RF035).');
+      alert('No se permiten DNIs duplicados entre los participantes del partido.');
       return;
     }
 
@@ -310,7 +310,7 @@ export default function BookCourtPage() {
         </div>
 
         <div className="text-[11px] text-slate-400">
-          Disponibilidad en tiempo real de <strong>08:00 a 22:00 hs</strong> (RF032 a RF045)
+          Disponibilidad en tiempo real de <strong>08:00 a 22:00 hs</strong>
         </div>
       </div>
 

@@ -61,7 +61,7 @@ export default function CourtTimelineGrid({
     return c.surfaceType.toLowerCase() === surfaceFilter.toLowerCase();
   });
 
-  // Date calculation boundaries (RF032: Max 30 days)
+  // Date calculation boundaries (Max 30 days)
   const today = new Date();
   const todayStr = today.toISOString().split('T')[0];
   const maxDate = new Date();

@@ -37,21 +37,21 @@ const TP_DISCOUNTS = [
     code: 'PAQ10',
     name: 'Paquete de 10 Horas Mensuales',
     discountPercent: 15,
-    description: 'RF129 - Aplicable a socios con paquete de horas acumuladas contratado.',
+    description: 'Aplicable a socios con paquete de horas acumuladas contratado.',
     color: 'emerald'
   },
   {
     code: 'LIGA20',
     name: 'Socio Liga Regular Tenis Ahora',
     discountPercent: 20,
-    description: 'RF130 - Bonificación especial socios activos en liga interna oficial.',
+    description: 'Bonificación especial socios activos en liga interna oficial.',
     color: 'tennis'
   },
   {
     code: 'FUTBOL10',
     name: 'Convenio Escuela de Fútbol Afiliada',
     discountPercent: 10,
-    description: 'RF131 - Convenio interclubes para socios y familiares directos.',
+    description: 'Convenio interclubes para socios y familiares directos.',
     color: 'sky'
   }
 ];
@@ -164,9 +164,6 @@ export default function POSDiscountCalculator({ onChargeComplete }) {
               <h2 className="text-lg font-black text-slate-900 tracking-tight">
                 Simulador y Cotizador de Descuentos en Caja
               </h2>
-              <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded-full bg-tennis-100 text-tennis-900 border border-tennis-300">
-                RF128 a RF133
-              </span>
             </div>
             <p className="text-xs text-slate-500">
               Calculadora de cobro en tiempo real con políticas de beneficios y emisión fiscal de recibo.
@@ -281,7 +278,7 @@ export default function POSDiscountCalculator({ onChargeComplete }) {
 
         </div>
 
-        {/* Row 2: Discounts Policy Selection (RF128 a RF133) */}
+        {/* Row 2: Discounts Policy Selection */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <label className="text-xs font-extrabold uppercase text-slate-700 flex items-center gap-1.5">

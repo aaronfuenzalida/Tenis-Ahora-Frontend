@@ -120,7 +120,7 @@ export default function CashierAndReceiptsPage() {
             Caja, Cobros, Descuentos y Recibos Fiscales
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Simulador de cobro con políticas de descuento reglamentarias (RF128 a RF133) y libro oficial de caja.
+            Simulador de cobro con políticas de descuento reglamentarias y libro oficial de caja.
           </p>
         </div>
 
@@ -150,7 +150,7 @@ export default function CashierAndReceiptsPage() {
         </div>
       </div>
 
-      {/* POS Realtime Checkout & Discount Simulator (RF128 a RF133) */}
+      {/* POS Realtime Checkout & Discount Simulator */}
       {showSimulator && (
         <div className="no-print">
           <POSDiscountCalculator onChargeComplete={handleChargeCompleted} />

@@ -167,7 +167,7 @@ export default function TournamentsManagementPage() {
             <div className="flex items-center justify-between pb-4 border-b border-slate-100">
               <div>
                 <span className="text-[10px] font-black uppercase text-tennis-700 tracking-wider">
-                  Cuadro Oficial del Torneo / Fixture AAT (RF105 a RF115)
+                  Cuadro Oficial del Torneo / Fixture AAT
                 </span>
                 <h2 className="text-xl font-extrabold text-slate-900">{selectedTournament?.name}</h2>
                 <p className="text-xs text-slate-500">

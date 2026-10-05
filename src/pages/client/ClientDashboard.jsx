@@ -50,7 +50,7 @@ export default function ClientDashboard() {
     if (hoursLeft >= 6) {
       alert('Reserva cancelada con más de 6 horas de antelación. Se ha gestionado el reintegro de la seña .');
     } else {
-      alert('Reserva cancelada con menos de 6 horas de antelación. Se ha aplicado la retención de la seña conforme a RF051.');
+      alert('Reserva cancelada con menos de 6 horas de antelación. Se ha aplicado la retención de la seña.');
     }
   };
 
@@ -325,7 +325,7 @@ export default function ClientDashboard() {
           <Modal
             isOpen={showCancelModal}
             onClose={() => setShowCancelModal(false)}
-            title="Cancelar Reserva de Cancha (RF050 / RF051)"
+            title="Cancelar Reserva de Cancha"
             maxWidth="max-w-md"
           >
             <div className="space-y-4 text-xs">
@@ -350,7 +350,7 @@ export default function ClientDashboard() {
                   <div className="p-2.5 bg-emerald-50 rounded-lg border border-emerald-200 text-emerald-800 space-y-1">
                     <strong className="flex items-center gap-1 font-bold">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                      Cancelación dentro del plazo (&ge; 6 hs) — RF050
+                      Cancelación dentro del plazo (&ge; 6 hs)
                     </strong>
                     <p className="text-[11px]">
                       Corresponde el <strong>reintegro total del 100%</strong> de la seña abonada (${upcomingBooking.depositPaid?.toLocaleString('es-AR')}) conforme a la política del club.
@@ -360,7 +360,7 @@ export default function ClientDashboard() {
                   <div className="p-2.5 bg-red-50 rounded-lg border border-red-200 text-red-800 space-y-1">
                     <strong className="flex items-center gap-1 font-bold">
                       <AlertCircle className="w-4 h-4 text-red-600" />
-                      Cancelación fuera de término (&lt;6 hs) — RF051
+                      Cancelación fuera de término (&lt;6 hs)
                     </strong>
                     <p className="text-[11px]">
                       Se aplicará la <strong>retención del 50% de la seña</strong> (${upcomingBooking.depositPaid?.toLocaleString('es-AR')}) en concepto de costos operativos y penalidad por falta de preaviso.

@@ -287,7 +287,7 @@ export default function ReportsPage() {
             Reportes, Estadísticas y Gráficos Visuales
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Visualización analítica oficial (RF138 a RF142): <strong>Ocupación por superficie, distribución de ingresos y filtros por período</strong>.
+            Visualización analítica oficial <strong>Ocupación por superficie, distribución de ingresos y filtros por período</strong>.
           </p>
         </div>
 
@@ -301,7 +301,7 @@ export default function ReportsPage() {
         </button>
       </div>
 
-      {/* QUICK DATE RANGE FILTERS (RF138 / RF142) */}
+      {/* QUICK DATE RANGE FILTERS */}
       <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-3 no-print">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
@@ -428,7 +428,7 @@ export default function ReportsPage() {
         {/* Printable Official Header */}
         <div className="text-center border-b border-dashed border-slate-300 pb-4">
           <h2 className="text-xl font-black text-tennis-900 uppercase">CLUB TENIS AHORA — ESTADÍSTICAS OFICIALES</h2>
-          <p className="text-xs text-slate-500">Informe Oficial Emitido para Dirección y Auditoría Contable (RF138 - RF142)</p>
+          <p className="text-xs text-slate-500">Informe Oficial Emitido para Dirección y Auditoría Contable</p>
           <div className="flex items-center justify-center gap-3 text-[10px] text-slate-400 mt-1 font-mono">
             <span>Período evaluado: {reportData.label}</span>
             <span>•</span>
@@ -436,7 +436,7 @@ export default function ReportsPage() {
           </div>
         </div>
 
-        {/* TAB 1: Distribución de Ingresos y Gráfico Circular por Medio de Pago (RF138 a RF142) */}
+        {/* TAB 1: Distribución de Ingresos y Gráfico Circular por Medio de Pago */}
         {activeTab === 'ingresos' && (
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
@@ -589,7 +589,7 @@ export default function ReportsPage() {
           </div>
         )}
 
-        {/* TAB 2: Ocupación por Superficie (RF138 a RF142) */}
+        {/* TAB 2: Ocupación por Superficie */}
         {activeTab === 'reservas' && (
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">

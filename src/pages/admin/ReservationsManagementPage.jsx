@@ -420,7 +420,7 @@ export default function ReservationsManagementPage() {
             <div className="p-3 bg-emerald-50 text-emerald-900 rounded-xl border border-emerald-200 space-y-1">
               <div className="font-bold flex items-center gap-1 text-emerald-800">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                Cancelación dentro del plazo (&ge; 6 hs) — RF050
+                Cancelación dentro del plazo (&ge; 6 hs)
               </div>
               <p className="text-[11px] text-emerald-700">
                 Corresponde <strong>reembolso total</strong> de la seña abonada (${selectedResForCancel?.depositPaid?.toLocaleString('es-AR')}) al socio.
@@ -430,7 +430,7 @@ export default function ReservationsManagementPage() {
             <div className="p-3 bg-red-50 text-red-900 rounded-xl border border-red-200 space-y-1">
               <div className="font-bold flex items-center gap-1 text-red-800">
                 <AlertTriangle className="w-4 h-4 text-red-600" />
-                Cancelación fuera de término (&lt; 6 hs) — RF051
+                Cancelación fuera de término (&lt; 6 hs)
               </div>
               <p className="text-[11px] text-red-700">
                 Se aplicará la <strong>retención del 50% de la seña</strong> (${selectedResForCancel?.depositPaid?.toLocaleString('es-AR')}) por costo operativo y lucro cesante.

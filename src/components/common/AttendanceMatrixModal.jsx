@@ -40,7 +40,7 @@ export default function AttendanceMatrixModal({
 
   const sessions = classItem.sessions || ['03/10', '05/10', '10/10', '12/10', '17/10', '19/10', '24/10', '26/10'];
   const students = classItem.students || [];
-  const maxCapacity = 30; // RF067: Tope estricto de 30 alumnos
+  const maxCapacity = 30; // Tope estricto de 30 alumnos
   const isCupoLleno = students.length >= maxCapacity;
 
   // Filter students

@@ -206,7 +206,7 @@ export default function TournamentBracketTree({
             Árbol de Llaves — Eliminación Directa
           </h3>
           <p className="text-slate-400 text-xs">
-            Cuartos de Final → Semifinales → Gran Final. Partidos oficiales al mejor de 3 sets (RF105 a RF115).
+            Cuartos de Final → Semifinales → Gran Final. Partidos oficiales al mejor de 3 sets.
           </p>
         </div>
 
