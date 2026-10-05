@@ -21,7 +21,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
-  const { login } = useAuth();
+  const { login, loginDemo } = useAuth();
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
@@ -30,7 +30,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      // El rol lo decide el backend (Rol.Socio / Rol.Empleado), no la pantalla.
+      // El backend decide el rol (o fallback a demo si no hay backend y son credenciales demo)
       const loggedUser = await login(email, password);
       if (loggedUser.role === 'admin') {
         navigate('/admin');
@@ -44,12 +44,14 @@ export default function LoginPage() {
     }
   };
 
-  // Los accesos rápidos solo completan el formulario: las credenciales tienen
-  // que existir en la base (registralas una vez desde /register).
-  const completarCredenciales = (demoEmail, demoPassword) => {
+  const handleDemoLogin = (role) => {
     setError('');
-    setEmail(demoEmail);
-    setPassword(demoPassword);
+    const demoUser = loginDemo(role);
+    if (demoUser.role === 'admin') {
+      navigate('/admin');
+    } else {
+      navigate('/app/dashboard');
+    }
   };
 
   return (
@@ -81,8 +83,6 @@ export default function LoginPage() {
             </div>
           </div>
 
-          
-
           {/* Bottom badge */}
           <div className="relative z-10 mt-8 pt-4 text-[11px] text-tennis-300/80">
             Universidad Nacional Arturo Jauretche — Ingeniería de Software
@@ -95,39 +95,8 @@ export default function LoginPage() {
           <div className="mb-6">
             <h2 className="text-2xl font-black text-slate-900 tracking-tight">Iniciar Sesión</h2>
             <p className="text-sm text-slate-500 mt-1">
-              Ingresá con tus credenciales. Los accesos rápidos completan el formulario con las cuentas de prueba:
+              Ingresá con tu cuenta o accedé directamente en modo demo.
             </p>
-          </div>
-
-          {/* Quick Demo Selector Buttons */}
-          <div className="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-200">
-            <button
-              type="button"
-              onClick={() => completarCredenciales('socio@tenisahora.com', 'Tenis1234')}
-              className="p-3 bg-white hover:bg-tennis-50 border border-slate-200 hover:border-tennis-300 rounded-xl text-left transition-all shadow-sm group"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-extrabold text-tennis-700 uppercase tracking-wide">DEMO</span>
-              </div>
-              <div className="font-bold text-sm text-slate-900 mt-1">Completar como Socio</div>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => completarCredenciales('admin@tenisahora.com', 'Tenis1234')}
-              className="p-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-left transition-all shadow-sm group"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-extrabold text-tennis-400 uppercase tracking-wide">DEMO</span>
-              </div>
-              <div className="font-bold text-sm text-white mt-1">Completar como Empleado</div>
-            </button>
-          </div>
-
-          <div className="relative flex items-center justify-center my-2">
-            <div className="border-t border-slate-200 w-full" />
-            <span className="bg-white px-3 text-xs font-medium text-slate-400 uppercase">o</span>
-            <div className="border-t border-slate-200 w-full" />
           </div>
 
           {error && (
@@ -137,7 +106,7 @@ export default function LoginPage() {
           )}
 
           {/* Form */}
-          <form onSubmit={(e) => handleLogin(e)} className="space-y-4 mt-2">
+          <form onSubmit={(e) => handleLogin(e)} className="space-y-4">
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
                 Correo Electrónico
@@ -162,7 +131,7 @@ export default function LoginPage() {
                 <label className="block text-xs font-bold text-slate-700 uppercase">
                   Contraseña
                 </label>
-                <a href="#forgot" onClick={(e) => { e.preventDefault(); alert('Recuperación de clave no implementada todavía.'); }} className="text-xs text-tennis-600 hover:underline">
+                <a href="#forgot" onClick={(e) => { e.preventDefault(); alert('Podés ingresar directamente con los botones de Modo Demo.'); }} className="text-xs text-tennis-600 hover:underline">
                   ¿Olvidaste tu clave?
                 </a>
               </div>
@@ -191,8 +160,40 @@ export default function LoginPage() {
             </button>
           </form>
 
+          {/* Quick Demo Access - Compact & Clean */}
+          <div className="mt-5 pt-4 border-t border-slate-100">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                Acceso rápido demo
+              </span>
+              <span className="text-[10px] text-tennis-700 font-semibold bg-tennis-50 px-2 py-0.5 rounded-full border border-tennis-200">
+                Sin backend
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2.5">
+              <button
+                type="button"
+                onClick={() => handleDemoLogin('client')}
+                className="py-2.5 px-3 rounded-xl border border-tennis-200 bg-tennis-50/70 hover:bg-tennis-100 text-tennis-900 text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-95 group"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-tennis-600 group-hover:scale-110 transition-transform" />
+                <span>Demo Socio</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleDemoLogin('admin')}
+                className="py-2.5 px-3 rounded-xl border border-slate-800 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-95 group"
+              >
+                <Shield className="w-3.5 h-3.5 text-tennis-400 group-hover:scale-110 transition-transform" />
+                <span>Demo Admin</span>
+              </button>
+            </div>
+          </div>
+
           {/* Switch to Register */}
-          <div className="mt-6 text-center text-xs text-slate-600 pt-4 border-t border-slate-100">
+          <div className="mt-5 text-center text-xs text-slate-600 pt-3 border-t border-slate-100">
             ¿No tenés una cuenta registrada?{' '}
             <Link to="/register" className="font-bold text-tennis-700 hover:text-tennis-800 hover:underline">
               Registrate como nuevo socio aquí

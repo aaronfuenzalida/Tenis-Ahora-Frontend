@@ -37,8 +37,7 @@ El archivo `.env` está en `.gitignore`: cada uno usa su copia local de `.env.ex
 4. El interceptor de axios manda el token en `Authorization: Bearer <token>` en cada request.
 5. Si el token venció, `getStoredToken()` lo descarta y la app vuelve al login.
 
-## Primer uso
+## Primer uso y Modo Demo
 
-No hay usuarios precargados: entrá a `/register` y creá tu cuenta. Todo usuario nuevo
-se crea con rol `Socio`; para probar el panel de administración hay que cambiarle el rol
-a `Empleado` en la base (o usar el botón de demo del navbar, que solo cambia la vista).
+- **Modo Demo (sin backend)**: Podés explorar toda la aplicación inmediatamente desde la pantalla de login haciendo clic en **Demo Socio** o **Demo Admin**. No requiere tener el backend levantado ni crear usuarios previamente. Dentro de la app, podés alternar en cualquier momento entre la vista de Socio y el Panel de Administración.
+- **Con Backend (.NET en `http://localhost:5090`)**: Registrá un usuario desde `/register` o iniciá sesión con tus credenciales. Los nuevos usuarios se crean con rol `Socio`; para probar el panel de administración podés asignarle rol `Empleado` en la base de datos o usar el alternador de rol en la cabecera.

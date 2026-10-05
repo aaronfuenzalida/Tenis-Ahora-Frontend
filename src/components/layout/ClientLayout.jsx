@@ -1,13 +1,19 @@
 import React, { useState } from 'react';
-import { Outlet, Link } from 'react-router-dom';
+import { Outlet, Link, useNavigate } from 'react-router-dom';
 import ClientSidebar from './ClientSidebar';
-import { Menu, ArrowRightLeft, Shield, Calendar, User, Bell } from 'lucide-react';
+import { Menu, ArrowRightLeft, Shield, Calendar, User, Bell, Sparkles } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Logo from '../common/Logo';
 
 export default function ClientLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, switchRole } = useAuth();
+  const navigate = useNavigate();
+
+  const handleToggleRole = () => {
+    switchRole('admin');
+    navigate('/admin');
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
@@ -45,6 +51,13 @@ export default function ClientLayout() {
 
           {/* Right Header Actions */}
           <div className="flex items-center gap-3">
+            {user?.isDemo && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase bg-tennis-50 text-tennis-800 border border-tennis-200 shadow-sm">
+                <Sparkles className="w-3 h-3 text-tennis-600" />
+                Modo Demo
+              </span>
+            )}
+
             <Link
               to="/app/reservas"
               className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white text-xs font-extrabold shadow-sm hover:shadow-glow-green transition-all"
@@ -55,8 +68,9 @@ export default function ClientLayout() {
 
             <button
               type="button"
-              onClick={() => switchRole('admin')}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200 transition-all"
+              onClick={handleToggleRole}
+              title="Cambiar a vista de administración"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200 transition-all shadow-sm"
             >
               <ArrowRightLeft className="w-3.5 h-3.5 text-tennis-600" />
               <span className="hidden sm:inline">Modo</span> Admin

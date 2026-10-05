@@ -1,13 +1,18 @@
 import React, { useState } from 'react';
-import { Outlet, Link } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
-import Navbar from './Navbar';
-import { Menu, Search, Bell, Shield, ArrowRightLeft } from 'lucide-react';
+import { Menu, Search, Bell, Shield, ArrowRightLeft, Sparkles } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, switchRole } = useAuth();
+  const navigate = useNavigate();
+
+  const handleToggleRole = () => {
+    switchRole('client');
+    navigate('/app/dashboard');
+  };
 
   return (
     <div className="min-h-screen bg-slate-100 flex">
@@ -36,15 +41,24 @@ export default function AdminLayout() {
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+            {user?.isDemo && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase bg-amber-100 text-amber-900 border border-amber-200 shadow-sm">
+                <Sparkles className="w-3 h-3 text-amber-600" />
+                Modo Demo
+              </span>
+            )}
+
             {/* Quick Demo Switcher */}
-            <Link
-              to="/app/dashboard"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-tennis-50 hover:bg-tennis-100 text-tennis-800 text-xs font-bold border border-tennis-200 transition-all"
+            <button
+              type="button"
+              onClick={handleToggleRole}
+              title="Cambiar a vista de socio"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-tennis-50 hover:bg-tennis-100 text-tennis-800 text-xs font-bold border border-tennis-200 transition-all shadow-sm"
             >
               <ArrowRightLeft className="w-3.5 h-3.5 text-tennis-600" />
               <span className="hidden sm:inline">Ver como</span> Socio
-            </Link>
+            </button>
 
             {/* Admin User Info */}
             <div className="flex items-center gap-2.5 pl-3 border-l border-slate-200">

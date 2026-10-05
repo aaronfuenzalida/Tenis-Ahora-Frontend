@@ -1,5 +1,6 @@
 import React from 'react';
-import { NavLink, Link } from 'react-router-dom';
+import { NavLink, Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import Logo from '../common/Logo';
 import { 
   LayoutDashboard, 
@@ -17,6 +18,14 @@ import {
 } from 'lucide-react';
 
 export default function Sidebar({ isOpen, onClose }) {
+  const { switchRole } = useAuth();
+  const navigate = useNavigate();
+
+  const handleReturnToClient = () => {
+    switchRole('client');
+    navigate('/app/dashboard');
+  };
+
   const navSections = [
     {
       group: 'Principal',
@@ -131,13 +140,14 @@ export default function Sidebar({ isOpen, onClose }) {
 
         {/* Quick Return to Client View Footer */}
         <div className="p-3 border-t border-slate-800 bg-slate-950/40">
-          <Link
-            to="/app/dashboard"
-            className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition-colors border border-slate-700"
+          <button
+            type="button"
+            onClick={handleReturnToClient}
+            className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition-colors border border-slate-700 cursor-pointer"
           >
             <ArrowLeft className="w-3.5 h-3.5 text-tennis-400" />
             Volver a Vista Socio
-          </Link>
+          </button>
         </div>
 
       </aside>

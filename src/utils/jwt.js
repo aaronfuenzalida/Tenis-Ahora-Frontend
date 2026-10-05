@@ -4,6 +4,14 @@
  * lo decodificamos para leer su vencimiento y lo borramos al salir.
  */
 
+// Base64Url encoding helper
+function base64UrlEncode(str) {
+  return btoa(unescape(encodeURIComponent(str)))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+}
+
 // Base64Url decoding helper
 function base64UrlDecode(str) {
   str = str.replace(/-/g, '+').replace(/_/g, '/');
@@ -11,6 +19,32 @@ function base64UrlDecode(str) {
     str += '=';
   }
   return decodeURIComponent(escape(atob(str)));
+}
+
+/**
+ * Creates a valid-formatted mock JWT token for demo mode & tests
+ */
+export function createMockToken(user = {}) {
+  const header = {
+    alg: 'HS256',
+    typ: 'JWT'
+  };
+
+  const now = Math.floor(Date.now() / 1000);
+  const payload = {
+    sub: String(user.id || 'usr-demo'),
+    email: user.email || 'demo@tenisahora.com',
+    role: user.role === 'admin' ? 'Empleado' : 'Socio',
+    isDemo: true,
+    iat: now,
+    exp: now + 30 * 24 * 60 * 60 // 30 days valid
+  };
+
+  const encodedHeader = base64UrlEncode(JSON.stringify(header));
+  const encodedPayload = base64UrlEncode(JSON.stringify(payload));
+  const signature = base64UrlEncode(`sig_demo_${user.id || 'demo'}_${now}`);
+
+  return `${encodedHeader}.${encodedPayload}.${signature}`;
 }
 
 /**

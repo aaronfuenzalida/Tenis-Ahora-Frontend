@@ -4,7 +4,8 @@ import {
   getStoredUser,
   setStoredToken,
   setStoredUser,
-  removeStoredToken
+  removeStoredToken,
+  createMockToken
 } from '../utils/jwt';
 import { authService } from '../services/api';
 
@@ -34,7 +35,8 @@ function mapearUsuario(data) {
     rolBackend: data.rol,
     // TODO: la entidad Usuario del backend todavía no guarda DNI ni número de socio.
     dni: '',
-    memberNumber: `TA-${String(data.id).padStart(4, '0')}`
+    memberNumber: `TA-${String(data.id).padStart(4, '0')}`,
+    isDemo: false
   };
 }
 
@@ -69,23 +71,102 @@ export function AuthProvider({ children }) {
     return usuario;
   };
 
-  // POST /api/auth/login — lanza el error de axios para que la página muestre el mensaje
-  const login = async (email, password) => {
-    const data = await authService.login(email, password);
-    return guardarSesion(data);
+  /**
+   * Inicio de sesión directo en Modo Demo (sin necesidad de backend levantado)
+   */
+  const loginDemo = (role = 'client') => {
+    const demoUser = role === 'admin'
+      ? {
+          id: 'usr-02',
+          name: 'Administrador General',
+          nombre: 'Administrador',
+          apellido: 'General',
+          email: 'admin@tenisahora.com',
+          phone: '+54 11 9988-1122',
+          address: 'Sede Central Club Tenis Ahora, Buenos Aires',
+          role: 'admin',
+          rolBackend: 'Empleado',
+          dni: '30.123.456',
+          memberNumber: 'ADM-001',
+          isDemo: true
+        }
+      : {
+          id: 'usr-01',
+          name: 'Federico Gómez',
+          nombre: 'Federico',
+          apellido: 'Gómez',
+          email: 'socio@tenisahora.com',
+          phone: '+54 11 4892-1234',
+          address: 'Av. San Martín 1420, Quilmes, Buenos Aires',
+          role: 'client',
+          rolBackend: 'Socio',
+          dni: '38.452.129',
+          memberNumber: 'TA-8821',
+          isDemo: true
+        };
+
+    const mockToken = createMockToken(demoUser);
+    setStoredToken(mockToken);
+    setStoredUser(demoUser);
+    setToken(mockToken);
+    setUser(demoUser);
+    return demoUser;
   };
 
-  // POST /api/auth/registrar
+  // POST /api/auth/login — si el backend no responde pero son credenciales demo, activa demo
+  const login = async (email, password) => {
+    try {
+      const data = await authService.login(email, password);
+      return guardarSesion(data);
+    } catch (err) {
+      const isConnectionError = err?.code === 'ERR_NETWORK' || err?.code === 'ECONNABORTED' || !err?.response;
+      const lowerEmail = (email || '').toLowerCase().trim();
+      if (isConnectionError && (lowerEmail === 'socio@tenisahora.com' || lowerEmail === 'admin@tenisahora.com')) {
+        const role = lowerEmail.includes('admin') ? 'admin' : 'client';
+        return loginDemo(role);
+      }
+      throw err;
+    }
+  };
+
+  // POST /api/auth/registrar — si no hay backend, crea sesión demo local
   const register = async (formData) => {
-    const data = await authService.registrar({
-      nombre: formData.nombre,
-      apellido: formData.apellido,
-      direccion: formData.address,
-      email: formData.email,
-      numeroTelefono: formData.phone,
-      password: formData.password
-    });
-    return guardarSesion(data);
+    try {
+      const data = await authService.registrar({
+        nombre: formData.nombre,
+        apellido: formData.apellido,
+        direccion: formData.address,
+        email: formData.email,
+        numeroTelefono: formData.phone,
+        password: formData.password
+      });
+      return guardarSesion(data);
+    } catch (err) {
+      const isConnectionError = err?.code === 'ERR_NETWORK' || err?.code === 'ECONNABORTED' || !err?.response;
+      if (isConnectionError) {
+        const localUser = {
+          id: `usr-${Date.now()}`,
+          name: `${formData.nombre} ${formData.apellido}`.trim() || formData.email,
+          nombre: formData.nombre,
+          apellido: formData.apellido,
+          email: formData.email,
+          phone: formData.phone,
+          address: formData.address,
+          role: 'client',
+          rolBackend: 'Socio',
+          dni: formData.dni || '00.000.000',
+          memberNumber: `TA-${Math.floor(1000 + Math.random() * 9000)}`,
+          isDemo: true
+        };
+        const mockToken = createMockToken(localUser);
+        setStoredToken(mockToken);
+        setStoredUser(localUser);
+        setToken(mockToken);
+        setUser(localUser);
+        return localUser;
+      }
+      throw err;
+    }
   };
 
   const logout = () => {
@@ -95,16 +176,39 @@ export function AuthProvider({ children }) {
   };
 
   /**
-   * Solo para la demo: alterna la vista socio/admin sin volver a pedir token.
-   * El rol real viaja firmado dentro del JWT, así que cuando los endpoints de
-   * administración estén protegidos con [Authorize(Roles = "Empleado")] esto
-   * deja de servir y hay que borrarlo.
+   * Alterna la vista socio/admin
    */
   const switchRole = (newRole) => {
     if (!user) return;
-    const updatedUser = { ...user, role: newRole };
+    const isDemo = user.isDemo || !user.rolBackend;
+    const updatedUser = isDemo
+      ? (newRole === 'admin'
+          ? {
+              ...user,
+              role: 'admin',
+              rolBackend: 'Empleado',
+              name: 'Administrador General',
+              email: 'admin@tenisahora.com',
+              isDemo: true
+            }
+          : {
+              ...user,
+              role: 'client',
+              rolBackend: 'Socio',
+              name: 'Federico Gómez',
+              email: 'socio@tenisahora.com',
+              isDemo: true
+            })
+      : { ...user, role: newRole };
+
+    if (updatedUser.isDemo) {
+      const mockToken = createMockToken(updatedUser);
+      setStoredToken(mockToken);
+      setToken(mockToken);
+    }
     setStoredUser(updatedUser);
     setUser(updatedUser);
+    return updatedUser;
   };
 
   const value = {
@@ -113,7 +217,9 @@ export function AuthProvider({ children }) {
     loading,
     isAuthenticated: !!token && !!user,
     isAdmin: user?.role === 'admin',
+    isDemo: !!user?.isDemo,
     login,
+    loginDemo,
     register,
     logout,
     switchRole
