@@ -16,11 +16,14 @@ import {
   FileText
 } from 'lucide-react';
 import Modal from '../../components/common/Modal';
+import MemberCardModal from '../../components/common/MemberCardModal';
+import { formatDNI, formatPhone, isValidDNI, isValidEmail } from '../../utils/formatters';
 
 export default function UsersManagementPage() {
   const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedUserForCard, setSelectedUserForCard] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -55,6 +58,14 @@ export default function UsersManagementPage() {
 
   const handleSaveUser = async (e) => {
     e.preventDefault();
+    if (!isValidDNI(formData.dni)) {
+      alert('Por favor ingrese un DNI válido (entre 7 y 8 dígitos).');
+      return;
+    }
+    if (!isValidEmail(formData.email)) {
+      alert('Por favor ingrese un correo electrónico válido.');
+      return;
+    }
     await usersService.update(selectedUser.id, formData);
     setShowEditModal(false);
     loadUsers();
@@ -168,6 +179,15 @@ export default function UsersManagementPage() {
                     <div className="flex items-center justify-center gap-1.5">
                       <button
                         type="button"
+                        onClick={() => setSelectedUserForCard(u)}
+                        className="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-bold flex items-center gap-1 border border-emerald-200 transition-colors"
+                        title="Imprimir Carnet de Socio (RF005)"
+                      >
+                        <CreditCard className="w-3.5 h-3.5 text-emerald-600" />
+                        Carnet
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => handleEditUser(u)}
                         className="p-1.5 rounded-lg bg-slate-100 hover:bg-tennis-50 text-slate-700 hover:text-tennis-800"
                         title="Modificar datos"
@@ -212,12 +232,14 @@ export default function UsersManagementPage() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="font-bold text-slate-700 uppercase block mb-1">DNI *</label>
+              <label className="font-bold text-slate-700 uppercase block mb-1">DNI (XX.XXX.XXX) *</label>
               <input
                 type="text"
                 required
+                maxLength={10}
+                placeholder="38.452.129"
                 value={formData.dni}
-                onChange={(e) => setFormData({ ...formData, dni: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, dni: formatDNI(e.target.value) })}
                 className="w-full p-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 font-bold"
               />
             </div>
@@ -227,8 +249,9 @@ export default function UsersManagementPage() {
               <input
                 type="text"
                 required
+                placeholder="+54 11 4892-1234"
                 value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, phone: formatPhone(e.target.value) })}
                 className="w-full p-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
               />
             </div>
@@ -273,6 +296,13 @@ export default function UsersManagementPage() {
           </div>
         </form>
       </Modal>
+
+      {/* Official Member Card Modal (RF005) */}
+      <MemberCardModal
+        isOpen={!!selectedUserForCard}
+        onClose={() => setSelectedUserForCard(null)}
+        member={selectedUserForCard}
+      />
 
     </div>
   );

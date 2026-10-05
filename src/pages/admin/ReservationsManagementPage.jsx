@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import ReceiptModal from '../../components/common/ReceiptModal';
 import Modal from '../../components/common/Modal';
+import { calculateHoursUntil, formatHoursMinutes } from '../../utils/formatters';
 
 export default function ReservationsManagementPage() {
   const [reservations, setReservations] = useState([]);
@@ -227,7 +228,11 @@ export default function ReservationsManagementPage() {
 
                           <button
                             type="button"
-                            onClick={() => setSelectedResForCancel(res)}
+                            onClick={() => {
+                              setSelectedResForCancel(res);
+                              const autoH = Math.max(0, Math.round(calculateHoursUntil(res.date, res.startTime) * 10) / 10);
+                              setHoursInAdvance(autoH);
+                            }}
                             className="px-2 py-1 rounded-lg bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-700 text-xs font-semibold"
                           >
                             Cancelar
@@ -292,40 +297,62 @@ export default function ReservationsManagementPage() {
         maxWidth="max-w-md"
       >
         <form onSubmit={handleCancelReservation} className="space-y-4 text-xs">
-          <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-900 space-y-1">
-            <strong>Reglamento de Cancelaciones:</strong>
-            <p>Debe realizarse con un mínimo de <strong>6 horas de antelación</strong>. De lo contrario, se aplica retención total o parcial de la seña abonada.</p>
+          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+            <div className="font-bold text-slate-800">{selectedResForCancel?.courtName}</div>
+            <div className="text-slate-600">Fecha y Turno: <strong>{selectedResForCancel?.date} ({selectedResForCancel?.startTime} hs)</strong></div>
+            <div className="text-slate-600">Seña 50% Abonada: <strong>${selectedResForCancel?.depositPaid?.toLocaleString('es-AR')}</strong></div>
           </div>
 
           <div>
-            <label className="font-bold text-slate-700 uppercase block mb-1">
-              Horas de Antelación al Turno:
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="font-bold text-slate-700 uppercase block">
+                Horas de Antelación al Turno:
+              </label>
+              <span className="text-[10px] text-slate-400 font-mono">
+                {formatHoursMinutes(Number(hoursInAdvance))} restantes
+              </span>
+            </div>
             <input
               type="number"
+              step="0.5"
               min="0"
               max="720"
               value={hoursInAdvance}
               onChange={(e) => setHoursInAdvance(e.target.value)}
-              className="w-full p-2 rounded-xl border border-slate-200 font-bold outline-none focus:border-tennis-600"
+              className="w-full p-2.5 rounded-xl border border-slate-200 font-bold outline-none focus:border-tennis-600"
             />
+            <span className="text-[10px] text-slate-400 block mt-1">
+              Calculado automáticamente respecto a la fecha y hora de inicio del turno.
+            </span>
           </div>
 
-          <div className={`p-3 rounded-xl border font-bold ${
-            Number(hoursInAdvance) >= 6 
-              ? 'bg-emerald-50 text-emerald-800 border-emerald-200' 
-              : 'bg-red-50 text-red-800 border-red-200'
-          }`}>
-            {Number(hoursInAdvance) >= 6 
-              ? '✓ Cancelación dentro de plazo (>6hs): Corresponde reembolso.' 
-              : '⚠ Cancelación fuera de plazo (<6hs): Se aplica cargo al usuario.'}
-          </div>
+          {Number(hoursInAdvance) >= 6 ? (
+            <div className="p-3 bg-emerald-50 text-emerald-900 rounded-xl border border-emerald-200 space-y-1">
+              <div className="font-bold flex items-center gap-1 text-emerald-800">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                Cancelación dentro del plazo (&ge; 6 hs) — RF050
+              </div>
+              <p className="text-[11px] text-emerald-700">
+                Corresponde <strong>reembolso total</strong> de la seña abonada (${selectedResForCancel?.depositPaid?.toLocaleString('es-AR')}) al socio.
+              </p>
+            </div>
+          ) : (
+            <div className="p-3 bg-red-50 text-red-900 rounded-xl border border-red-200 space-y-1">
+              <div className="font-bold flex items-center gap-1 text-red-800">
+                <AlertTriangle className="w-4 h-4 text-red-600" />
+                Cancelación fuera de término (&lt; 6 hs) — RF051
+              </div>
+              <p className="text-[11px] text-red-700">
+                Se aplicará la <strong>retención del 50% de la seña</strong> (${selectedResForCancel?.depositPaid?.toLocaleString('es-AR')}) por costo operativo y lucro cesante.
+              </p>
+            </div>
+          )}
 
           <div className="flex justify-end gap-2 pt-2">
             <button
               type="button"
               onClick={() => setSelectedResForCancel(null)}
-              className="px-3 py-2 text-slate-600"
+              className="px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-xl"
             >
               Volver
             </button>

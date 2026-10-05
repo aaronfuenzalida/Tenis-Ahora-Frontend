@@ -9,24 +9,66 @@
   }
 }
 
-/* Custom styles for printing receipts and reports */
+/* Custom styles for printing receipts, member cards and attendance reports */
 @media print {
+  /* Hide standard UI */
   body * {
     visibility: hidden;
   }
-  #printable-area, #printable-area * {
+
+  /* Make target areas visible */
+  #printable-area, #printable-area *,
+  #printable-card-area, #printable-card-area *,
+  #printable-receipt-area, #printable-receipt-area *,
+  #printable-attendance-area, #printable-attendance-area * {
     visibility: visible;
   }
-  #printable-area {
+
+  /* Force background colors and gradients in print */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Position target element at top of print page */
+  #printable-area,
+  #printable-receipt-area {
     position: absolute;
     left: 0;
     top: 0;
-    width: 100%;
-    margin: 0;
-    padding: 20px;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 10mm !important;
     background: white !important;
     color: black !important;
   }
+
+  /* Member Card Print: Exact centered card layout */
+  #printable-card-area {
+    position: absolute;
+    left: 0;
+    top: 20mm;
+    width: 100% !important;
+    margin: 0 auto !important;
+    padding: 0 !important;
+    background: transparent !important;
+  }
+
+  /* Attendance Sheet: Landscape A4 */
+  #printable-attendance-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    padding: 8mm !important;
+    margin: 0 !important;
+  }
+
+  @page {
+    margin: 10mm;
+  }
+
   .no-print {
     display: none !important;
   }

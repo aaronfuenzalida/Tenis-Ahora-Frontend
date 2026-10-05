@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import QRModal from '../../components/common/QRModal';
 import ReceiptModal from '../../components/common/ReceiptModal';
+import { formatDNI, formatPhone, cleanDNI, isValidDNI } from '../../utils/formatters';
 
 export default function BookCourtPage() {
   const { user } = useAuth();
@@ -87,10 +88,20 @@ export default function BookCourtPage() {
   };
 
   const handlePlayerChange = (index, field, value) => {
+    let formatted = value;
+    if (field === 'dni') {
+      formatted = formatDNI(value);
+    } else if (field === 'phone') {
+      formatted = formatPhone(value);
+    }
     const updated = [...players];
-    updated[index] = { ...updated[index], [field]: value };
+    updated[index] = { ...updated[index], [field]: formatted };
     setPlayers(updated);
   };
+
+  // Check for duplicate DNIs (RF034/RF035)
+  const participantDnis = players.map(p => cleanDNI(p.dni)).filter(Boolean);
+  const duplicateDnis = participantDnis.filter((d, idx) => participantDnis.indexOf(d) !== idx);
 
   // Pricing calculations (RD03, RD04, RD06)
   const courtPricePerHour = selectedCourt ? selectedCourt.pricePerHour : 4800;
@@ -122,14 +133,35 @@ export default function BookCourtPage() {
 
   const handleProceedPayment = (e) => {
     e.preventDefault();
+    if (selectedDate < minDateStr || selectedDate > maxDateStr) {
+      alert(`Por regla de negocio (RF032), las reservas solo pueden realizarse con un máximo de 30 días de anticipación (hasta ${maxDateStr}).`);
+      return;
+    }
     if (!selectedTimeSlot) {
       alert('Por favor seleccione un horario disponible.');
       return;
     }
-    if (players.some(p => !p.name || !p.dni)) {
-      alert('Por favor complete los datos (Nombre y DNI) de todos los jugadores que intervienen en el juego.');
+    
+    // Validate player names (Nombre y Apellido)
+    const incompleteNames = players.some(p => !p.name || p.name.trim().split(/\s+/).length < 2);
+    if (incompleteNames) {
+      alert('Por favor complete Nombre y Apellido de todos los participantes del partido (RF034 / RF035).');
       return;
     }
+
+    // Validate player DNIs
+    const invalidDnis = players.some(p => !isValidDNI(p.dni));
+    if (invalidDnis) {
+      alert('Por favor verifique que todos los participantes tengan un DNI válido (entre 7 y 8 dígitos).');
+      return;
+    }
+
+    // Validate unique DNIs
+    if (duplicateDnis.length > 0) {
+      alert('No se permiten DNIs duplicados entre los participantes del partido (RF034 / RF035).');
+      return;
+    }
+
     if (!canBookWithStock) {
       alert('No se puede reservar la cancha: no hay disponibilidad de red, pelotas o raquetas en stock (RD06/RD07).');
       return;
@@ -194,14 +226,26 @@ export default function BookCourtPage() {
         <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-2xl border border-slate-200 shadow-sm">
           <CalendarIcon className="w-4 h-4 text-tennis-600" />
           <div className="text-xs">
-            <span className="text-slate-400 block font-medium">Fecha de Turno:</span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-slate-400 font-medium">Fecha de Turno:</span>
+              <span className="text-[10px] font-bold text-tennis-700 bg-tennis-50 px-1.5 py-0.2 rounded border border-tennis-200">
+                Máx. 30 días (RF032)
+              </span>
+            </div>
             <input
               type="date"
               min={minDateStr}
               max={maxDateStr}
               value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="font-bold text-slate-800 bg-transparent outline-none cursor-pointer text-xs"
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val < minDateStr || val > maxDateStr) {
+                  alert(`Por reglamento (RF032), las reservas solo pueden realizarse con un máximo de 30 días de anticipación (hasta ${maxDateStr}).`);
+                  return;
+                }
+                setSelectedDate(val);
+              }}
+              className="font-bold text-slate-800 bg-transparent outline-none cursor-pointer text-xs mt-0.5"
             />
           </div>
         </div>
@@ -444,38 +488,73 @@ export default function BookCourtPage() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {players.map((p, idx) => (
-                  <div key={idx} className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
-                    <span className="text-[11px] font-bold text-tennis-800 uppercase block">
-                      Jugador {idx + 1} {idx === 0 && '(Titular / Socio)'}
-                    </span>
-                    <input
-                      type="text"
-                      required
-                      placeholder="Nombre y Apellido *"
-                      value={p.name}
-                      onChange={(e) => handlePlayerChange(idx, 'name', e.target.value)}
-                      className="w-full px-2.5 py-1.5 bg-white rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-tennis-500 outline-none"
-                    />
-                    <div className="grid grid-cols-2 gap-2">
+                {players.map((p, idx) => {
+                  const cleaned = cleanDNI(p.dni);
+                  const isDup = cleaned && duplicateDnis.includes(cleaned);
+                  const isDniInvalid = p.dni && !isValidDNI(p.dni);
+
+                  return (
+                    <div 
+                      key={idx} 
+                      className={`p-3 rounded-xl border space-y-2 transition-all ${
+                        isDup 
+                          ? 'bg-red-50/70 border-red-300 ring-1 ring-red-400' 
+                          : 'bg-slate-50 border-slate-200'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-bold text-tennis-800 uppercase block">
+                          Jugador {idx + 1} {idx === 0 && '(Titular / Socio)'}
+                        </span>
+                        {isDup && (
+                          <span className="text-[10px] font-bold text-red-600 bg-red-100 px-1.5 py-0.5 rounded">
+                            DNI Duplicado
+                          </span>
+                        )}
+                      </div>
+
                       <input
                         type="text"
                         required
-                        placeholder="DNI *"
-                        value={p.dni}
-                        onChange={(e) => handlePlayerChange(idx, 'dni', e.target.value)}
+                        placeholder="Nombre y Apellido *"
+                        value={p.name}
+                        onChange={(e) => handlePlayerChange(idx, 'name', e.target.value)}
                         className="w-full px-2.5 py-1.5 bg-white rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-tennis-500 outline-none"
                       />
-                      <input
-                        type="text"
-                        placeholder="Teléfono"
-                        value={p.phone}
-                        onChange={(e) => handlePlayerChange(idx, 'phone', e.target.value)}
-                        className="w-full px-2.5 py-1.5 bg-white rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-tennis-500 outline-none"
-                      />
+                      
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <input
+                            type="text"
+                            required
+                            maxLength={10}
+                            placeholder="DNI (XX.XXX.XXX) *"
+                            value={p.dni}
+                            onChange={(e) => handlePlayerChange(idx, 'dni', e.target.value)}
+                            className={`w-full px-2.5 py-1.5 bg-white rounded-lg border text-xs focus:ring-1 outline-none font-bold ${
+                              isDup || isDniInvalid 
+                                ? 'border-red-300 text-red-800 focus:ring-red-400' 
+                                : 'border-slate-200 text-slate-800 focus:ring-tennis-500'
+                            }`}
+                          />
+                          {isDniInvalid && (
+                            <span className="text-[9px] text-red-600 block mt-0.5">7-8 dígitos</span>
+                          )}
+                        </div>
+
+                        <div>
+                          <input
+                            type="text"
+                            placeholder="Teléfono"
+                            value={p.phone}
+                            onChange={(e) => handlePlayerChange(idx, 'phone', e.target.value)}
+                            className="w-full px-2.5 py-1.5 bg-white rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-tennis-500 outline-none"
+                          />
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 

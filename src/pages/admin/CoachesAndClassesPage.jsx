@@ -15,6 +15,7 @@ import {
   Clock
 } from 'lucide-react';
 import CoachCredentialsModal from '../../components/common/CoachCredentialsModal';
+import AttendanceSheetModal from '../../components/common/AttendanceSheetModal';
 import Modal from '../../components/common/Modal';
 
 export default function CoachesAndClassesPage() {
@@ -24,6 +25,7 @@ export default function CoachesAndClassesPage() {
   
   // Attendance taker state
   const [selectedClassForAttendance, setSelectedClassForAttendance] = useState(null);
+  const [selectedClassForSheet, setSelectedClassForSheet] = useState(null);
 
   // Add Class Modal
   const [showAddClassModal, setShowAddClassModal] = useState(false);
@@ -291,11 +293,19 @@ export default function CoachesAndClassesPage() {
             </table>
           </div>
 
-          <div className="flex justify-end pt-2">
+          <div className="flex items-center justify-between pt-3 border-t border-slate-200">
+            <button
+              type="button"
+              onClick={() => setSelectedClassForSheet(selectedClassForAttendance)}
+              className="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors"
+            >
+              <Printer className="w-3.5 h-3.5 text-emerald-600" />
+              Imprimir Planilla Oficial A4
+            </button>
             <button
               type="button"
               onClick={() => setSelectedClassForAttendance(null)}
-              className="px-4 py-2 bg-slate-900 text-white rounded-xl font-bold"
+              className="px-4 py-2 bg-slate-900 text-white rounded-xl font-bold text-xs hover:bg-slate-800"
             >
               Guardar y Cerrar
             </button>
@@ -414,6 +424,13 @@ export default function CoachesAndClassesPage() {
         isOpen={!!selectedCoachForModal}
         onClose={() => setSelectedCoachForModal(null)}
         coach={selectedCoachForModal}
+      />
+
+      {/* Printable Attendance Sheet Modal */}
+      <AttendanceSheetModal
+        isOpen={!!selectedClassForSheet}
+        onClose={() => setSelectedClassForSheet(null)}
+        classItem={selectedClassForSheet}
       />
 
     </div>
