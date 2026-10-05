@@ -145,7 +145,7 @@ export const INITIAL_STOCK = [
     inUseStock: 4,
     availableStock: 6,
     unit: 'unidades',
-    itemPrice: 0, // RD06: Sin costo extra para la reserva de canchas
+    itemPrice: 0,
     minAlertThreshold: 2,
     status: 'normal',
     description: 'Redes reglamentarias de tenis (se asigna 1 por cancha reservada).'
@@ -158,7 +158,7 @@ export const INITIAL_STOCK = [
     inUseStock: 20,
     availableStock: 40,
     unit: 'pelotas',
-    itemPrice: 0, // RD06: Sin costo extra para la reserva de canchas
+    itemPrice: 0,
     minAlertThreshold: 10,
     status: 'normal',
     description: 'Pelotas reglamentarias presurizadas asignadas para el uso en cancha.'
@@ -171,7 +171,7 @@ export const INITIAL_STOCK = [
     inUseStock: 8,
     availableStock: 16,
     unit: 'raquetas',
-    itemPrice: 0, // RD06: Sin costo extra para la reserva de canchas
+    itemPrice: 0,
     minAlertThreshold: 4,
     status: 'normal',
     description: 'Raquetas reglamentarias para los participantes del partido.'
@@ -201,7 +201,7 @@ export const INITIAL_RESERVATIONS = [
       rackets: 4
     },
     courtCost: 9600, // 4800 x 2hs
-    equipmentCost: 0, // RD06: Sin costo extra
+    equipmentCost: 0,
     totalCost: 9600,
     depositPaid: 4800, // 50% de seña
     depositReceiptNumber: 'REC-50-8910',

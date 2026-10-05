@@ -53,7 +53,7 @@ export default function BookCourtPage() {
     { name: '', dni: '', phone: '' }
   ]);
 
-  // Equipment assigned automatically without extra charge (RD05, RD06, RD07, RD08)
+  // Equipment assigned automatically without extra charge
 
   // Payment & Modals
   const [paymentMethod, setPaymentMethod] = useState('Mercado Pago (QR)');
@@ -137,7 +137,7 @@ export default function BookCourtPage() {
   const deposit50 = totalReservation * 0.5; // 50% de seña para confirmar
   const remaining50 = totalReservation * 0.5; // 50% al finalizar el tiempo de alquiler
 
-  // Stock items helpers (RD05: solo redes, pelotas y raquetas; RD06/RD07: bloqueo si no hay stock)
+  // Stock items helpers
   const ballStock = stock.find(s => s.category === 'Pelotas');
   const racketStock = stock.find(s => s.category === 'Raquetas');
   const netStock = stock.find(s => s.category === 'Redes');
@@ -189,7 +189,7 @@ export default function BookCourtPage() {
     }
 
     if (!canBookWithStock) {
-      alert('No se puede reservar la cancha: no hay disponibilidad de red, pelotas o raquetas en stock (RD06/RD07).');
+      alert('No se puede reservar la cancha: no hay disponibilidad de red, pelotas o raquetas en stock.');
       return;
     }
 
@@ -517,7 +517,7 @@ export default function BookCourtPage() {
                       Asignación de Equipamiento
                     </h3>
                     <p className="text-[11px] text-slate-400">
-                      RD05/RD06: Incluye Red, Pelotas y Raquetas sin costo extra.
+                      Incluye Red, Pelotas y Raquetas sin costo extra.
                     </p>
                   </div>
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
@@ -529,7 +529,7 @@ export default function BookCourtPage() {
                   <div className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-start gap-2 text-xs text-red-800">
                     <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
                     <div>
-                      <strong>Bloqueo por falta de stock (RD07):</strong>
+                      <strong>Bloqueo por falta de stock:</strong>
                       <p className="text-[11px] mt-0.5">
                         No hay stock suficiente de red, pelotas o raquetas ({requiredRackets} requeridas).
                       </p>
@@ -926,7 +926,7 @@ export default function BookCourtPage() {
           {/* Right Column: Equipment Rental & Checkout Summary (5 Cols) */}
           <div className="lg:col-span-5 space-y-6">
             
-            {/* Equipment Stock assignment (RD05, RD06, RD07, RD08) */}
+            {/* Equipment Stock assignment */}
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -934,7 +934,7 @@ export default function BookCourtPage() {
                     5. Asignación de Equipamiento Reglamentario
                   </h3>
                   <p className="text-[11px] text-slate-400">
-                    RD05/RD06: Incluye Red, Pelotas y Raquetas sin costo extra.
+                    Incluye Red, Pelotas y Raquetas sin costo extra.
                   </p>
                 </div>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
@@ -946,7 +946,7 @@ export default function BookCourtPage() {
                 <div className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-start gap-2 text-xs text-red-800">
                   <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
                   <div>
-                    <strong>Bloqueo por falta de stock (RD07):</strong>
+                    <strong>Bloqueo por falta de stock</strong>
                     <p className="text-[11px] mt-0.5">
                       No es posible reservar la cancha porque no hay stock suficiente de red, pelotas o raquetas ({requiredRackets} requeridas).
                     </p>
@@ -1002,7 +1002,7 @@ export default function BookCourtPage() {
               </div>
 
               <div className="text-[11px] text-slate-500 italic bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                RD08: El equipamiento debe ser devuelto en recepción al finalizar el tiempo de juego.
+                El equipamiento debe ser devuelto en recepción al finalizar el tiempo de juego.
               </div>
             </div>
 
@@ -1052,7 +1052,7 @@ export default function BookCourtPage() {
                   <span>${totalReservation.toLocaleString('es-AR')}</span>
                 </div>
 
-                {/* 50% Deposit highlight box (RD03 & RD04) */}
+                {/* 50% Deposit highlight box */}
                 <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 space-y-1">
                   <div className="flex justify-between items-center text-emerald-900 font-extrabold text-sm">
                     <span>Abonar Ahora (Seña 50%):</span>
