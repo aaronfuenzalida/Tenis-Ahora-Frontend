@@ -268,7 +268,6 @@ export default function ReportsPage() {
                   <th className="py-2.5 px-3">Cancha</th>
                   <th className="py-2.5 px-3">Tipo de Superficie</th>
                   <th className="py-2.5 px-3">Capacidad</th>
-                  <th className="py-2.5 px-3">Iluminación</th>
                   <th className="py-2.5 px-3">Precio / Hora</th>
                   <th className="py-2.5 px-3 text-center">Estado Operativo</th>
                 </tr>
@@ -283,7 +282,6 @@ export default function ReportsPage() {
                       </span>
                     </td>
                     <td className="py-2.5 px-3">{c.capacity} Jugadores ({c.capacity === 4 ? 'Dobles' : 'Singles'})</td>
-                    <td className="py-2.5 px-3">{c.lighting ? 'LED Nocturna' : 'Diurna'}</td>
                     <td className="py-2.5 px-3 font-bold text-tennis-700">${c.pricePerHour?.toLocaleString('es-AR')}</td>
                     <td className="py-2.5 px-3 text-center">
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${

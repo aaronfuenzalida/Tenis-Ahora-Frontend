@@ -174,7 +174,7 @@ export default function ReservationsManagementPage() {
                         concept: `Seña 50% - ${res.courtName}`,
                         items: [
                           { description: `Alquiler ${res.courtName}`, amount: res.courtCost },
-                          { description: `Equipamiento asignado`, amount: res.equipmentCost },
+                          { description: `Equipamiento incluido (Red, Pelotas, Raquetas)`, amount: 0 },
                           { description: `Seña 50% Abonada`, amount: res.depositPaid }
                         ],
                         totalPaid: res.depositPaid,

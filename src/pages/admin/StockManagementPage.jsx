@@ -36,7 +36,7 @@ export default function StockManagementPage() {
             Control de Stock y Equipamiento de Canchas
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Gestión en tiempo real de <strong>Redes reglamentarias, Tubos de pelotas y Raquetas</strong>. Requerimiento: se descuenta automáticamente al alquilar y se reintegra al finalizar.
+            Gestión en tiempo real de los 3 ítems oficiales (RD05): <strong>Redes de tenis, Pelotas de tenis y Raquetas</strong>. Sin costo extra para reservas (RD06).
           </p>
         </div>
 
@@ -54,13 +54,13 @@ export default function StockManagementPage() {
       <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs text-emerald-900 flex items-start gap-3">
         <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
         <div>
-          <strong className="block font-bold">Regla de Negocio de Stock:</strong>
-          Cada reserva de cancha descuenta del inventario activo 1 Red y los accesorios seleccionados. Al concluir el alquiler se reponen al stock disponible. Si no hay stock disponible, el sistema impide el alquiler.
+          <strong className="block font-bold">Reglas de Negocio de Stock (RD05, RD06, RD07, RD08):</strong>
+          El stock cuenta únicamente con tres tipos de ítems: redes, pelotas y raquetas. No tienen costo extra. Si no hay stock disponible, la cancha no puede reservarse (RD07). Al concluir el alquiler se devuelven al inventario (RD08).
         </div>
       </div>
 
-      {/* Stock Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Stock Cards Grid (3 Items) */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {stock.map(item => {
           const isLow = item.status === 'alerta_baja';
 

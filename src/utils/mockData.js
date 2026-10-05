@@ -11,10 +11,9 @@ export const INITIAL_COURTS = [
     surfaceColor: 'bg-orange-50 text-orange-800 border-orange-200',
     badgeColor: 'bg-orange-100 text-orange-800',
     capacity: 4, // 2 o 4 personas
-    lighting: true,
     pricePerHour: 4800,
     status: 'disponible', // disponible, ocupada, mantenimiento
-    description: 'Polvo de ladrillo profesional con drenaje rápido e iluminación LED nocturna.',
+    description: 'Polvo de ladrillo profesional con drenaje rápido.',
     maintenanceNotes: '',
     photo: 'https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?auto=format&fit=crop&w=600&q=80',
     schedule: [
@@ -38,7 +37,6 @@ export const INITIAL_COURTS = [
     surfaceColor: 'bg-orange-50 text-orange-800 border-orange-200',
     badgeColor: 'bg-orange-100 text-orange-800',
     capacity: 4,
-    lighting: true,
     pricePerHour: 4800,
     status: 'disponible',
     description: 'Polvo de ladrillo tradicional ideal para singles y dobles de alta competencia.',
@@ -65,7 +63,6 @@ export const INITIAL_COURTS = [
     surfaceColor: 'bg-sky-50 text-sky-800 border-sky-200',
     badgeColor: 'bg-sky-100 text-sky-800',
     capacity: 4,
-    lighting: true,
     pricePerHour: 4500,
     status: 'disponible',
     description: 'Superficie dura acrílica tipo US Open, bote rápido y uniforme.',
@@ -92,7 +89,6 @@ export const INITIAL_COURTS = [
     surfaceColor: 'bg-sky-50 text-sky-800 border-sky-200',
     badgeColor: 'bg-sky-100 text-sky-800',
     capacity: 2, // Singles
-    lighting: false,
     pricePerHour: 4200,
     status: 'mantenimiento',
     description: 'Cancha rápida para singles. Actualmente en repintado de líneas reglamentarias.',
@@ -119,7 +115,6 @@ export const INITIAL_COURTS = [
     surfaceColor: 'bg-emerald-50 text-emerald-800 border-emerald-200',
     badgeColor: 'bg-emerald-100 text-emerald-800',
     capacity: 4,
-    lighting: true,
     pricePerHour: 5500,
     status: 'disponible',
     description: 'Césped natural de competición, corte rasante y superficie premium.',
@@ -144,55 +139,42 @@ export const INITIAL_COURTS = [
 export const INITIAL_STOCK = [
   {
     id: 'item-redes',
-    name: 'Redes Reglamentarias de Tenis',
+    name: 'Redes de Tenis',
     category: 'Redes',
     totalStock: 10,
     inUseStock: 4,
     availableStock: 6,
     unit: 'unidades',
-    itemPrice: 0, // Incluida con la cancha pero descontada del stock
+    itemPrice: 0, // RD06: Sin costo extra para la reserva de canchas
     minAlertThreshold: 2,
     status: 'normal',
-    description: 'Redes de poliéster reforzadas de 3.5mm con cable de acero y faja central'
+    description: 'Redes reglamentarias de tenis (se asigna 1 por cancha reservada).'
   },
   {
     id: 'item-pelotas',
-    name: 'Tubos de Pelotas Wilson US Open (x3)',
+    name: 'Pelotas de Tenis',
     category: 'Pelotas',
-    totalStock: 50,
-    inUseStock: 18,
-    availableStock: 32,
-    unit: 'tubos',
-    itemPrice: 1200,
+    totalStock: 60,
+    inUseStock: 20,
+    availableStock: 40,
+    unit: 'pelotas',
+    itemPrice: 0, // RD06: Sin costo extra para la reserva de canchas
     minAlertThreshold: 10,
     status: 'normal',
-    description: 'Pelotas presurizadas para todas las superficies de alta durabilidad'
-  },
-  {
-    id: 'item-pelotas-pasto',
-    name: 'Tubos de Pelotas Slazenger Wimbledon (x4)',
-    category: 'Pelotas',
-    totalStock: 25,
-    inUseStock: 22,
-    availableStock: 3,
-    unit: 'tubos',
-    itemPrice: 1800,
-    minAlertThreshold: 5,
-    status: 'alerta_baja',
-    description: 'Pelotas premium hidroguard especiales para césped natural'
+    description: 'Pelotas reglamentarias presurizadas asignadas para el uso en cancha.'
   },
   {
     id: 'item-raquetas',
-    name: 'Raquetas Head / Babolat para Alquiler',
+    name: 'Raquetas de Tenis',
     category: 'Raquetas',
-    totalStock: 20,
+    totalStock: 24,
     inUseStock: 8,
-    availableStock: 12,
-    unit: 'unidades',
-    itemPrice: 800,
+    availableStock: 16,
+    unit: 'raquetas',
+    itemPrice: 0, // RD06: Sin costo extra para la reserva de canchas
     minAlertThreshold: 4,
     status: 'normal',
-    description: 'Raquetas de grafito encordadas a 52 lbs con grip sintético'
+    description: 'Raquetas reglamentarias para los participantes del partido.'
   }
 ];
 
@@ -215,16 +197,16 @@ export const INITIAL_RESERVATIONS = [
     ],
     equipmentAssigned: {
       nets: 1,
-      ballTubes: 2,
-      rackets: 2
+      ballTubes: 1,
+      rackets: 4
     },
     courtCost: 9600, // 4800 x 2hs
-    equipmentCost: 4000, // 2 tubos + 2 raquetas
-    totalCost: 13600,
-    depositPaid: 6800, // 50% de seña
+    equipmentCost: 0, // RD06: Sin costo extra
+    totalCost: 9600,
+    depositPaid: 4800, // 50% de seña
     depositReceiptNumber: 'REC-50-8910',
     depositPaymentMethod: 'Mercado Pago (QR)',
-    remainingBalance: 6800, // 50% al finalizar
+    remainingBalance: 4800, // 50% al finalizar
     remainingPaid: false,
     finalReceiptNumber: null,
     status: 'confirmada', // confirmada, en_curso, finalizada, cancelada
@@ -248,15 +230,15 @@ export const INITIAL_RESERVATIONS = [
     equipmentAssigned: {
       nets: 1,
       ballTubes: 1,
-      rackets: 0
+      rackets: 2
     },
     courtCost: 9600,
-    equipmentCost: 1200,
-    totalCost: 10800,
-    depositPaid: 5400,
+    equipmentCost: 0,
+    totalCost: 9600,
+    depositPaid: 4800,
     depositReceiptNumber: 'REC-50-8912',
     depositPaymentMethod: 'Tarjeta de Débito',
-    remainingBalance: 5400,
+    remainingBalance: 4800,
     remainingPaid: false,
     finalReceiptNumber: null,
     status: 'confirmada',
@@ -279,13 +261,13 @@ export const INITIAL_RESERVATIONS = [
     ],
     equipmentAssigned: {
       nets: 1,
-      ballTubes: 2,
-      rackets: 0
+      ballTubes: 1,
+      rackets: 2
     },
     courtCost: 11000,
-    equipmentCost: 3600,
-    totalCost: 14600,
-    depositPaid: 7300,
+    equipmentCost: 0,
+    totalCost: 11000,
+    depositPaid: 5500,
     depositReceiptNumber: 'REC-50-8870',
     depositPaymentMethod: 'Tarjeta de Crédito',
     remainingBalance: 0,
@@ -309,7 +291,6 @@ export const INITIAL_TOURNAMENTS = [
     registrationFee: 7500,
     maxParticipants: 16,
     currentEnrolled: 12,
-    prizePool: '$ 150.000 + Trofeo y Raqueta Pro',
     status: 'inscripcion_abierta', // inscripcion_abierta, en_curso, finalizado
     description: 'Torneo oficial del club avalado por la Asociación de Tenis. Modalidad eliminación directa con partidos al mejor de 3 sets.',
     bracket: [
@@ -348,7 +329,6 @@ export const INITIAL_TOURNAMENTS = [
     registrationFee: 12000, // Por pareja
     maxParticipants: 8,
     currentEnrolled: 6,
-    prizePool: '$ 120.000 + Equipamiento Babolat',
     status: 'inscripcion_abierta',
     description: 'Torneo femenino por parejas en canchas de cemento. Ambiente competitivo y distendido con tercer tiempo incluido.',
     bracket: []
@@ -476,15 +456,14 @@ export const INITIAL_RECEIPTS = [
     reservationId: 'RES-2026-001',
     clientName: 'Federico Gómez',
     clientDni: '38.452.129',
-    concept: 'Seña 50% - Alquiler Cancha 1 (Ladrillo) + Equipamiento',
+    concept: 'Seña 50% - Alquiler Cancha 1 (Ladrillo)',
     items: [
       { description: 'Alquiler 2 Horas Cancha 1 (Polvo de Ladrillo)', amount: 9600 },
-      { description: 'Alquiler 2 Raquetas Grafito', amount: 1600 },
-      { description: '2 Tubos Pelotas Wilson US Open', amount: 2400 },
-      { description: 'Subtotal Total Reserva', amount: 13600 },
-      { description: 'Pago correspondiente al 50% de Seña Obligatoria', amount: 6800 }
+      { description: 'Equipamiento incluido (Red, Pelotas, Raquetas)', amount: 0 },
+      { description: 'Subtotal Total Reserva', amount: 9600 },
+      { description: 'Pago correspondiente al 50% de Seña Obligatoria', amount: 4800 }
     ],
-    totalPaid: 6800,
+    totalPaid: 4800,
     paymentMethod: 'Mercado Pago QR',
     status: 'completado',
     date: '2026-08-20 14:30',
@@ -498,10 +477,9 @@ export const INITIAL_RECEIPTS = [
     clientDni: '95.441.228',
     concept: 'Liquidación Final 50% Restante - Cancha 5 Pasto',
     items: [
-      { description: 'Saldo 50% Restante Cancha Césped Natural', amount: 5500 },
-      { description: 'Saldo 50% Restante Equipamiento Slazenger', amount: 1800 }
+      { description: 'Saldo 50% Restante Cancha Césped Natural (2hs)', amount: 5500 }
     ],
-    totalPaid: 7300,
+    totalPaid: 5500,
     paymentMethod: 'Tarjeta de Crédito Visa Débito',
     status: 'completado',
     date: '2026-08-25 18:05',

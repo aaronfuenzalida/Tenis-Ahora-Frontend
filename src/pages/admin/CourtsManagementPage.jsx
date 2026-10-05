@@ -27,7 +27,6 @@ export default function CourtsManagementPage() {
     name: '',
     surfaceType: 'Ladrillo',
     capacity: 4,
-    lighting: true,
     pricePerHour: 4800,
     description: '',
     status: 'disponible'
@@ -153,11 +152,6 @@ export default function CourtsManagementPage() {
                     </div>
 
                     <div className="p-2.5 bg-slate-50 rounded-xl">
-                      <span className="text-[10px] text-slate-400 block uppercase font-bold">Iluminación:</span>
-                      <span className="font-bold text-slate-800">{court.lighting ? 'LED Nocturna' : 'Luz Diurna'}</span>
-                    </div>
-
-                    <div className="p-2.5 bg-slate-50 rounded-xl col-span-2">
                       <span className="text-[10px] text-slate-400 block uppercase font-bold">Tarifa por Hora:</span>
                       <span className="font-black text-tennis-700 text-sm">${court.pricePerHour?.toLocaleString('es-AR')} ARS</span>
                     </div>
@@ -295,18 +289,6 @@ export default function CourtsManagementPage() {
                 onChange={(e) => setNewCourt({ ...newCourt, pricePerHour: Number(e.target.value) })}
                 className="w-full p-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
               />
-            </div>
-
-            <div>
-              <label className="font-bold text-slate-700 uppercase block mb-1">Iluminación *</label>
-              <select
-                value={newCourt.lighting ? 'true' : 'false'}
-                onChange={(e) => setNewCourt({ ...newCourt, lighting: e.target.value === 'true' })}
-                className="w-full p-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white"
-              >
-                <option value="true">Sí (Luminarias LED)</option>
-                <option value="false">No (Solo diurno)</option>
-              </select>
             </div>
           </div>
 

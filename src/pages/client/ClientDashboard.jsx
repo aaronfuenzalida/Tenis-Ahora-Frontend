@@ -162,7 +162,7 @@ export default function ClientDashboard() {
                 {/* Assigned equipment & Receipt action */}
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
                   <div className="text-xs text-slate-500">
-                    Equipamiento asignado: <strong>1 Red</strong>, <strong>{upcomingBooking.equipmentAssigned?.ballTubes} Tubos Pelotas</strong>, <strong>{upcomingBooking.equipmentAssigned?.rackets} Raquetas</strong>
+                    Equipamiento asignado: <strong>1 Red</strong>, <strong>Pelotas</strong>, <strong>{upcomingBooking.equipmentAssigned?.rackets} Raquetas</strong> (Sin costo extra)
                   </div>
 
                   <button
@@ -174,7 +174,7 @@ export default function ClientDashboard() {
                       concept: `Seña 50% Alquiler - ${upcomingBooking.courtName}`,
                       items: [
                         { description: `Alquiler Cancha (${upcomingBooking.durationHours} hs)`, amount: upcomingBooking.courtCost },
-                        { description: `Alquiler Equipamiento`, amount: upcomingBooking.equipmentCost },
+                        { description: `Equipamiento incluido (Red, Pelotas, Raquetas)`, amount: 0 },
                         { description: `Total Turno`, amount: upcomingBooking.totalCost },
                         { description: `Seña 50% Abonada`, amount: upcomingBooking.depositPaid }
                       ],
@@ -234,7 +234,7 @@ export default function ClientDashboard() {
                       <span className="text-xs font-bold text-slate-800">{court.name.split('-')[0]}</span>
                     </div>
                     <span className="text-[11px] text-slate-400 block mt-0.5">
-                      Capacidad: {court.capacity} jugadores • Iluminación: {court.lighting ? 'Sí' : 'No'}
+                      Capacidad: {court.capacity} jugadores ({court.capacity === 4 ? 'Dobles' : 'Singles'})
                     </span>
                   </div>
 

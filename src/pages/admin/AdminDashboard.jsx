@@ -193,7 +193,7 @@ export default function AdminDashboard() {
                 </div>
 
                 <div className="pt-2 border-t border-slate-200/60 text-[11px] flex items-center justify-between">
-                  <span className="text-slate-400">Cap: {court.capacity}p • {court.lighting ? 'LED' : 'Nat'}</span>
+                  <span className="text-slate-400">Cap: {court.capacity}p ({court.capacity === 4 ? 'Dobles' : 'Singles'})</span>
                   <span className="font-bold text-slate-800">${court.pricePerHour}/h</span>
                 </div>
               </div>
@@ -270,7 +270,7 @@ export default function AdminDashboard() {
                           concept: `Reserva - ${res.courtName}`,
                           items: [
                             { description: `Alquiler Cancha ${res.courtName}`, amount: res.courtCost },
-                            { description: `Equipamiento asignado`, amount: res.equipmentCost },
+                            { description: `Equipamiento incluido (Red, Pelotas, Raquetas)`, amount: 0 },
                             { description: `Seña 50% Abonada`, amount: res.depositPaid }
                           ],
                           totalPaid: res.depositPaid,

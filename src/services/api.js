@@ -171,7 +171,7 @@ export const reservationsService = {
       concept: `Seña 50% Obligatoria - ${bookingData.courtName}`,
       items: [
         { description: `Alquiler ${bookingData.durationHours}hs ${bookingData.courtName}`, amount: bookingData.courtCost },
-        { description: `Equipamiento alquilado`, amount: bookingData.equipmentCost },
+        { description: `Equipamiento incluido (Red, Pelotas, Raquetas)`, amount: 0 },
         { description: `Total Turno`, amount: bookingData.totalCost },
         { description: `Cobro de Seña 50% para Confirmación`, amount: bookingData.depositPaid }
       ],

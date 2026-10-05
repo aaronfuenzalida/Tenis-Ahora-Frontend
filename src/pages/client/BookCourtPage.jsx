@@ -45,9 +45,7 @@ export default function BookCourtPage() {
     { name: '', dni: '', phone: '' }
   ]);
 
-  // Equipment selection with stock check
-  const [selectedBallTubes, setSelectedBallTubes] = useState(1);
-  const [selectedRackets, setSelectedRackets] = useState(0);
+  // Equipment assigned automatically without extra charge (RD05, RD06, RD07, RD08)
 
   // Payment & Modals
   const [paymentMethod, setPaymentMethod] = useState('Mercado Pago (QR)');
@@ -94,26 +92,29 @@ export default function BookCourtPage() {
     setPlayers(updated);
   };
 
-  // Pricing calculations
+  // Pricing calculations (RD03, RD04, RD06)
   const courtPricePerHour = selectedCourt ? selectedCourt.pricePerHour : 4800;
   const courtTotal = courtPricePerHour * durationHours;
-  const ballPrice = 1200;
-  const racketPrice = 800;
-  const equipmentTotal = (selectedBallTubes * ballPrice) + (selectedRackets * racketPrice);
-  const totalReservation = courtTotal + equipmentTotal;
-  const deposit50 = totalReservation * 0.5; // 50% obligatory deposit
-  const remaining50 = totalReservation * 0.5; // 50% payable at end
+  const equipmentTotal = 0; // RD06: Los ítems de stock no tienen costo extra para la reserva
+  const totalReservation = courtTotal;
+  const deposit50 = totalReservation * 0.5; // RD03: 50% de seña para confirmar
+  const remaining50 = totalReservation * 0.5; // RD04: 50% al finalizar el tiempo de alquiler
 
-  // Stock items helpers
-  const ballStock = stock.find(s => s.category === 'Pelotas' && s.availableStock > 0);
+  // Stock items helpers (RD05: solo redes, pelotas y raquetas; RD06/RD07: bloqueo si no hay stock)
+  const ballStock = stock.find(s => s.category === 'Pelotas');
   const racketStock = stock.find(s => s.category === 'Raquetas');
   const netStock = stock.find(s => s.category === 'Redes');
 
-  const maxBallAvailable = ballStock ? ballStock.availableStock : 0;
-  const maxRacketAvailable = racketStock ? racketStock.availableStock : 0;
-  const netAvailable = netStock ? netStock.availableStock > 0 : true;
+  const requiredRackets = playersType === 'singles' ? 2 : 4;
+  const requiredBalls = 1;
+  const requiredNets = 1;
 
-  // Max 30 days date limit validation
+  const hasNetStock = netStock ? netStock.availableStock >= requiredNets : false;
+  const hasBallStock = ballStock ? ballStock.availableStock >= requiredBalls : false;
+  const hasRacketStock = racketStock ? racketStock.availableStock >= requiredRackets : false;
+  const canBookWithStock = hasNetStock && hasBallStock && hasRacketStock;
+
+  // Max 30 days date limit validation (RF032)
   const maxDate = new Date();
   maxDate.setDate(maxDate.getDate() + 30);
   const maxDateStr = maxDate.toISOString().split('T')[0];
@@ -127,6 +128,10 @@ export default function BookCourtPage() {
     }
     if (players.some(p => !p.name || !p.dni)) {
       alert('Por favor complete los datos (Nombre y DNI) de todos los jugadores que intervienen en el juego.');
+      return;
+    }
+    if (!canBookWithStock) {
+      alert('No se puede reservar la cancha: no hay disponibilidad de red, pelotas o raquetas en stock (RD06/RD07).');
       return;
     }
 
@@ -149,12 +154,12 @@ export default function BookCourtPage() {
       playersType,
       participants: players,
       equipmentAssigned: {
-        nets: 1,
-        ballTubes: selectedBallTubes,
-        rackets: selectedRackets
+        nets: requiredNets,
+        ballTubes: requiredBalls,
+        rackets: requiredRackets
       },
       courtCost: courtTotal,
-      equipmentCost: equipmentTotal,
+      equipmentCost: 0,
       totalCost: totalReservation,
       depositPaid: deposit50,
       depositPaymentMethod: paymentMethod,
@@ -326,9 +331,7 @@ export default function BookCourtPage() {
                             </div>
                             <p className="text-xs text-slate-500 mt-1 line-clamp-1">{court.description}</p>
                             <div className="flex items-center gap-3 text-[11px] text-slate-400 mt-1">
-                              <span>Capacidad: hasta {court.capacity} personas</span>
-                              <span>•</span>
-                              <span>Luz: {court.lighting ? 'LED' : 'Natural'}</span>
+                              <span>Capacidad: hasta {court.capacity} personas ({court.capacity === 4 ? 'Dobles' : 'Singles'})</span>
                             </div>
                           </div>
                         </div>
@@ -481,80 +484,83 @@ export default function BookCourtPage() {
           {/* Right Column: Equipment Rental & Checkout Summary (5 Cols) */}
           <div className="lg:col-span-5 space-y-6">
             
-            {/* Equipment Stock selection */}
+            {/* Equipment Stock assignment (RD05, RD06, RD07, RD08) */}
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-xs font-bold uppercase text-slate-700">
-                  5. Alquiler de Equipamiento y Stock
-                </h3>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
-                  Control de Stock Activo
+                <div>
+                  <h3 className="text-xs font-bold uppercase text-slate-700">
+                    5. Asignación de Equipamiento Reglamentario
+                  </h3>
+                  <p className="text-[11px] text-slate-400">
+                    RD05/RD06: Incluye Red, Pelotas y Raquetas sin costo extra.
+                  </p>
+                </div>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                  Sin costo extra ($0)
                 </span>
               </div>
 
-              {/* Red (Siempre incluida por cancha si hay stock) */}
+              {!canBookWithStock && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-start gap-2 text-xs text-red-800">
+                  <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                  <div>
+                    <strong>Bloqueo por falta de stock (RD07):</strong>
+                    <p className="text-[11px] mt-0.5">
+                      No es posible reservar la cancha porque no hay stock suficiente de red, pelotas o raquetas ({requiredRackets} requeridas).
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Red de Tenis */}
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
                 <div>
-                  <div className="font-bold text-slate-800">Red Reglamentaria</div>
-                  <div className="text-[11px] text-slate-400">Stock disponible: {netStock?.availableStock} u.</div>
+                  <div className="font-bold text-slate-800">1 Red Reglamentaria de Tenis</div>
+                  <div className="text-[11px] text-slate-400">Stock disponible: {netStock?.availableStock ?? 0} u.</div>
                 </div>
-                <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200">
-                  {netAvailable ? '✓ Asignada' : 'Sin Stock'}
+                <span className={`text-xs font-bold px-2 py-1 rounded-lg border ${
+                  hasNetStock 
+                    ? 'text-emerald-700 bg-emerald-50 border-emerald-200' 
+                    : 'text-red-700 bg-red-50 border-red-200'
+                }`}>
+                  {hasNetStock ? '✓ Asignada ($0)' : 'Sin Stock'}
                 </span>
               </div>
 
-              {/* Tubos de pelotas */}
+              {/* Pelotas de Tenis */}
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
                 <div>
-                  <div className="font-bold text-slate-800">Tubos de Pelotas ($1.200 c/u)</div>
-                  <div className="text-[11px] text-slate-400">Stock disponible: {maxBallAvailable} tubos</div>
+                  <div className="font-bold text-slate-800">Pelotas Reglamentarias de Tenis</div>
+                  <div className="text-[11px] text-slate-400">Stock disponible: {ballStock?.availableStock ?? 0} pelotas</div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    disabled={selectedBallTubes <= 0}
-                    onClick={() => setSelectedBallTubes(selectedBallTubes - 1)}
-                    className="w-7 h-7 rounded-lg bg-white border border-slate-200 font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-30"
-                  >
-                    -
-                  </button>
-                  <span className="font-bold text-sm w-4 text-center">{selectedBallTubes}</span>
-                  <button
-                    type="button"
-                    disabled={selectedBallTubes >= maxBallAvailable}
-                    onClick={() => setSelectedBallTubes(selectedBallTubes + 1)}
-                    className="w-7 h-7 rounded-lg bg-white border border-slate-200 font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-30"
-                  >
-                    +
-                  </button>
-                </div>
+                <span className={`text-xs font-bold px-2 py-1 rounded-lg border ${
+                  hasBallStock 
+                    ? 'text-emerald-700 bg-emerald-50 border-emerald-200' 
+                    : 'text-red-700 bg-red-50 border-red-200'
+                }`}>
+                  {hasBallStock ? '✓ Asignadas ($0)' : 'Sin Stock'}
+                </span>
               </div>
 
-              {/* Raquetas */}
+              {/* Raquetas de Tenis */}
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
                 <div>
-                  <div className="font-bold text-slate-800">Raquetas Head / Babolat ($800 c/u)</div>
-                  <div className="text-[11px] text-slate-400">Stock disponible: {maxRacketAvailable} u.</div>
+                  <div className="font-bold text-slate-800">
+                    {requiredRackets} Raquetas de Tenis ({playersType === 'singles' ? 'Singles: 2 raquetas' : 'Dobles: 4 raquetas'})
+                  </div>
+                  <div className="text-[11px] text-slate-400">Stock disponible: {racketStock?.availableStock ?? 0} u.</div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    disabled={selectedRackets <= 0}
-                    onClick={() => setSelectedRackets(selectedRackets - 1)}
-                    className="w-7 h-7 rounded-lg bg-white border border-slate-200 font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-30"
-                  >
-                    -
-                  </button>
-                  <span className="font-bold text-sm w-4 text-center">{selectedRackets}</span>
-                  <button
-                    type="button"
-                    disabled={selectedRackets >= maxRacketAvailable}
-                    onClick={() => setSelectedRackets(selectedRackets + 1)}
-                    className="w-7 h-7 rounded-lg bg-white border border-slate-200 font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-30"
-                  >
-                    +
-                  </button>
-                </div>
+                <span className={`text-xs font-bold px-2 py-1 rounded-lg border ${
+                  hasRacketStock 
+                    ? 'text-emerald-700 bg-emerald-50 border-emerald-200' 
+                    : 'text-red-700 bg-red-50 border-red-200'
+                }`}>
+                  {hasRacketStock ? `✓ Asignadas (${requiredRackets} u.) ($0)` : 'Sin Stock'}
+                </span>
+              </div>
+
+              <div className="text-[11px] text-slate-500 italic bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                RD08: El equipamiento debe ser devuelto en recepción al finalizar el tiempo de juego.
               </div>
             </div>
 
@@ -595,18 +601,16 @@ export default function BookCourtPage() {
                   <span>Alquiler Cancha ({durationHours} hs):</span>
                   <span className="font-semibold">${courtTotal.toLocaleString('es-AR')}</span>
                 </div>
-                {equipmentTotal > 0 && (
-                  <div className="flex justify-between text-slate-600">
-                    <span>Equipamiento (Pelotas/Raquetas):</span>
-                    <span className="font-semibold">${equipmentTotal.toLocaleString('es-AR')}</span>
-                  </div>
-                )}
+                <div className="flex justify-between text-slate-600">
+                  <span>Equipamiento (Red, Pelotas, {requiredRackets} Raquetas):</span>
+                  <span className="font-semibold text-emerald-700">Incluido ($0)</span>
+                </div>
                 <div className="flex justify-between text-slate-800 font-bold pt-1 border-t border-slate-100">
                   <span>Costo Total de la Reserva:</span>
                   <span>${totalReservation.toLocaleString('es-AR')}</span>
                 </div>
 
-                {/* 50% Deposit highlight box */}
+                {/* 50% Deposit highlight box (RD03 & RD04) */}
                 <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 space-y-1">
                   <div className="flex justify-between items-center text-emerald-900 font-extrabold text-sm">
                     <span>Abonar Ahora (Seña 50%):</span>
@@ -622,10 +626,11 @@ export default function BookCourtPage() {
               {/* Submit Button */}
               <button
                 type="button"
+                disabled={!canBookWithStock}
                 onClick={handleProceedPayment}
-                className="w-full py-3.5 px-4 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-extrabold text-sm shadow-md hover:shadow-glow-green flex items-center justify-center gap-2 transition-all"
+                className="w-full py-3.5 px-4 rounded-xl bg-tennis-600 hover:bg-tennis-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-extrabold text-sm shadow-md hover:shadow-glow-green flex items-center justify-center gap-2 transition-all"
               >
-                Pagar seña y confirmar reserva
+                {canBookWithStock ? 'Pagar seña y confirmar reserva' : 'Sin stock de equipamiento'}
                 <ChevronRight className="w-4 h-4" />
               </button>
 

@@ -30,7 +30,6 @@ export default function TournamentsManagementPage() {
     endDate: '2026-09-10',
     registrationFee: 7500,
     maxParticipants: 16,
-    prizePool: '$ 100.000 + Trofeos',
     description: ''
   });
 
@@ -176,8 +175,8 @@ export default function TournamentsManagementPage() {
               </div>
 
               <div className="text-right">
-                <span className="text-[10px] text-slate-400 uppercase font-bold block">Bolsa de Premios</span>
-                <span className="text-xs font-black text-amber-600">{selectedTournament?.prizePool}</span>
+                <span className="text-[10px] text-slate-400 uppercase font-bold block">Inscripción Oficial</span>
+                <span className="text-xs font-black text-tennis-700">${selectedTournament?.registrationFee?.toLocaleString('es-AR')}</span>
               </div>
             </div>
 
@@ -379,17 +378,6 @@ export default function TournamentsManagementPage() {
                 className="w-full p-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 font-bold"
               />
             </div>
-          </div>
-
-          <div>
-            <label className="font-bold text-slate-700 uppercase block mb-1">Premios / Trofeos</label>
-            <input
-              type="text"
-              placeholder="$ 150.000 + Raqueta Head Speed Pro"
-              value={newTrn.prizePool}
-              onChange={(e) => setNewTrn({ ...newTrn, prizePool: e.target.value })}
-              className="w-full p-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
-            />
           </div>
 
           <div className="flex justify-end gap-2 pt-2">

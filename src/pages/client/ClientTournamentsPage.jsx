@@ -91,8 +91,8 @@ export default function ClientTournamentsPage() {
                     <span className="font-bold text-tennis-700">{trn.currentEnrolled} / {trn.maxParticipants}</span>
                   </div>
                   <div>
-                    <span className="text-slate-400 block text-[10px]">Premio:</span>
-                    <span className="font-bold text-amber-600">{trn.prizePool.split('+')[0]}</span>
+                    <span className="text-slate-400 block text-[10px]">Superficie:</span>
+                    <span className="font-bold text-slate-800">{trn.surfaceRequired}</span>
                   </div>
                 </div>
 
