@@ -11,16 +11,23 @@ import {
   CheckCircle2, 
   Search, 
   Tag, 
-  ShieldCheck 
+  ShieldCheck,
+  Calculator,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import ReceiptModal from '../../components/common/ReceiptModal';
 import Modal from '../../components/common/Modal';
+import POSDiscountCalculator from '../../components/admin/POSDiscountCalculator';
+import TablePaginationBar, { TableSortHeader } from '../../components/common/TablePaginationBar';
+import { useTablePagination } from '../../hooks/useTablePagination';
 
 export default function CashierAndReceiptsPage() {
   const [receipts, setReceipts] = useState([]);
   const [discounts, setDiscounts] = useState([]);
   const [selectedReceipt, setSelectedReceipt] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showSimulator, setShowSimulator] = useState(true);
 
   // Register New Charge Modal
   const [showChargeModal, setShowChargeModal] = useState(false);
@@ -46,6 +53,11 @@ export default function CashierAndReceiptsPage() {
     setDiscounts(dRes.data);
   };
 
+  const handleChargeCompleted = (newReceipt) => {
+    setReceipts(prev => [newReceipt, ...prev]);
+    setSelectedReceipt(newReceipt);
+  };
+
   const handleRegisterCharge = (e) => {
     e.preventDefault();
     const discountObj = discounts.find(d => d.code === chargeData.discountApplied);
@@ -67,16 +79,36 @@ export default function CashierAndReceiptsPage() {
       cashierName: 'Administración General'
     };
 
-    setReceipts([newRec, ...receipts]);
+    handleChargeCompleted(newRec);
     setShowChargeModal(false);
-    setSelectedReceipt(newRec);
   };
 
   const filteredReceipts = receipts.filter(r => 
-    r.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    r.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    r.concept.toLowerCase().includes(searchTerm.toLowerCase())
+    r.clientName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    r.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    r.concept?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    r.paymentMethod?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Table pagination and sorting
+  const {
+    paginatedData,
+    sortKey,
+    sortOrder,
+    handleSort,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    totalPages,
+    totalRecords,
+    startRecord,
+    endRecord
+  } = useTablePagination(filteredReceipts, {
+    defaultSortKey: 'date',
+    defaultSortOrder: 'desc',
+    defaultPageSize: 10
+  });
 
   return (
     <div className="space-y-6">
@@ -88,38 +120,51 @@ export default function CashierAndReceiptsPage() {
             Caja, Cobros, Descuentos y Recibos Fiscales
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Recepción y registro de cobros (alquileres, torneos, clases). Medios de pago: Débito, Crédito, Mercado Pago (QR) y Efectivo.
+            Simulador de cobro con políticas de descuento reglamentarias (RF128 a RF133) y libro oficial de caja.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => window.print()}
-            className="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs border border-slate-200 shadow-sm flex items-center gap-1.5"
+            onClick={() => setShowSimulator(prev => !prev)}
+            className={`px-3.5 py-2.5 rounded-xl font-bold text-xs border shadow-sm flex items-center gap-1.5 transition-all ${
+              showSimulator 
+                ? 'bg-tennis-50 text-tennis-900 border-tennis-300' 
+                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+            }`}
           >
-            <Printer className="w-3.5 h-3.5" />
-            Imprimir Libro de Caja
+            <Calculator className="w-3.5 h-3.5 text-tennis-600" />
+            <span>{showSimulator ? 'Ocultar Simulador' : 'Abrir Simulador'}</span>
+            {showSimulator ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
           </button>
+
           <button
             type="button"
-            onClick={() => setShowChargeModal(true)}
-            className="px-4 py-2.5 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-bold text-xs shadow-md hover:shadow-glow-green flex items-center gap-1.5"
+            onClick={() => window.print()}
+            className="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs border border-slate-200 shadow-sm flex items-center gap-1.5 transition-colors"
           >
-            <Plus className="w-3.5 h-3.5" />
-            Registrar Nuevo Cobro
+            <Printer className="w-3.5 h-3.5" />
+            Imprimir Libro
           </button>
         </div>
       </div>
+
+      {/* POS Realtime Checkout & Discount Simulator (RF128 a RF133) */}
+      {showSimulator && (
+        <div className="no-print">
+          <POSDiscountCalculator onChargeComplete={handleChargeCompleted} />
+        </div>
+      )}
 
       {/* Discounts Management Bar */}
       <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Tag className="w-4 h-4 text-tennis-600" />
-            <h2 className="text-sm font-extrabold text-slate-900">Políticas de Descuentos Activas en el Club</h2>
+            <h2 className="text-sm font-extrabold text-slate-900">Políticas de Descuentos Activas en el Club (TP Oficial)</h2>
           </div>
-          <span className="text-xs text-slate-400">Gestionado por Personal Autorizado</span>
+          <span className="text-xs text-slate-400">Aplicación automática en cobro</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -139,14 +184,17 @@ export default function CashierAndReceiptsPage() {
       </div>
 
       {/* Receipts History Table */}
-      <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+      <div id="printable-area" className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Receipt className="w-5 h-5 text-tennis-600" />
-            <h2 className="text-base font-extrabold text-slate-900">Registro General de Recibos y Cobros</h2>
+            <div>
+              <h2 className="text-base font-extrabold text-slate-900">Registro General de Recibos y Cobros</h2>
+              <span className="text-xs text-slate-400">Haz clic en los encabezados para ordenar</span>
+            </div>
           </div>
 
-          <div className="relative w-full sm:w-72">
+          <div className="relative w-full sm:w-72 no-print">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
@@ -162,55 +210,113 @@ export default function CashierAndReceiptsPage() {
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="border-b border-slate-200 text-slate-400 font-bold uppercase bg-slate-50/50">
-                <th className="py-3 px-3">Recibo N°</th>
-                <th className="py-3 px-3">Fecha</th>
-                <th className="py-3 px-3">Cliente / DNI</th>
-                <th className="py-3 px-3">Concepto Cobrado</th>
-                <th className="py-3 px-3">Medio de Pago</th>
-                <th className="py-3 px-3 text-right">Monto</th>
-                <th className="py-3 px-3 text-center">Acciones</th>
+                <TableSortHeader
+                  label="Recibo N°"
+                  sortField="id"
+                  currentSortKey={sortKey}
+                  currentSortOrder={sortOrder}
+                  onSort={handleSort}
+                />
+                <TableSortHeader
+                  label="Fecha y Hora"
+                  sortField="date"
+                  currentSortKey={sortKey}
+                  currentSortOrder={sortOrder}
+                  onSort={handleSort}
+                />
+                <TableSortHeader
+                  label="Cliente / DNI"
+                  sortField="clientName"
+                  currentSortKey={sortKey}
+                  currentSortOrder={sortOrder}
+                  onSort={handleSort}
+                />
+                <TableSortHeader
+                  label="Concepto Cobrado"
+                  sortField="concept"
+                  currentSortKey={sortKey}
+                  currentSortOrder={sortOrder}
+                  onSort={handleSort}
+                />
+                <TableSortHeader
+                  label="Medio de Pago"
+                  sortField="paymentMethod"
+                  currentSortKey={sortKey}
+                  currentSortOrder={sortOrder}
+                  onSort={handleSort}
+                />
+                <TableSortHeader
+                  label="Monto Cobrado"
+                  sortField="totalPaid"
+                  currentSortKey={sortKey}
+                  currentSortOrder={sortOrder}
+                  onSort={handleSort}
+                  align="right"
+                />
+                <th className="py-3 px-3 text-center no-print">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredReceipts.map(rec => (
-                <tr key={rec.id} className="hover:bg-slate-50/60 transition-colors">
-                  <td className="py-3 px-3 font-bold text-tennis-800">
-                    {rec.id}
-                  </td>
-                  <td className="py-3 px-3 text-slate-500">
-                    {rec.date}
-                  </td>
-                  <td className="py-3 px-3">
-                    <div className="font-bold text-slate-800">{rec.clientName}</div>
-                    <div className="text-[10px] text-slate-400">DNI: {rec.clientDni}</div>
-                  </td>
-                  <td className="py-3 px-3 text-slate-700 font-medium">
-                    {rec.concept}
-                  </td>
-                  <td className="py-3 px-3">
-                    <span className="font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md inline-flex items-center gap-1">
-                      <CreditCard className="w-3 h-3 text-tennis-600" />
-                      {rec.paymentMethod}
-                    </span>
-                  </td>
-                  <td className="py-3 px-3 text-right font-black text-slate-900 text-sm">
-                    ${rec.totalPaid?.toLocaleString('es-AR')}
-                  </td>
-                  <td className="py-3 px-3 text-center">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedReceipt(rec)}
-                      className="px-3 py-1.5 rounded-xl bg-tennis-50 hover:bg-tennis-100 text-tennis-800 font-bold text-xs border border-tennis-200 inline-flex items-center gap-1"
-                    >
-                      <Printer className="w-3.5 h-3.5" />
-                      Ver y Imprimir
-                    </button>
+              {paginatedData.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-8 text-center text-slate-400 font-medium">
+                    No se encontraron registros de cobros con el filtro actual.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                paginatedData.map(rec => (
+                  <tr key={rec.id} className="hover:bg-slate-50/60 transition-colors">
+                    <td className="py-3 px-3 font-bold text-tennis-800">
+                      {rec.id}
+                    </td>
+                    <td className="py-3 px-3 text-slate-500 font-mono text-[11px]">
+                      {rec.date}
+                    </td>
+                    <td className="py-3 px-3">
+                      <div className="font-bold text-slate-800">{rec.clientName}</div>
+                      <div className="text-[10px] text-slate-400">DNI: {rec.clientDni}</div>
+                    </td>
+                    <td className="py-3 px-3 text-slate-700 font-medium">
+                      {rec.concept}
+                    </td>
+                    <td className="py-3 px-3">
+                      <span className="font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md inline-flex items-center gap-1 text-[11px]">
+                        <CreditCard className="w-3 h-3 text-tennis-600" />
+                        {rec.paymentMethod}
+                      </span>
+                    </td>
+                    <td className="py-3 px-3 text-right font-black text-slate-900 text-sm font-mono">
+                      ${rec.totalPaid?.toLocaleString('es-AR')}
+                    </td>
+                    <td className="py-3 px-3 text-center no-print">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedReceipt(rec)}
+                        className="px-3 py-1.5 rounded-xl bg-tennis-50 hover:bg-tennis-100 text-tennis-800 font-bold text-xs border border-tennis-200 inline-flex items-center gap-1 transition-colors"
+                      >
+                        <Printer className="w-3.5 h-3.5" />
+                        Ver Recibo
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
+
+        {/* Table Pagination Bar */}
+        <TablePaginationBar
+          page={page}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+          totalRecords={totalRecords}
+          startRecord={startRecord}
+          endRecord={endRecord}
+          pageSizeOptions={[10, 20, 50]}
+        />
       </div>
 
       {/* Modal to register new POS charge */}

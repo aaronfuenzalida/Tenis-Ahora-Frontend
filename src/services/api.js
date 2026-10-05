@@ -409,6 +409,11 @@ export const receiptsService = {
   async getDiscounts() {
     await delay();
     return { data: discountsStore };
+  },
+  async create(receiptData) {
+    await delay();
+    receiptsStore = [receiptData, ...receiptsStore];
+    return { data: receiptData };
   }
 };
 

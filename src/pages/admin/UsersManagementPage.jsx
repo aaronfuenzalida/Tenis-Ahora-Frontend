@@ -17,6 +17,8 @@ import {
 } from 'lucide-react';
 import Modal from '../../components/common/Modal';
 import MemberCardModal from '../../components/common/MemberCardModal';
+import TablePaginationBar, { TableSortHeader } from '../../components/common/TablePaginationBar';
+import { useTablePagination } from '../../hooks/useTablePagination';
 import { formatDNI, formatPhone, isValidDNI, isValidEmail } from '../../utils/formatters';
 
 export default function UsersManagementPage() {
@@ -79,10 +81,40 @@ export default function UsersManagementPage() {
   };
 
   const filteredUsers = users.filter(u =>
-    u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    u.dni.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    u.email.toLowerCase().includes(searchTerm.toLowerCase())
+    u.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    u.dni?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    u.address?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Client-side pagination and column sorting (Point 8)
+  const keyExtractors = {
+    name: (u) => u.name,
+    dni: (u) => u.dni,
+    email: (u) => u.email,
+    address: (u) => u.address,
+    role: (u) => u.role
+  };
+
+  const {
+    paginatedData,
+    sortKey,
+    sortOrder,
+    handleSort,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    totalPages,
+    totalRecords,
+    startRecord,
+    endRecord
+  } = useTablePagination(filteredUsers, {
+    defaultSortKey: 'name',
+    defaultSortOrder: 'asc',
+    defaultPageSize: 10,
+    keyExtractors
+  });
 
   return (
     <div className="space-y-6">
@@ -114,7 +146,10 @@ export default function UsersManagementPage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 no-print">
           <div className="flex items-center gap-2">
             <Users className="w-5 h-5 text-tennis-600" />
-            <h2 className="text-base font-extrabold text-slate-900">Directorio de Socios Registrados</h2>
+            <div>
+              <h2 className="text-base font-extrabold text-slate-900">Directorio de Socios Registrados</h2>
+              <span className="text-xs text-slate-400">Haz clic en los encabezados para ordenar</span>
+            </div>
           </div>
 
           <div className="relative w-full sm:w-72">
@@ -134,81 +169,133 @@ export default function UsersManagementPage() {
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="border-b border-slate-200 text-slate-400 font-bold uppercase bg-slate-50/50">
-                <th className="py-3 px-3">Socio / N°</th>
-                <th className="py-3 px-3">Documento (DNI)</th>
-                <th className="py-3 px-3">Contacto (Email / Tel)</th>
-                <th className="py-3 px-3">Dirección</th>
-                <th className="py-3 px-3 text-center">Rol</th>
+                <TableSortHeader
+                  label="Socio / N°"
+                  sortField="name"
+                  currentSortKey={sortKey}
+                  currentSortOrder={sortOrder}
+                  onSort={handleSort}
+                />
+                <TableSortHeader
+                  label="Documento (DNI)"
+                  sortField="dni"
+                  currentSortKey={sortKey}
+                  currentSortOrder={sortOrder}
+                  onSort={handleSort}
+                />
+                <TableSortHeader
+                  label="Contacto (Email / Tel)"
+                  sortField="email"
+                  currentSortKey={sortKey}
+                  currentSortOrder={sortOrder}
+                  onSort={handleSort}
+                />
+                <TableSortHeader
+                  label="Dirección"
+                  sortField="address"
+                  currentSortKey={sortKey}
+                  currentSortOrder={sortOrder}
+                  onSort={handleSort}
+                />
+                <TableSortHeader
+                  label="Rol"
+                  sortField="role"
+                  currentSortKey={sortKey}
+                  currentSortOrder={sortOrder}
+                  onSort={handleSort}
+                  align="center"
+                />
                 <th className="py-3 px-3 text-center no-print">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredUsers.map(u => (
-                <tr key={u.id} className="hover:bg-slate-50/60 transition-colors">
-                  <td className="py-3 px-3">
-                    <div className="font-extrabold text-slate-900">{u.name}</div>
-                    <span className="text-[10px] font-bold text-tennis-700 bg-tennis-50 px-1.5 py-0.5 rounded">
-                      {u.memberNumber || 'TA-8821'}
-                    </span>
-                  </td>
-
-                  <td className="py-3 px-3 font-semibold text-slate-700">
-                    {u.dni}
-                  </td>
-
-                  <td className="py-3 px-3">
-                    <div className="text-slate-800 font-medium">{u.email}</div>
-                    <div className="text-[11px] text-slate-400">{u.phone}</div>
-                  </td>
-
-                  <td className="py-3 px-3 text-slate-600">
-                    {u.address}
-                  </td>
-
-                  <td className="py-3 px-3 text-center">
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                      u.role === 'admin' 
-                        ? 'bg-slate-900 text-tennis-300' 
-                        : 'bg-emerald-100 text-emerald-800'
-                    }`}>
-                      {u.role === 'admin' ? 'Administrador' : 'Socio'}
-                    </span>
-                  </td>
-
-                  <td className="py-3 px-3 text-center no-print">
-                    <div className="flex items-center justify-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => setSelectedUserForCard(u)}
-                        className="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-bold flex items-center gap-1 border border-emerald-200 transition-colors"
-                        title="Imprimir Carnet de Socio (RF005)"
-                      >
-                        <CreditCard className="w-3.5 h-3.5 text-emerald-600" />
-                        Carnet
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleEditUser(u)}
-                        className="p-1.5 rounded-lg bg-slate-100 hover:bg-tennis-50 text-slate-700 hover:text-tennis-800"
-                        title="Modificar datos"
-                      >
-                        <Edit3 className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteUser(u.id)}
-                        className="p-1.5 rounded-lg bg-slate-100 hover:bg-red-50 text-slate-700 hover:text-red-600"
-                        title="Eliminar usuario"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
+              {paginatedData.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-slate-400 font-medium">
+                    No se encontraron socios o usuarios que coincidan con la búsqueda.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                paginatedData.map(u => (
+                  <tr key={u.id} className="hover:bg-slate-50/60 transition-colors">
+                    <td className="py-3 px-3">
+                      <div className="font-extrabold text-slate-900">{u.name}</div>
+                      <span className="text-[10px] font-bold text-tennis-700 bg-tennis-50 px-1.5 py-0.5 rounded">
+                        {u.memberNumber || 'TA-8821'}
+                      </span>
+                    </td>
+
+                    <td className="py-3 px-3 font-semibold text-slate-700 font-mono">
+                      {u.dni}
+                    </td>
+
+                    <td className="py-3 px-3">
+                      <div className="text-slate-800 font-medium">{u.email}</div>
+                      <div className="text-[11px] text-slate-400 font-mono">{u.phone}</div>
+                    </td>
+
+                    <td className="py-3 px-3 text-slate-600">
+                      {u.address}
+                    </td>
+
+                    <td className="py-3 px-3 text-center">
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                        u.role === 'admin' 
+                          ? 'bg-slate-900 text-tennis-300' 
+                          : 'bg-emerald-100 text-emerald-800'
+                      }`}>
+                        {u.role === 'admin' ? 'Administrador' : 'Socio'}
+                      </span>
+                    </td>
+
+                    <td className="py-3 px-3 text-center no-print">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedUserForCard(u)}
+                          className="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-bold flex items-center gap-1 border border-emerald-200 transition-colors"
+                          title="Imprimir Carnet de Socio (RF005)"
+                        >
+                          <CreditCard className="w-3.5 h-3.5 text-emerald-600" />
+                          Carnet
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleEditUser(u)}
+                          className="p-1.5 rounded-lg bg-slate-100 hover:bg-tennis-50 text-slate-700 hover:text-tennis-800 transition-colors"
+                          title="Modificar datos"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteUser(u.id)}
+                          className="p-1.5 rounded-lg bg-slate-100 hover:bg-red-50 text-slate-700 hover:text-red-600 transition-colors"
+                          title="Eliminar usuario"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
+
+        {/* Table Pagination Bar */}
+        <TablePaginationBar
+          page={page}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          onPageSizeChange={setPageSize}
+          totalRecords={totalRecords}
+          startRecord={startRecord}
+          endRecord={endRecord}
+          pageSizeOptions={[10, 20, 50]}
+        />
       </div>
 
       {/* Edit User Modal */}
