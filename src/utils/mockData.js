@@ -392,15 +392,18 @@ export const INITIAL_CLASSES = [
     scheduleDays: 'Martes y Jueves',
     scheduleTime: '19:00 - 20:30',
     courtAssigned: 'Cancha 1 (Ladrillo)',
-    maxCapacity: 30, // Requerimiento: Máximo 30 alumnos
-    currentEnrolled: 18,
+    maxCapacity: 30, // Requerimiento: Máximo 30 alumnos (RF067)
+    currentEnrolled: 6,
     monthlyFee: 16000,
+    monthName: 'Octubre 2026',
+    sessions: ['03/10', '05/10', '10/10', '12/10', '17/10', '19/10', '24/10', '26/10'],
     students: [
-      { id: 'std-1', name: 'Federico Gómez', dni: '38.452.129', attendance: ['P', 'P', 'P', 'A'] },
-      { id: 'std-2', name: 'Romina Varela', dni: '36.992.100', attendance: ['P', 'P', 'J', 'P'] },
-      { id: 'std-3', name: 'Agustín Pereyra', dni: '39.441.800', attendance: ['P', 'A', 'P', 'P'] },
-      { id: 'std-4', name: 'Sofía Rossi', dni: '40.229.412', attendance: ['P', 'P', 'P', 'P'] },
-      { id: 'std-5', name: 'Martín Lanata', dni: '37.114.990', attendance: ['A', 'P', 'P', 'P'] }
+      { id: 'std-1', name: 'Federico Gómez', dni: '38.452.129', attendance: ['P', 'P', 'P', 'A', 'P', 'P', 'P', 'P'] }, // 7/8 = 88% Regular
+      { id: 'std-2', name: 'Romina Varela', dni: '36.992.100', attendance: ['P', 'P', 'J', 'P', 'P', 'P', 'P', 'J'] }, // 6/8 = 75% Regular
+      { id: 'std-3', name: 'Agustín Pereyra', dni: '39.441.800', attendance: ['P', 'A', 'P', 'A', 'A', 'P', 'A', 'P'] }, // 4/8 = 50% En riesgo (< 75%)
+      { id: 'std-4', name: 'Sofía Rossi', dni: '40.229.412', attendance: ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'] }, // 8/8 = 100% Regular
+      { id: 'std-5', name: 'Martín Lanata', dni: '37.114.990', attendance: ['A', 'P', 'A', 'A', 'P', 'A', 'P', 'P'] }, // 4/8 = 50% En riesgo (< 75%)
+      { id: 'std-6', name: 'Camila Solís', dni: '41.200.334', attendance: ['P', 'P', 'P', 'P', 'P', 'J', 'P', 'P'] }  // 7/8 = 88% Regular
     ]
   },
   {
@@ -413,13 +416,37 @@ export const INITIAL_CLASSES = [
     scheduleTime: '18:00 - 19:30',
     courtAssigned: 'Cancha 3 (Cemento)',
     maxCapacity: 25, // Configurable hasta 30
-    currentEnrolled: 14,
+    currentEnrolled: 4,
     monthlyFee: 14500,
+    monthName: 'Octubre 2026',
+    sessions: ['02/10', '04/10', '09/10', '11/10', '16/10', '18/10', '23/10', '25/10'],
     students: [
-      { id: 'std-6', name: 'Claudio Bustos', dni: '34.881.002', attendance: ['P', 'P', 'P', 'P'] },
-      { id: 'std-7', name: 'Marcela Díaz', dni: '35.401.993', attendance: ['P', 'J', 'P', 'P'] },
-      { id: 'std-8', name: 'Gonzalo Vega', dni: '42.110.450', attendance: ['P', 'P', 'P', 'P'] }
+      { id: 'std-7', name: 'Claudio Bustos', dni: '34.881.002', attendance: ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'] },
+      { id: 'std-8', name: 'Marcela Díaz', dni: '35.401.993', attendance: ['P', 'J', 'P', 'P', 'P', 'A', 'P', 'P'] },
+      { id: 'std-9', name: 'Gonzalo Vega', dni: '42.110.450', attendance: ['P', 'A', 'A', 'A', 'P', 'A', 'P', 'A'] }, // 3/8 = 38% En riesgo
+      { id: 'std-10', name: 'Lucía Benítez', dni: '39.811.234', attendance: ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'] }
     ]
+  },
+  {
+    id: 'cls-03',
+    name: 'Escuela de Competición y Alto Rendimiento (Cupo Lleno)',
+    type: 'grupal',
+    coachId: 'coach-01',
+    coachName: 'Prof. Santiago Álvarez',
+    scheduleDays: 'Viernes y Sábados',
+    scheduleTime: '17:00 - 19:00',
+    courtAssigned: 'Cancha 2 (Ladrillo)',
+    maxCapacity: 30, // Tope estricto de 30 alumnos (RF067)
+    currentEnrolled: 30, // Cupo alcanzado para demostrar inhabilitación de inscripción
+    monthlyFee: 22000,
+    monthName: 'Octubre 2026',
+    sessions: ['04/10', '05/10', '11/10', '12/10', '18/10', '19/10', '25/10', '26/10'],
+    students: Array.from({ length: 30 }, (_, i) => ({
+      id: `std-full-${i + 1}`,
+      name: `Alumno Competición #${i + 1}`,
+      dni: `3${i + 5}.120.${100 + i}`,
+      attendance: ['P', 'P', (i % 3 === 0 ? 'A' : 'P'), 'P', (i % 4 === 0 ? 'J' : 'P'), 'P', 'P', 'P']
+    }))
   }
 ];
 

@@ -296,6 +296,77 @@ export const coachesAndClassesService = {
     await delay();
     return { data: classesStore };
   },
+  async toggleStudentAttendance(classId, studentId, sessionIndex) {
+    await delay();
+    const cycle = { 'P': 'A', 'A': 'J', 'J': 'P', '-': 'P' };
+    classesStore = classesStore.map(cls => {
+      if (cls.id === classId) {
+        return {
+          ...cls,
+          students: cls.students.map(st => {
+            if (st.id === studentId) {
+              const currentAtt = [...(st.attendance || [])];
+              while (currentAtt.length <= sessionIndex) {
+                currentAtt.push('-');
+              }
+              const currentVal = currentAtt[sessionIndex] || '-';
+              currentAtt[sessionIndex] = cycle[currentVal] || 'P';
+              return { ...st, attendance: currentAtt };
+            }
+            return st;
+          })
+        };
+      }
+      return cls;
+    });
+    return { success: true, classes: classesStore };
+  },
+  async bulkMarkSession(classId, sessionIndex, status = 'P') {
+    await delay();
+    classesStore = classesStore.map(cls => {
+      if (cls.id === classId) {
+        return {
+          ...cls,
+          students: cls.students.map(st => {
+            const currentAtt = [...(st.attendance || [])];
+            while (currentAtt.length <= sessionIndex) {
+              currentAtt.push('-');
+            }
+            currentAtt[sessionIndex] = status;
+            return { ...st, attendance: currentAtt };
+          })
+        };
+      }
+      return cls;
+    });
+    return { success: true, classes: classesStore };
+  },
+  async enrollStudent(classId, studentData) {
+    await delay();
+    const targetClass = classesStore.find(c => c.id === classId);
+    if (!targetClass) throw new Error('Clase no encontrada');
+    if ((targetClass.students?.length || 0) >= 30) {
+      throw new Error('No se pueden inscribir más alumnos: cupo máximo de 30 alcanzado (RF067).');
+    }
+    const newStudent = {
+      id: `std-${Date.now()}`,
+      name: studentData.name,
+      dni: studentData.dni,
+      attendance: Array(targetClass.sessions?.length || 8).fill('P')
+    };
+    classesStore = classesStore.map(cls => {
+      if (cls.id === classId) {
+        const nextStudents = [...(cls.students || []), newStudent];
+        return {
+          ...cls,
+          students: nextStudents,
+          currentEnrolled: nextStudents.length
+        };
+      }
+      return cls;
+    });
+    return { success: true, student: newStudent };
+  },
   async recordAttendance(classId, studentId, status) {
     await delay();
     classesStore = classesStore.map(cls => {

@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import CoachCredentialsModal from '../../components/common/CoachCredentialsModal';
 import AttendanceSheetModal from '../../components/common/AttendanceSheetModal';
+import AttendanceMatrixModal from '../../components/common/AttendanceMatrixModal';
 import Modal from '../../components/common/Modal';
 
 export default function CoachesAndClassesPage() {
@@ -60,20 +61,39 @@ export default function CoachesAndClassesPage() {
     }
   };
 
-  const handleRecordAttendance = async (studentId, status) => {
-    await coachesAndClassesService.recordAttendance(selectedClassForAttendance.id, studentId, status);
-    loadData();
-    // Update local modal state
-    setSelectedClassForAttendance(prev => ({
-      ...prev,
-      students: prev.students.map(st => st.id === studentId ? { ...st, attendance: [...st.attendance, status] } : st)
-    }));
+  const handleToggleAttendance = async (classId, studentId, sessionIndex) => {
+    await coachesAndClassesService.toggleStudentAttendance(classId, studentId, sessionIndex);
+    const clRes = await coachesAndClassesService.getClasses();
+    setClasses(clRes.data);
+    const updated = clRes.data.find(c => c.id === classId);
+    if (updated) setSelectedClassForAttendance(updated);
+  };
+
+  const handleBulkMark = async (classId, sessionIndex, status) => {
+    await coachesAndClassesService.bulkMarkSession(classId, sessionIndex, status);
+    const clRes = await coachesAndClassesService.getClasses();
+    setClasses(clRes.data);
+    const updated = clRes.data.find(c => c.id === classId);
+    if (updated) setSelectedClassForAttendance(updated);
+  };
+
+  const handleEnrollStudent = async (classId, studentData) => {
+    try {
+      await coachesAndClassesService.enrollStudent(classId, studentData);
+      const clRes = await coachesAndClassesService.getClasses();
+      setClasses(clRes.data);
+      const updated = clRes.data.find(c => c.id === classId);
+      if (updated) setSelectedClassForAttendance(updated);
+      alert(`¡Alumno ${studentData.name} inscripto exitosamente!`);
+    } catch (err) {
+      alert(err.message || 'Error al inscribir alumno.');
+    }
   };
 
   const handleCreateClass = async (e) => {
     e.preventDefault();
     if (newClass.maxCapacity > 30) {
-      alert('Por reglamento del club, el cupo no puede superar los 30 alumnos.');
+      alert('Por reglamento del club (RF067), el cupo no puede superar los 30 alumnos.');
       return;
     }
     const coachObj = coaches.find(c => c.id === newClass.coachId);
@@ -183,135 +203,86 @@ export default function CoachesAndClassesPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {classes.map(cls => (
-            <div key={cls.id} className="p-5 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="font-extrabold text-sm text-slate-900">{cls.name}</h3>
-                <span className="text-xs font-bold text-tennis-700 bg-white px-2 py-0.5 rounded-md border border-slate-200">
-                  {cls.currentEnrolled} / {cls.maxCapacity} Alumnos
-                </span>
-              </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {classes.map(cls => {
+            const isFull = (cls.currentEnrolled || cls.students?.length || 0) >= 30;
+            const studentsList = cls.students || [];
+            const regularCount = studentsList.filter(st => {
+              const att = st.attendance || [];
+              const p = att.filter(a => a === 'P').length;
+              const evalCount = att.filter(a => a === 'P' || a === 'A' || a === 'J').length;
+              return evalCount > 0 ? (p / evalCount) >= 0.75 : true;
+            }).length;
 
-              <div className="text-xs text-slate-500 space-y-1">
-                <div>Profesor: <strong className="text-slate-800">{cls.coachName}</strong></div>
-                <div>Horarios: <strong className="text-slate-800">{cls.scheduleDays} {cls.scheduleTime}</strong></div>
-                <div>Cancha: <strong className="text-slate-800">{cls.courtAssigned}</strong></div>
-              </div>
+            return (
+              <div key={cls.id} className="p-5 bg-white rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between space-y-3 hover:border-tennis-300 transition-all">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-tennis-100 text-tennis-900">
+                      Escuela Oficial
+                    </span>
+                    {isFull ? (
+                      <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 border border-rose-300 flex items-center gap-1 animate-pulse">
+                        ⚠️ Cupo Lleno (30/30)
+                      </span>
+                    ) : (
+                      <span className="text-xs font-bold text-tennis-800 bg-tennis-50 px-2 py-0.5 rounded-md border border-tennis-200">
+                        {cls.currentEnrolled || studentsList.length} / {cls.maxCapacity || 30} Alumnos
+                      </span>
+                    )}
+                  </div>
 
-              <div className="pt-2">
-                <button
-                  type="button"
-                  onClick={() => setSelectedClassForAttendance(cls)}
-                  className="w-full py-2 px-3 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-bold text-xs shadow-sm flex items-center justify-center gap-1.5"
-                >
-                  <UserCheck className="w-3.5 h-3.5" />
-                  Abrir Planilla de Asistencia
-                </button>
+                  <h3 className="font-black text-sm text-slate-900 line-clamp-1">{cls.name}</h3>
+
+                  <div className="text-xs text-slate-500 space-y-1 pt-1">
+                    <div>Profesor: <strong className="text-slate-800">{cls.coachName}</strong></div>
+                    <div>Horarios: <strong className="text-slate-800">{cls.scheduleDays} {cls.scheduleTime}</strong></div>
+                    <div>Cancha: <strong className="text-slate-800">{cls.courtAssigned}</strong></div>
+                  </div>
+
+                  {/* Attendance quick KPI */}
+                  <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-[11px]">
+                    <span className="text-slate-500">Regularidad:</span>
+                    <strong className="text-emerald-700">
+                      {regularCount}/{studentsList.length} Regulares ({studentsList.length > 0 ? Math.round((regularCount / studentsList.length) * 100) : 100}%)
+                    </strong>
+                  </div>
+                </div>
+
+                <div className="pt-2 flex flex-col gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedClassForAttendance(cls)}
+                    className="w-full py-2.5 px-3 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-bold text-xs shadow-sm flex items-center justify-center gap-1.5 transition-colors"
+                  >
+                    <UserCheck className="w-3.5 h-3.5" />
+                    Abrir Matriz de Asistencia
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedClassForSheet(cls)}
+                    className="w-full py-1.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
+                  >
+                    <Printer className="w-3.5 h-3.5 text-slate-500" />
+                    Imprimir Planilla A4
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
-      {/* Attendance Modal */}
-      <Modal
+      {/* Interactive Visual Attendance Matrix Modal (RF078 a RF085 & RF067) */}
+      <AttendanceMatrixModal
         isOpen={!!selectedClassForAttendance}
         onClose={() => setSelectedClassForAttendance(null)}
-        title={`Planilla de Asistencia: ${selectedClassForAttendance?.name}`}
-        maxWidth="max-w-2xl"
-      >
-        <div className="space-y-4 text-xs">
-          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex justify-between items-center">
-            <div>
-              <div className="font-bold text-slate-800">Profesor: {selectedClassForAttendance?.coachName}</div>
-              <div className="text-slate-500">Cancha: {selectedClassForAttendance?.courtAssigned}</div>
-            </div>
-            <div className="text-right">
-              <div className="font-bold text-tennis-700">{selectedClassForAttendance?.scheduleDays}</div>
-              <div className="text-slate-400">{selectedClassForAttendance?.scheduleTime}</div>
-            </div>
-          </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
-              <thead>
-                <tr className="border-b border-slate-200 text-slate-400 font-bold uppercase">
-                  <th className="py-2 px-2">Alumno</th>
-                  <th className="py-2 px-2">DNI</th>
-                  <th className="py-2 px-2 text-center">Historial</th>
-                  <th className="py-2 px-2 text-right">Tomar Asistencia Hoy</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {selectedClassForAttendance?.students?.map(st => (
-                  <tr key={st.id} className="hover:bg-slate-50">
-                    <td className="py-2 px-2 font-bold text-slate-800">{st.name}</td>
-                    <td className="py-2 px-2 text-slate-500">{st.dni}</td>
-                    <td className="py-2 px-2 text-center">
-                      <div className="flex items-center justify-center gap-1">
-                        {st.attendance.map((att, aIdx) => (
-                          <span
-                            key={aIdx}
-                            className={`w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-bold ${
-                              att === 'P' ? 'bg-emerald-100 text-emerald-800' : att === 'A' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'
-                            }`}
-                          >
-                            {att}
-                          </span>
-                        ))}
-                      </div>
-                    </td>
-                    <td className="py-2 px-2 text-right">
-                      <div className="inline-flex items-center gap-1">
-                        <button
-                          type="button"
-                          onClick={() => handleRecordAttendance(st.id, 'P')}
-                          className="px-2 py-1 rounded bg-emerald-600 text-white font-bold text-[10px] hover:bg-emerald-700"
-                        >
-                          P (Presente)
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleRecordAttendance(st.id, 'A')}
-                          className="px-2 py-1 rounded bg-red-500 text-white font-bold text-[10px] hover:bg-red-600"
-                        >
-                          A (Ausente)
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleRecordAttendance(st.id, 'J')}
-                          className="px-2 py-1 rounded bg-amber-500 text-white font-bold text-[10px] hover:bg-amber-600"
-                        >
-                          J (Justif.)
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="flex items-center justify-between pt-3 border-t border-slate-200">
-            <button
-              type="button"
-              onClick={() => setSelectedClassForSheet(selectedClassForAttendance)}
-              className="px-4 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors"
-            >
-              <Printer className="w-3.5 h-3.5 text-emerald-600" />
-              Imprimir Planilla Oficial A4
-            </button>
-            <button
-              type="button"
-              onClick={() => setSelectedClassForAttendance(null)}
-              className="px-4 py-2 bg-slate-900 text-white rounded-xl font-bold text-xs hover:bg-slate-800"
-            >
-              Guardar y Cerrar
-            </button>
-          </div>
-        </div>
-      </Modal>
+        classItem={selectedClassForAttendance}
+        onToggleAttendance={handleToggleAttendance}
+        onBulkMark={handleBulkMark}
+        onEnrollStudent={handleEnrollStudent}
+        onOpenPrintSheet={(cls) => setSelectedClassForSheet(cls)}
+      />
 
       {/* Add Class Modal */}
       <Modal

@@ -14,6 +14,7 @@ import {
   X 
 } from 'lucide-react';
 import Modal from '../../components/common/Modal';
+import TournamentBracketTree from '../../components/common/TournamentBracketTree';
 
 export default function TournamentsManagementPage() {
   const [tournaments, setTournaments] = useState([]);
@@ -33,11 +34,6 @@ export default function TournamentsManagementPage() {
     description: ''
   });
 
-  // Match score editing modal
-  const [editingMatch, setEditingMatch] = useState(null);
-  const [matchScoreInput, setMatchScoreInput] = useState('');
-  const [matchWinnerInput, setMatchWinnerInput] = useState('');
-
   useEffect(() => {
     loadTournaments();
   }, []);
@@ -48,6 +44,11 @@ export default function TournamentsManagementPage() {
     if (res.data.length > 0 && !selectedTournament) {
       setSelectedTournament(res.data[0]);
     }
+  };
+
+  const handleUpdateTournament = (updatedTrn) => {
+    setSelectedTournament(updatedTrn);
+    setTournaments(tournaments.map(t => t.id === updatedTrn.id ? updatedTrn : t));
   };
 
   const handleCreateTournament = async (e) => {
@@ -159,14 +160,14 @@ export default function TournamentsManagementPage() {
           })}
         </div>
 
-        {/* Right: Bracket & Match Score Recording (8 cols) */}
+        {/* Right: Bracket Tree Visualizer & Interactive Match Score Recording (8 cols) */}
         <div className="lg:col-span-8">
           <div id="printable-area" className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-6">
             
             <div className="flex items-center justify-between pb-4 border-b border-slate-100">
               <div>
                 <span className="text-[10px] font-black uppercase text-tennis-700 tracking-wider">
-                  Cuadro Oficial del Torneo / Fixture AAT
+                  Cuadro Oficial del Torneo / Fixture AAT (RF105 a RF115)
                 </span>
                 <h2 className="text-xl font-extrabold text-slate-900">{selectedTournament?.name}</h2>
                 <p className="text-xs text-slate-500">
@@ -180,135 +181,17 @@ export default function TournamentsManagementPage() {
               </div>
             </div>
 
-            {/* Rounds & Matches List */}
-            {selectedTournament?.bracket && selectedTournament.bracket.length > 0 ? (
-              <div className="space-y-6">
-                {selectedTournament.bracket.map((round, rIdx) => (
-                  <div key={rIdx} className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-tennis-600" />
-                      <h3 className="font-extrabold text-xs uppercase tracking-wider text-slate-800">
-                        {round.round}
-                      </h3>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {round.matches.map((match, mIdx) => (
-                        <div
-                          key={match.id || mIdx}
-                          className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-2 text-xs"
-                        >
-                          <div className="flex items-center justify-between text-[10px] text-slate-400 font-bold border-b pb-1">
-                            <span>Partido #{match.id}</span>
-                            <span className={match.status === 'finalizado' ? 'text-emerald-600' : 'text-amber-600'}>
-                              {match.status === 'finalizado' ? '✓ Finalizado' : match.date || 'Programado'}
-                            </span>
-                          </div>
-
-                          <div className={`p-1.5 rounded-lg flex items-center justify-between ${
-                            match.winner === match.p1 ? 'bg-tennis-100 text-tennis-900 font-bold' : 'text-slate-700'
-                          }`}>
-                            <span>{match.p1}</span>
-                            {match.winner === match.p1 && <CheckCircle2 className="w-3.5 h-3.5 text-tennis-700" />}
-                          </div>
-
-                          <div className={`p-1.5 rounded-lg flex items-center justify-between ${
-                            match.winner === match.p2 ? 'bg-tennis-100 text-tennis-900 font-bold' : 'text-slate-700'
-                          }`}>
-                            <span>{match.p2}</span>
-                            {match.winner === match.p2 && <CheckCircle2 className="w-3.5 h-3.5 text-tennis-700" />}
-                          </div>
-
-                          <div className="flex items-center justify-between pt-1 border-t border-slate-200">
-                            <span className="font-bold text-slate-800 text-[11px]">
-                              Sets: <strong className="text-tennis-800">{match.score}</strong>
-                            </span>
-
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setEditingMatch(match);
-                                setMatchScoreInput(match.score === 'Pendiente' ? '6-4, 6-3' : match.score);
-                                setMatchWinnerInput(match.winner || match.p1);
-                              }}
-                              className="px-2 py-1 rounded-lg bg-white hover:bg-slate-200 text-slate-700 text-[10px] font-bold border border-slate-200 flex items-center gap-1 no-print"
-                            >
-                              <Edit className="w-3 h-3" /> Cargar Resultado
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-10 text-slate-400 text-xs">
-                El cuadro eliminatorio se generará una vez finalizada la inscripción de parejas/jugadores.
-              </div>
-            )}
+            {/* Interactive Elimination Bracket Tree (Cuartos -> Semis -> Final) */}
+            <TournamentBracketTree
+              tournament={selectedTournament}
+              isAdmin={true}
+              onUpdateTournament={handleUpdateTournament}
+            />
 
           </div>
         </div>
 
       </div>
-
-      {/* Edit Match Score Modal */}
-      <Modal
-        isOpen={!!editingMatch}
-        onClose={() => setEditingMatch(null)}
-        title={`Cargar Resultado: ${editingMatch?.p1} vs ${editingMatch?.p2}`}
-        maxWidth="max-w-md"
-      >
-        <form onSubmit={handleSaveMatchScore} className="space-y-4 text-xs">
-          <div>
-            <label className="font-bold text-slate-700 uppercase block mb-1">
-              Resultado Oficial de Sets y Games *
-            </label>
-            <input
-              type="text"
-              required
-              placeholder="Ej: 6-4, 3-6, 7-6 (7-4)"
-              value={matchScoreInput}
-              onChange={(e) => setMatchScoreInput(e.target.value)}
-              className="w-full p-2.5 rounded-xl border border-slate-200 font-bold outline-none focus:border-tennis-600"
-            />
-            <span className="text-[10px] text-slate-400 mt-1 block">
-              Regla: partidos al mejor de 3 sets con Tie-Break a 7 puntos.
-            </span>
-          </div>
-
-          <div>
-            <label className="font-bold text-slate-700 uppercase block mb-1">
-              Jugador / Pareja Ganador(a) *
-            </label>
-            <select
-              value={matchWinnerInput}
-              onChange={(e) => setMatchWinnerInput(e.target.value)}
-              className="w-full p-2.5 rounded-xl border border-slate-200 font-bold outline-none focus:border-tennis-600 bg-white"
-            >
-              <option value={editingMatch?.p1}>{editingMatch?.p1}</option>
-              <option value={editingMatch?.p2}>{editingMatch?.p2}</option>
-            </select>
-          </div>
-
-          <div className="flex justify-end gap-2 pt-2">
-            <button
-              type="button"
-              onClick={() => setEditingMatch(null)}
-              className="px-3 py-2 text-slate-600"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-tennis-600 hover:bg-tennis-700 text-white font-bold rounded-xl"
-            >
-              Guardar y Avanzar Llave
-            </button>
-          </div>
-        </form>
-      </Modal>
 
       {/* Create Tournament Modal */}
       <Modal

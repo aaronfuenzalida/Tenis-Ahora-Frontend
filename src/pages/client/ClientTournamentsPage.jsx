@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { tournamentsService } from '../../services/api';
 import { Trophy, Users, Calendar, Award, CheckCircle2, ChevronRight, Swords, ShieldCheck } from 'lucide-react';
 import Modal from '../../components/common/Modal';
+import TournamentBracketTree from '../../components/common/TournamentBracketTree';
 
 export default function ClientTournamentsPage() {
   const [tournaments, setTournaments] = useState([]);
@@ -45,8 +46,8 @@ export default function ClientTournamentsPage() {
       {/* Tournaments List & Bracket Visualizer */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        {/* Left: Tournament Cards (5 Cols) */}
-        <div className="lg:col-span-5 space-y-4">
+        {/* Left: Tournament Cards (4 Cols) */}
+        <div className="lg:col-span-4 space-y-4">
           <label className="block text-xs font-bold uppercase text-slate-500">
             Torneos Disponibles:
           </label>
@@ -115,12 +116,12 @@ export default function ClientTournamentsPage() {
           })}
         </div>
 
-        {/* Right: Tournament Bracket Viewer (7 Cols) */}
-        <div className="lg:col-span-7">
+        {/* Right: Tournament Bracket Viewer (8 Cols) */}
+        <div className="lg:col-span-8">
           <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-6">
             <div className="flex items-center justify-between pb-4 border-b border-slate-100">
               <div>
-                <span className="text-xs font-extrabold text-tennis-700 uppercase">Cuadro Oficial / Fixture</span>
+                <span className="text-xs font-extrabold text-tennis-700 uppercase">Cuadro Oficial / Fixture AAT</span>
                 <h2 className="text-lg font-black text-slate-900">{selectedTournament?.name}</h2>
               </div>
               <div className="inline-flex items-center gap-1 text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1 rounded-full">
@@ -128,60 +129,11 @@ export default function ClientTournamentsPage() {
               </div>
             </div>
 
-            {selectedTournament?.bracket && selectedTournament.bracket.length > 0 ? (
-              /* Visual Bracket Rounds */
-              <div className="space-y-6 overflow-x-auto pb-2">
-                {selectedTournament.bracket.map((round, rIdx) => (
-                  <div key={rIdx} className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-tennis-600" />
-                      <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-700">
-                        {round.round}
-                      </h4>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {round.matches.map((match, mIdx) => (
-                        <div key={match.id || mIdx} className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-2">
-                          <div className="flex items-center justify-between text-[10px] text-slate-400 font-semibold border-b border-slate-200 pb-1">
-                            <span>Partido #{mIdx + 1}</span>
-                            <span className={match.status === 'finalizado' ? 'text-emerald-600 font-bold' : 'text-amber-600'}>
-                              {match.status === 'finalizado' ? 'Finalizado' : match.date || 'Por Disputar'}
-                            </span>
-                          </div>
-
-                          {/* Player 1 */}
-                          <div className={`flex items-center justify-between p-1.5 rounded-lg ${
-                            match.winner === match.p1 ? 'bg-tennis-100 text-tennis-900 font-extrabold' : 'text-slate-700'
-                          }`}>
-                            <span className="truncate">{match.p1}</span>
-                            {match.winner === match.p1 && <CheckCircle2 className="w-3.5 h-3.5 text-tennis-700 shrink-0" />}
-                          </div>
-
-                          {/* Player 2 */}
-                          <div className={`flex items-center justify-between p-1.5 rounded-lg ${
-                            match.winner === match.p2 ? 'bg-tennis-100 text-tennis-900 font-extrabold' : 'text-slate-700'
-                          }`}>
-                            <span className="truncate">{match.p2}</span>
-                            {match.winner === match.p2 && <CheckCircle2 className="w-3.5 h-3.5 text-tennis-700 shrink-0" />}
-                          </div>
-
-                          {/* Score */}
-                          <div className="text-right text-[11px] font-bold text-slate-900 pt-1">
-                            Resultado: <span className="text-tennis-800">{match.score}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 text-slate-400 text-xs">
-                <Trophy className="w-10 h-10 mx-auto mb-2 opacity-40 text-tennis-600" />
-                El cuadro y fixture de este torneo se sorteará una vez completado el cupo de inscripciones.
-              </div>
-            )}
+            {/* Elimination Bracket Tree (Cuartos -> Semis -> Final) */}
+            <TournamentBracketTree
+              tournament={selectedTournament}
+              isAdmin={false}
+            />
 
             {/* Official Rules Note */}
             <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-xs text-slate-600 space-y-1">

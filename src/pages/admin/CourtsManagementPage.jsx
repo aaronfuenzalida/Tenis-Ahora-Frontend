@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { courtsService } from '../../services/api';
+import { courtsService, reservationsService } from '../../services/api';
 import { 
   Layers, 
   Plus, 
@@ -11,15 +11,22 @@ import {
   Clock, 
   Sliders, 
   ShieldAlert,
-  Calendar
+  Calendar,
+  CalendarDays
 } from 'lucide-react';
 import Modal from '../../components/common/Modal';
+import CourtTimelineGrid from '../../components/common/CourtTimelineGrid';
 
 export default function CourtsManagementPage() {
   const [courts, setCourts] = useState([]);
+  const [reservations, setReservations] = useState([]);
   const [selectedCourt, setSelectedCourt] = useState(null);
   const [showMaintModal, setShowMaintModal] = useState(false);
   const [maintenanceNotes, setMaintenanceNotes] = useState('');
+
+  // Tab: 'cards' vs 'timeline'
+  const [activeTab, setActiveTab] = useState('cards');
+  const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);
   
   // Add court modal
   const [showAddModal, setShowAddModal] = useState(false);
@@ -37,8 +44,12 @@ export default function CourtsManagementPage() {
   }, []);
 
   const loadCourts = async () => {
-    const res = await courtsService.getAll();
-    setCourts(res.data);
+    const [cRes, rRes] = await Promise.all([
+      courtsService.getAll(),
+      reservationsService.getAll()
+    ]);
+    setCourts(cRes.data);
+    setReservations(rRes.data || []);
   };
 
   const handleToggleMaintenance = async (court) => {
@@ -106,16 +117,60 @@ export default function CourtsManagementPage() {
         </div>
       </div>
 
-      {/* Printable Area Report */}
-      <div id="printable-area" className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-6">
-        
-        {/* Printable Header only on paper */}
-        <div className="hidden print:block text-center border-b pb-4">
-          <h2 className="text-xl font-bold text-tennis-900">TENIS AHORA CLUB — REPORTE OFICIAL DE CANCHAS</h2>
-          <p className="text-xs text-slate-500">Superficies, Capacidades, Iluminación y Estado Operativo</p>
-        </div>
+      {/* View Mode Tabs (Admin) */}
+      <div className="flex items-center gap-2 no-print">
+        <button
+          type="button"
+          onClick={() => setActiveTab('cards')}
+          className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
+            activeTab === 'cards'
+              ? 'bg-slate-900 text-white shadow-sm'
+              : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
+          }`}
+        >
+          <Layers className="w-3.5 h-3.5" />
+          Padrón de Canchas & Superficies
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('timeline')}
+          className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
+            activeTab === 'timeline'
+              ? 'bg-tennis-600 text-white shadow-sm'
+              : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
+          }`}
+        >
+          <CalendarDays className="w-3.5 h-3.5" />
+          Cronograma Horario en Vivo (08:00 a 22:00)
+        </button>
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {activeTab === 'timeline' ? (
+        <div className="no-print space-y-4">
+          <CourtTimelineGrid
+            courts={courts}
+            selectedCourt={selectedCourt}
+            selectedTimeSlot=""
+            selectedDate={selectedDate}
+            onSelectSlot={(court, slot, date) => {
+              setSelectedCourt(court);
+              alert(`Turno en Cancha ${court.name} (${court.surfaceType}): ${slot} para el día ${date}.\nTarifa: $${court.pricePerHour?.toLocaleString('es-AR')}/h.`);
+            }}
+            onDateChange={(d) => setSelectedDate(d)}
+            reservations={reservations}
+          />
+        </div>
+      ) : (
+        /* Printable Area Report */
+        <div id="printable-area" className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-6">
+          
+          {/* Printable Header only on paper */}
+          <div className="hidden print:block text-center border-b pb-4">
+            <h2 className="text-xl font-bold text-tennis-900">TENIS AHORA CLUB — REPORTE OFICIAL DE CANCHAS</h2>
+            <p className="text-xs text-slate-500">Superficies, Capacidades y Estado Operativo</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {courts.map(court => {
             const isMaint = court.status === 'mantenimiento';
 
@@ -189,6 +244,7 @@ export default function CourtsManagementPage() {
           })}
         </div>
       </div>
+      )}
 
       {/* Maintenance Modal */}
       <Modal

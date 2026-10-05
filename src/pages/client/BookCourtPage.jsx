@@ -13,10 +13,13 @@ import {
   AlertTriangle, 
   Info,
   ChevronRight,
-  Printer
+  Printer,
+  CalendarDays,
+  Layers
 } from 'lucide-react';
 import QRModal from '../../components/common/QRModal';
 import ReceiptModal from '../../components/common/ReceiptModal';
+import CourtTimelineGrid from '../../components/common/CourtTimelineGrid';
 import { formatDNI, formatPhone, cleanDNI, isValidDNI } from '../../utils/formatters';
 
 export default function BookCourtPage() {
@@ -25,7 +28,11 @@ export default function BookCourtPage() {
   // State
   const [courts, setCourts] = useState([]);
   const [stock, setStock] = useState([]);
+  const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // View Mode: 'timeline' (Cronograma Horario) vs 'cards' (Vista Tradicional)
+  const [viewMode, setViewMode] = useState('timeline');
 
   // Filters
   const [selectedSurface, setSelectedSurface] = useState('ALL'); // ALL, Ladrillo, Cemento, Pasto
@@ -61,13 +68,32 @@ export default function BookCourtPage() {
 
   const loadData = async () => {
     setLoading(true);
-    const [cRes, sRes] = await Promise.all([courtsService.getAll(), stockService.getAll()]);
+    const [cRes, sRes, rRes] = await Promise.all([
+      courtsService.getAll(), 
+      stockService.getAll(),
+      reservationsService.getAll()
+    ]);
     setCourts(cRes.data);
     setStock(sRes.data);
+    setReservations(rRes.data || []);
     if (cRes.data.length > 0) {
       setSelectedCourt(cRes.data[0]);
     }
     setLoading(false);
+  };
+
+  const handleSelectTimelineSlot = (court, slot, date) => {
+    setSelectedCourt(court);
+    setSelectedTimeSlot(slot);
+    if (date) setSelectedDate(date);
+    const duration = slot.includes(' - ') ? 2 : 1;
+    setDurationHours(duration);
+    
+    // Smooth scroll down to player entry
+    setTimeout(() => {
+      const el = document.getElementById('booking-players-form');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }, 50);
   };
 
   // Adjust player inputs when switching singles vs dobles
@@ -251,6 +277,43 @@ export default function BookCourtPage() {
         </div>
       </div>
 
+      {/* View Switcher: Cronograma Grilla Horaria vs Vista por Canchas */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200 shadow-xs">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-bold text-slate-500 uppercase">Modo de Visualización:</span>
+          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
+            <button
+              type="button"
+              onClick={() => setViewMode('timeline')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all flex items-center gap-1.5 ${
+                viewMode === 'timeline'
+                  ? 'bg-tennis-600 text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <CalendarDays className="w-3.5 h-3.5" />
+              Cronograma Grilla Horaria (Recomendado)
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('cards')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all flex items-center gap-1.5 ${
+                viewMode === 'cards'
+                  ? 'bg-tennis-600 text-white shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Layers className="w-3.5 h-3.5" />
+              Vista por Canchas
+            </button>
+          </div>
+        </div>
+
+        <div className="text-[11px] text-slate-400">
+          Disponibilidad en tiempo real de <strong>08:00 a 22:00 hs</strong> (RF032 a RF045)
+        </div>
+      </div>
+
       {bookingSuccess ? (
         /* Success Screen */
         <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm text-center max-w-2xl mx-auto space-y-4">
@@ -299,8 +362,308 @@ export default function BookCourtPage() {
             </button>
           </div>
         </div>
+      ) : viewMode === 'timeline' ? (
+        /* TIMELINE GRID VIEW (Point 5 Requirement: 08:00 to 22:00 vertical, courts horizontal, Verde/Gris/Amarillo) */
+        <div className="space-y-6">
+          <CourtTimelineGrid
+            courts={courts}
+            selectedCourt={selectedCourt}
+            selectedTimeSlot={selectedTimeSlot}
+            selectedDate={selectedDate}
+            onSelectSlot={handleSelectTimelineSlot}
+            onDateChange={(d) => setSelectedDate(d)}
+            reservations={reservations}
+          />
+
+          {/* Form Section below the timeline */}
+          <div id="booking-players-form" className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-4 border-t border-slate-200">
+            {/* Left: Selected Slot Banner + Players Registration (7 Cols) */}
+            <div className="lg:col-span-7 space-y-6">
+              
+              {/* Selected Slot summary bar */}
+              <div className="p-4 bg-slate-900 text-white rounded-3xl flex items-center justify-between shadow-sm">
+                <div>
+                  <span className="text-[10px] font-black uppercase text-tennis-400">Turno Activo para Reserva</span>
+                  <div className="text-base font-extrabold text-white mt-0.5">
+                    {selectedCourt ? selectedCourt.name : 'Seleccioná una cancha'} • {selectedTimeSlot || 'Seleccioná horario en la grilla'}
+                  </div>
+                  <div className="text-xs text-slate-300">
+                    Fecha: {selectedDate} • {selectedCourt?.surfaceType} • Duración: {durationHours} hs
+                  </div>
+                </div>
+
+                <div className="text-right">
+                  <span className="text-[10px] text-slate-400 block">Total Cancha</span>
+                  <span className="text-base font-black text-tennis-400">${courtTotal.toLocaleString('es-AR')}</span>
+                </div>
+              </div>
+
+              {/* Players Registration Form (Singles: 2 / Doubles: 4) */}
+              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-xs font-bold uppercase text-slate-700">
+                      Registro Obligatorio de Jugadores
+                    </h3>
+                    <p className="text-[11px] text-slate-400">
+                      Requerimiento: deben quedar registrados los datos de los 2 o 4 participantes que intervienen en el juego.
+                    </p>
+                  </div>
+
+                  {/* Modality selector */}
+                  <div className="flex bg-slate-100 p-1 rounded-xl">
+                    <button
+                      type="button"
+                      onClick={() => handlePlayerTypeChange('singles')}
+                      className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
+                        playersType === 'singles' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'
+                      }`}
+                    >
+                      Singles (2)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handlePlayerTypeChange('dobles')}
+                      className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
+                        playersType === 'dobles' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'
+                      }`}
+                    >
+                      Dobles (4)
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {players.map((p, idx) => {
+                    const cleaned = cleanDNI(p.dni);
+                    const isDup = cleaned && duplicateDnis.includes(cleaned);
+                    const isDniInvalid = p.dni && !isValidDNI(p.dni);
+
+                    return (
+                      <div 
+                        key={idx} 
+                        className={`p-3 rounded-xl border space-y-2 transition-all ${
+                          isDup 
+                            ? 'bg-red-50/70 border-red-300 ring-1 ring-red-400' 
+                            : 'bg-slate-50 border-slate-200'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-bold text-tennis-800 uppercase block">
+                            Jugador {idx + 1} {idx === 0 && '(Titular / Socio)'}
+                          </span>
+                          {isDup && (
+                            <span className="text-[10px] font-bold text-red-600 bg-red-100 px-1.5 py-0.5 rounded">
+                              DNI Duplicado
+                            </span>
+                          )}
+                        </div>
+
+                        <input
+                          type="text"
+                          required
+                          placeholder="Nombre y Apellido *"
+                          value={p.name}
+                          onChange={(e) => handlePlayerChange(idx, 'name', e.target.value)}
+                          className="w-full px-2.5 py-1.5 bg-white rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-tennis-500 outline-none"
+                        />
+                        
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <input
+                              type="text"
+                              required
+                              maxLength={10}
+                              placeholder="DNI (XX.XXX.XXX) *"
+                              value={p.dni}
+                              onChange={(e) => handlePlayerChange(idx, 'dni', e.target.value)}
+                              className={`w-full px-2.5 py-1.5 bg-white rounded-lg border text-xs focus:ring-1 outline-none font-bold ${
+                                isDup || isDniInvalid 
+                                  ? 'border-red-300 text-red-800 focus:ring-red-400' 
+                                  : 'border-slate-200 text-slate-800 focus:ring-tennis-500'
+                              }`}
+                            />
+                            {isDniInvalid && (
+                              <span className="text-[9px] text-red-600 block mt-0.5">7-8 dígitos</span>
+                            )}
+                          </div>
+
+                          <div>
+                            <input
+                              type="text"
+                              placeholder="Teléfono"
+                              value={p.phone}
+                              onChange={(e) => handlePlayerChange(idx, 'phone', e.target.value)}
+                              className="w-full px-2.5 py-1.5 bg-white rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-tennis-500 outline-none"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+            </div>
+
+            {/* Right: Equipment Assignment & Checkout (5 Cols) */}
+            <div className="lg:col-span-5 space-y-6">
+              
+              {/* Equipment Stock assignment */}
+              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-xs font-bold uppercase text-slate-700">
+                      Asignación de Equipamiento
+                    </h3>
+                    <p className="text-[11px] text-slate-400">
+                      RD05/RD06: Incluye Red, Pelotas y Raquetas sin costo extra.
+                    </p>
+                  </div>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                    Sin costo ($0)
+                  </span>
+                </div>
+
+                {!canBookWithStock && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-start gap-2 text-xs text-red-800">
+                    <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                    <div>
+                      <strong>Bloqueo por falta de stock (RD07):</strong>
+                      <p className="text-[11px] mt-0.5">
+                        No hay stock suficiente de red, pelotas o raquetas ({requiredRackets} requeridas).
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
+                  <div>
+                    <div className="font-bold text-slate-800">1 Red Reglamentaria de Tenis</div>
+                    <div className="text-[11px] text-slate-400">Stock: {netStock?.availableStock ?? 0} u.</div>
+                  </div>
+                  <span className={`text-xs font-bold px-2 py-1 rounded-lg border ${
+                    hasNetStock 
+                      ? 'text-emerald-700 bg-emerald-50 border-emerald-200' 
+                      : 'text-red-700 bg-red-50 border-red-200'
+                  }`}>
+                    {hasNetStock ? '✓ Asignada ($0)' : 'Sin Stock'}
+                  </span>
+                </div>
+
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
+                  <div>
+                    <div className="font-bold text-slate-800">Pelotas Reglamentarias de Tenis</div>
+                    <div className="text-[11px] text-slate-400">Stock: {ballStock?.availableStock ?? 0} pelotas</div>
+                  </div>
+                  <span className={`text-xs font-bold px-2 py-1 rounded-lg border ${
+                    hasBallStock 
+                      ? 'text-emerald-700 bg-emerald-50 border-emerald-200' 
+                      : 'text-red-700 bg-red-50 border-red-200'
+                  }`}>
+                    {hasBallStock ? '✓ Asignadas ($0)' : 'Sin Stock'}
+                  </span>
+                </div>
+
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
+                  <div>
+                    <div className="font-bold text-slate-800">
+                      {requiredRackets} Raquetas ({playersType === 'singles' ? 'Singles: 2 raquetas' : 'Dobles: 4 raquetas'})
+                    </div>
+                    <div className="text-[11px] text-slate-400">Stock: {racketStock?.availableStock ?? 0} u.</div>
+                  </div>
+                  <span className={`text-xs font-bold px-2 py-1 rounded-lg border ${
+                    hasRacketStock 
+                      ? 'text-emerald-700 bg-emerald-50 border-emerald-200' 
+                      : 'text-red-700 bg-red-50 border-red-200'
+                  }`}>
+                    {hasRacketStock ? `✓ Asignadas (${requiredRackets} u.) ($0)` : 'Sin Stock'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Payment Method & Total Breakdown */}
+              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                <h3 className="text-xs font-bold uppercase text-slate-700">
+                  Medio de Pago y Seña Obligatoria del 50%
+                </h3>
+
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { id: 'Mercado Pago (QR)', label: 'QR MP', icon: QrCode },
+                    { id: 'Tarjeta de Débito', label: 'Débito', icon: CreditCard },
+                    { id: 'Tarjeta de Crédito', label: 'Crédito', icon: CreditCard }
+                  ].map(method => {
+                    const Icon = method.icon;
+                    return (
+                      <button
+                        key={method.id}
+                        type="button"
+                        onClick={() => setPaymentMethod(method.id)}
+                        className={`p-2.5 rounded-xl text-center border text-xs font-bold transition-all ${
+                          paymentMethod === method.id
+                            ? 'bg-tennis-50 text-tennis-800 border-tennis-600 ring-1 ring-tennis-500'
+                            : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                        }`}
+                      >
+                        <Icon className="w-4 h-4 mx-auto mb-1 text-tennis-600" />
+                        {method.label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="pt-3 border-t border-slate-100 text-xs space-y-2">
+                  <div className="flex justify-between text-slate-600">
+                    <span>Alquiler Cancha ({durationHours} hs):</span>
+                    <span className="font-semibold">${courtTotal.toLocaleString('es-AR')}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-600">
+                    <span>Equipamiento (Red, Pelotas, {requiredRackets} Raquetas):</span>
+                    <span className="font-semibold text-emerald-700">Incluido ($0)</span>
+                  </div>
+                  <div className="flex justify-between text-slate-800 font-bold pt-1 border-t border-slate-100">
+                    <span>Costo Total de la Reserva:</span>
+                    <span>${totalReservation.toLocaleString('es-AR')}</span>
+                  </div>
+
+                  <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 space-y-1">
+                    <div className="flex justify-between items-center text-emerald-900 font-extrabold text-sm">
+                      <span>Abonar Ahora (Seña 50%):</span>
+                      <span>${deposit50.toLocaleString('es-AR')} ARS</span>
+                    </div>
+                    <div className="text-[11px] text-emerald-700 flex items-center justify-between">
+                      <span>Saldo al finalizar el partido (50%):</span>
+                      <span className="font-bold">${remaining50.toLocaleString('es-AR')}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  disabled={!canBookWithStock || !selectedTimeSlot}
+                  onClick={handleProceedPayment}
+                  className="w-full py-3.5 px-4 rounded-xl bg-tennis-600 hover:bg-tennis-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-extrabold text-sm shadow-md hover:shadow-glow-green flex items-center justify-center gap-2 transition-all"
+                >
+                  {!selectedTimeSlot 
+                    ? 'Seleccioná un horario en la grilla'
+                    : canBookWithStock 
+                    ? 'Pagar seña y confirmar reserva' 
+                    : 'Sin stock de equipamiento'}
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+
+                <div className="text-[11px] text-slate-400 text-center flex items-center justify-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                  Se emitirá automáticamente el recibo oficial con código QR
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
       ) : (
-        /* Reservation Wizard Grid */
+        /* TRADITIONAL CARDS VIEW */
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           
           {/* Left Column: Surface & Court Selector (7 Cols) */}

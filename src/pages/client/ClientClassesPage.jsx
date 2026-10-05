@@ -169,18 +169,36 @@ export default function ClientClassesPage() {
                 </div>
                 <div className="p-3 bg-slate-50 rounded-xl">
                   <span className="text-slate-400 block text-[10px] uppercase font-bold">Cupo de Alumnos:</span>
-                  <span className="font-bold text-tennis-700">{cls.currentEnrolled} de {cls.maxCapacity} máx.</span>
+                  <span className={`font-bold ${cls.currentEnrolled >= 30 ? 'text-rose-600' : 'text-tennis-700'}`}>
+                    {cls.currentEnrolled} de {cls.maxCapacity || 30} máx. (RF067)
+                  </span>
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={() => alert(`Inscripción registrada a ${cls.name}. La cuota mensual se registrará en tu cuenta.`)}
-                className="w-full py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition-colors flex items-center justify-center gap-1.5"
-              >
-                <UserCheck className="w-3.5 h-3.5" />
-                Inscribirme a esta Clase
-              </button>
+              {cls.currentEnrolled >= 30 ? (
+                <div className="space-y-2">
+                  <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-[11px] font-bold flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-rose-600 animate-pulse shrink-0" />
+                    Cupo completo (30/30 alumnos). Inscripciones cerradas por reglamento (RF067).
+                  </div>
+                  <button
+                    type="button"
+                    disabled
+                    className="w-full py-2.5 px-3 rounded-xl bg-slate-200 text-slate-400 font-bold text-xs cursor-not-allowed flex items-center justify-center gap-1.5"
+                  >
+                    🚫 Inscripción Inhabilitada (Cupo Lleno)
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => alert(`¡Inscripción registrada con éxito a "${cls.name}"! La cuota mensual se registrará en tu cuenta de socio.`)}
+                  className="w-full py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition-colors flex items-center justify-center gap-1.5"
+                >
+                  <UserCheck className="w-3.5 h-3.5" />
+                  Inscribirme a esta Clase
+                </button>
+              )}
             </div>
           ))}
         </div>
