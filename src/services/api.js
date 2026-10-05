@@ -346,7 +346,7 @@ export const coachesAndClassesService = {
     const targetClass = classesStore.find(c => c.id === classId);
     if (!targetClass) throw new Error('Clase no encontrada');
     if ((targetClass.students?.length || 0) >= 30) {
-      throw new Error('No se pueden inscribir más alumnos: cupo máximo de 30 alcanzado (RF067).');
+      throw new Error('No se pueden inscribir más alumnos: cupo máximo de 30 alcanzado .');
     }
     const newStudent = {
       id: `std-${Date.now()}`,

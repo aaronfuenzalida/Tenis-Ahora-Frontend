@@ -653,7 +653,7 @@ export const INITIAL_CLASSES = [
     scheduleDays: 'Martes y Jueves',
     scheduleTime: '19:00 - 20:30',
     courtAssigned: 'Cancha 1 (Ladrillo)',
-    maxCapacity: 30, // Requerimiento: Máximo 30 alumnos (RF067)
+    maxCapacity: 30, // Requerimiento: Máximo 30 alumnos 
     currentEnrolled: 6,
     monthlyFee: 16000,
     monthName: 'Octubre 2026',
@@ -697,7 +697,7 @@ export const INITIAL_CLASSES = [
     scheduleDays: 'Viernes y Sábados',
     scheduleTime: '17:00 - 19:00',
     courtAssigned: 'Cancha 2 (Ladrillo)',
-    maxCapacity: 30, // Tope estricto de 30 alumnos (RF067)
+    maxCapacity: 30, // Tope estricto de 30 alumnos 
     currentEnrolled: 30, // Cupo alcanzado para demostrar inhabilitación de inscripción
     monthlyFee: 22000,
     monthName: 'Octubre 2026',

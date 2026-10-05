@@ -48,7 +48,7 @@ export default function ClientDashboard() {
     setShowCancelModal(false);
     loadData();
     if (hoursLeft >= 6) {
-      alert('Reserva cancelada con más de 6 horas de antelación. Se ha gestionado el reintegro de la seña (RF050).');
+      alert('Reserva cancelada con más de 6 horas de antelación. Se ha gestionado el reintegro de la seña .');
     } else {
       alert('Reserva cancelada con menos de 6 horas de antelación. Se ha aplicado la retención de la seña conforme a RF051.');
     }
@@ -82,7 +82,7 @@ export default function ClientDashboard() {
               className="px-4 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-extrabold text-sm backdrop-blur-md border border-white/20 transition-all flex items-center gap-2 shadow-sm"
             >
               <CreditCard className="w-4 h-4 text-emerald-300" />
-              Mi Carnet de Socio (RF005)
+              Mi Carnet de Socio 
             </button>
             <Link
               to="/app/reservas"
@@ -390,7 +390,7 @@ export default function ClientDashboard() {
         );
       })()}
 
-      {/* Official Member Card Modal (RF005) */}
+      {/* Official Member Card Modal  */}
       <MemberCardModal
         isOpen={showCardModal}
         onClose={() => setShowCardModal(false)}

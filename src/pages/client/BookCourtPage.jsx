@@ -151,7 +151,7 @@ export default function BookCourtPage() {
   const hasRacketStock = racketStock ? racketStock.availableStock >= requiredRackets : false;
   const canBookWithStock = hasNetStock && hasBallStock && hasRacketStock;
 
-  // Max 30 days date limit validation (RF032)
+  // Max 30 days date limit validation 
   const maxDate = new Date();
   maxDate.setDate(maxDate.getDate() + 30);
   const maxDateStr = maxDate.toISOString().split('T')[0];
@@ -160,7 +160,7 @@ export default function BookCourtPage() {
   const handleProceedPayment = (e) => {
     e.preventDefault();
     if (selectedDate < minDateStr || selectedDate > maxDateStr) {
-      alert(`Por regla de negocio (RF032), las reservas solo pueden realizarse con un máximo de 30 días de anticipación (hasta ${maxDateStr}).`);
+      alert(`Por regla de negocio , las reservas solo pueden realizarse con un máximo de 30 días de anticipación (hasta ${maxDateStr}).`);
       return;
     }
     if (!selectedTimeSlot) {
@@ -255,7 +255,7 @@ export default function BookCourtPage() {
             <div className="flex items-center gap-1.5">
               <span className="text-slate-400 font-medium">Fecha de Turno:</span>
               <span className="text-[10px] font-bold text-tennis-700 bg-tennis-50 px-1.5 py-0.2 rounded border border-tennis-200">
-                Máx. 30 días (RF032)
+                Máx. 30 días 
               </span>
             </div>
             <input
@@ -266,7 +266,7 @@ export default function BookCourtPage() {
               onChange={(e) => {
                 const val = e.target.value;
                 if (val < minDateStr || val > maxDateStr) {
-                  alert(`Por reglamento (RF032), las reservas solo pueden realizarse con un máximo de 30 días de anticipación (hasta ${maxDateStr}).`);
+                  alert(`Por reglamento , las reservas solo pueden realizarse con un máximo de 30 días de anticipación (hasta ${maxDateStr}).`);
                   return;
                 }
                 setSelectedDate(val);

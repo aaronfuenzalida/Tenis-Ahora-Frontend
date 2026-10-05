@@ -185,7 +185,7 @@ export default function POSDiscountCalculator({ onChargeComplete }) {
         {/* Row 1: Concept & Client */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
           
-          {/* Concept selector (RF128) */}
+          {/* Concept selector  */}
           <div className="md:col-span-7 space-y-2">
             <label className="text-xs font-extrabold uppercase text-slate-700 flex items-center gap-1.5">
               <Tag className="w-3.5 h-3.5 text-tennis-600" />

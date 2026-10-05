@@ -11,7 +11,7 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Comprobante Oficial de Pago (RF045 / RF134)" maxWidth="max-w-xl">
+    <Modal isOpen={isOpen} onClose={onClose} title="Comprobante Oficial de Pago" maxWidth="max-w-xl">
       <div className="space-y-4">
         
         {/* Printable Area */}
@@ -152,7 +152,7 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
             className="px-5 py-2 text-xs font-bold text-white bg-tennis-600 hover:bg-tennis-700 rounded-xl shadow-md hover:shadow-glow-green inline-flex items-center gap-1.5 transition-all"
           >
             <Printer className="w-3.5 h-3.5" />
-            Imprimir Comprobante (RF045)
+            Imprimir Comprobante 
           </button>
         </div>
 

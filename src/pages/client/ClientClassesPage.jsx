@@ -170,7 +170,7 @@ export default function ClientClassesPage() {
                 <div className="p-3 bg-slate-50 rounded-xl">
                   <span className="text-slate-400 block text-[10px] uppercase font-bold">Cupo de Alumnos:</span>
                   <span className={`font-bold ${cls.currentEnrolled >= 30 ? 'text-rose-600' : 'text-tennis-700'}`}>
-                    {cls.currentEnrolled} de {cls.maxCapacity || 30} máx. (RF067)
+                    {cls.currentEnrolled} de {cls.maxCapacity || 30} máx. 
                   </span>
                 </div>
               </div>
@@ -179,7 +179,7 @@ export default function ClientClassesPage() {
                 <div className="space-y-2">
                   <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-[11px] font-bold flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-rose-600 animate-pulse shrink-0" />
-                    Cupo completo (30/30 alumnos). Inscripciones cerradas por reglamento (RF067).
+                    Cupo completo (30/30 alumnos). Inscripciones cerradas por reglamento .
                   </div>
                   <button
                     type="button"

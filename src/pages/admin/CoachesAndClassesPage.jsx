@@ -93,7 +93,7 @@ export default function CoachesAndClassesPage() {
   const handleCreateClass = async (e) => {
     e.preventDefault();
     if (newClass.maxCapacity > 30) {
-      alert('Por reglamento del club (RF067), el cupo no puede superar los 30 alumnos.');
+      alert('Por reglamento del club , el cupo no puede superar los 30 alumnos.');
       return;
     }
     const coachObj = coaches.find(c => c.id === newClass.coachId);

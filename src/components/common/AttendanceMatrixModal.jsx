@@ -88,7 +88,7 @@ export default function AttendanceMatrixModal({
     setEnrollError('');
 
     if (isCupoLleno) {
-      setEnrollError('No es posible agregar más alumnos: el cupo reglamentario de 30 está completo (RF067).');
+      setEnrollError('No es posible agregar más alumnos: el cupo reglamentario de 30 está completo.');
       return;
     }
 
@@ -166,12 +166,12 @@ export default function AttendanceMatrixModal({
           </div>
         </div>
 
-        {/* Cupo Maximo Control Alert (RF067) */}
+        {/* Cupo Maximo Control Alert  */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <span className="font-extrabold uppercase tracking-wider text-[11px] text-slate-500 flex items-center gap-1.5">
               <Users className="w-4 h-4 text-tennis-600" />
-              Control de Cupo Máximo Reglamentario (RF067: Tope 30 Alumnos)
+              Control de Cupo Máximo Reglamentario
             </span>
             <span className={`text-xs font-black ${isCupoLleno ? 'text-rose-600' : 'text-slate-700'}`}>
               {totalStudents} / {maxCapacity} Alumnos ({Math.round((totalStudents / maxCapacity) * 100)}%)
@@ -198,7 +198,7 @@ export default function AttendanceMatrixModal({
               <ShieldAlert className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
               <div>
                 <strong className="block font-black text-xs uppercase tracking-tight text-rose-800">
-                  ⚠️ ALERTA DE CUPO COMPLETO — Límite de 30 Alumnos Alcanzado (RF067)
+                  ⚠️ ALERTA DE CUPO COMPLETO — Límite de 30 Alumnos Alcanzado
                 </strong>
                 <p className="text-[11px] text-rose-700 mt-0.5">
                   Por reglamento oficial de seguridad y calidad pedagógica del club, se inhabilitan nuevas inscripciones en esta clase. Para sumar más participantes, debe abrirse una nueva comisión o grupo horario.

@@ -15,7 +15,7 @@ export default function MemberCardModal({ isOpen, onClose, member }) {
   const roleLabel = member.role === 'admin' ? 'Comisión Directiva / Admin' : 'Socio Pleno';
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Carnet Oficial de Socio (RF005)" maxWidth="max-w-2xl">
+    <Modal isOpen={isOpen} onClose={onClose} title="Carnet Oficial de Socio" maxWidth="max-w-2xl">
       <div className="space-y-6">
         
         {/* Instruction Banner (Hidden on Print) */}
@@ -162,7 +162,7 @@ export default function MemberCardModal({ isOpen, onClose, member }) {
             className="px-4 py-2 bg-tennis-600 hover:bg-tennis-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-md hover:shadow-glow-green transition-all"
           >
             <Printer className="w-3.5 h-3.5" />
-            Imprimir Credencial (RF005)
+            Imprimir Credencial
           </button>
         </div>
 

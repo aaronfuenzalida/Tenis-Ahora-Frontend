@@ -254,7 +254,7 @@ export default function UsersManagementPage() {
                           type="button"
                           onClick={() => setSelectedUserForCard(u)}
                           className="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-bold flex items-center gap-1 border border-emerald-200 transition-colors"
-                          title="Imprimir Carnet de Socio (RF005)"
+                          title="Imprimir Carnet de Socio "
                         >
                           <CreditCard className="w-3.5 h-3.5 text-emerald-600" />
                           Carnet
@@ -384,7 +384,7 @@ export default function UsersManagementPage() {
         </form>
       </Modal>
 
-      {/* Official Member Card Modal (RF005) */}
+      {/* Official Member Card Modal  */}
       <MemberCardModal
         isOpen={!!selectedUserForCard}
         onClose={() => setSelectedUserForCard(null)}
