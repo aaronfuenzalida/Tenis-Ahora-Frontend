@@ -75,35 +75,54 @@ export function AuthProvider({ children }) {
    * Inicio de sesión directo en Modo Demo (sin necesidad de backend levantado)
    */
   const loginDemo = (role = 'client') => {
-    const demoUser = role === 'admin'
-      ? {
-          id: 'usr-02',
-          name: 'Administrador General',
-          nombre: 'Administrador',
-          apellido: 'General',
-          email: 'admin@tenisahora.com',
-          phone: '+54 11 9988-1122',
-          address: 'Sede Central Club Tenis Ahora, Buenos Aires',
-          role: 'admin',
-          rolBackend: 'Empleado',
-          dni: '30.123.456',
-          memberNumber: 'ADM-001',
-          isDemo: true
-        }
-      : {
-          id: 'usr-01',
-          name: 'Federico Gómez',
-          nombre: 'Federico',
-          apellido: 'Gómez',
-          email: 'socio@tenisahora.com',
-          phone: '+54 11 4892-1234',
-          address: 'Av. San Martín 1420, Quilmes, Buenos Aires',
-          role: 'client',
-          rolBackend: 'Socio',
-          dni: '38.452.129',
-          memberNumber: 'TA-8821',
-          isDemo: true
-        };
+    let demoUser;
+    if (role === 'admin') {
+      demoUser = {
+        id: 'usr-02',
+        name: 'Administrador General',
+        nombre: 'Administrador',
+        apellido: 'General',
+        email: 'admin@tenisahora.com',
+        phone: '+54 11 9988-1122',
+        address: 'Sede Central Club Tenis Ahora, Buenos Aires',
+        role: 'admin',
+        rolBackend: 'Empleado',
+        dni: '30.123.456',
+        memberNumber: 'ADM-001',
+        isDemo: true
+      };
+    } else if (role === 'coach') {
+      demoUser = {
+        id: 'coach-01',
+        coachId: 'coach-01',
+        name: 'Prof. Santiago Álvarez',
+        nombre: 'Santiago',
+        apellido: 'Álvarez',
+        email: 'profesor@tenisahora.com',
+        phone: '+54 11 5566-7788',
+        address: 'Av. Libertador 2200, Buenos Aires',
+        role: 'coach',
+        rolBackend: 'Profesor',
+        dni: '27.890.123',
+        memberNumber: 'DOC-77492',
+        isDemo: true
+      };
+    } else {
+      demoUser = {
+        id: 'usr-01',
+        name: 'Federico Gómez',
+        nombre: 'Federico',
+        apellido: 'Gómez',
+        email: 'socio@tenisahora.com',
+        phone: '+54 11 4892-1234',
+        address: 'Av. San Martín 1420, Quilmes, Buenos Aires',
+        role: 'client',
+        rolBackend: 'Socio',
+        dni: '38.452.129',
+        memberNumber: 'TA-8821',
+        isDemo: true
+      };
+    }
 
     const mockToken = createMockToken(demoUser);
     setStoredToken(mockToken);
@@ -191,6 +210,18 @@ export function AuthProvider({ children }) {
               email: 'admin@tenisahora.com',
               isDemo: true
             }
+          : newRole === 'coach'
+          ? {
+              ...user,
+              role: 'coach',
+              coachId: 'coach-01',
+              rolBackend: 'Profesor',
+              name: 'Prof. Santiago Álvarez',
+              email: 'profesor@tenisahora.com',
+              dni: '27.890.123',
+              memberNumber: 'DOC-77492',
+              isDemo: true
+            }
           : {
               ...user,
               role: 'client',
@@ -217,6 +248,7 @@ export function AuthProvider({ children }) {
     loading,
     isAuthenticated: !!token && !!user,
     isAdmin: user?.role === 'admin',
+    isCoach: user?.role === 'coach',
     isDemo: !!user?.isDemo,
     login,
     loginDemo,

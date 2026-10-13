@@ -12,7 +12,8 @@ import {
   CheckCircle2, 
   Activity, 
   Layers, 
-  Trophy 
+  Trophy,
+  GraduationCap 
 } from 'lucide-react';
 
 export default function LoginPage() {
@@ -34,6 +35,8 @@ export default function LoginPage() {
       const loggedUser = await login(email, password);
       if (loggedUser.role === 'admin') {
         navigate('/admin');
+      } else if (loggedUser.role === 'coach') {
+        navigate('/coach');
       } else {
         navigate('/app/dashboard');
       }
@@ -49,6 +52,8 @@ export default function LoginPage() {
     const demoUser = loginDemo(role);
     if (demoUser.role === 'admin') {
       navigate('/admin');
+    } else if (demoUser.role === 'coach') {
+      navigate('/coach');
     } else {
       navigate('/app/dashboard');
     }
@@ -131,9 +136,6 @@ export default function LoginPage() {
                 <label className="block text-xs font-bold text-slate-700 uppercase">
                   Contraseña
                 </label>
-                <a href="#forgot" onClick={(e) => { e.preventDefault(); alert('Podés ingresar directamente con los botones de Modo Demo.'); }} className="text-xs text-tennis-600 hover:underline">
-                  ¿Olvidaste tu clave?
-                </a>
               </div>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -166,27 +168,36 @@ export default function LoginPage() {
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
                 Acceso rápido demo
               </span>
-              <span className="text-[10px] text-tennis-700 font-semibold bg-tennis-50 px-2 py-0.5 rounded-full border border-tennis-200">
+              <span className="text-[11px] text-slate-500 font-medium">
                 Sin backend
               </span>
             </div>
 
-            <div className="grid grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <button
                 type="button"
                 onClick={() => handleDemoLogin('client')}
-                className="py-2.5 px-3 rounded-xl border border-tennis-200 bg-tennis-50/70 hover:bg-tennis-100 text-tennis-900 text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-95 group"
+                className="py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-95"
               >
-                <Sparkles className="w-3.5 h-3.5 text-tennis-600 group-hover:scale-110 transition-transform" />
+                <User className="w-3.5 h-3.5 text-slate-600" />
                 <span>Demo Socio</span>
               </button>
 
               <button
                 type="button"
-                onClick={() => handleDemoLogin('admin')}
-                className="py-2.5 px-3 rounded-xl border border-slate-800 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-95 group"
+                onClick={() => handleDemoLogin('coach')}
+                className="py-2.5 px-3 rounded-xl border border-tennis-200 bg-tennis-50/70 hover:bg-tennis-100 text-tennis-900 text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-95"
               >
-                <Shield className="w-3.5 h-3.5 text-tennis-400 group-hover:scale-110 transition-transform" />
+                <GraduationCap className="w-3.5 h-3.5 text-tennis-600" />
+                <span>Demo Docente</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleDemoLogin('admin')}
+                className="py-2.5 px-3 rounded-xl border border-slate-800 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-95"
+              >
+                <Shield className="w-3.5 h-3.5 text-tennis-400" />
                 <span>Demo Admin</span>
               </button>
             </div>

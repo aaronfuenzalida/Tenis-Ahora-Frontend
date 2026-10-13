@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
 import ClientSidebar from './ClientSidebar';
-import { Menu, ArrowRightLeft, Shield, Calendar, User, Bell, Sparkles } from 'lucide-react';
+import { Menu, ArrowRightLeft, Shield, Calendar, User, Bell, Sparkles, GraduationCap } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Logo from '../common/Logo';
 
@@ -13,6 +13,11 @@ export default function ClientLayout() {
   const handleToggleRole = () => {
     switchRole('admin');
     navigate('/admin');
+  };
+
+  const handleGoToCoach = () => {
+    switchRole('coach');
+    navigate('/coach');
   };
 
   return (
@@ -65,6 +70,16 @@ export default function ClientLayout() {
               <Calendar className="w-3.5 h-3.5" />
               Reservar Cancha
             </Link>
+
+            <button
+              type="button"
+              onClick={handleGoToCoach}
+              title="Cambiar a vista de profesor o entrenador"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-tennis-50 hover:bg-tennis-100 text-tennis-900 text-xs font-bold border border-tennis-200 transition-all shadow-sm"
+            >
+              <GraduationCap className="w-3.5 h-3.5 text-tennis-600" />
+              <span className="hidden sm:inline">Panel</span> Docente
+            </button>
 
             <button
               type="button"

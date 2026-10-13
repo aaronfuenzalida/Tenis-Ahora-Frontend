@@ -58,6 +58,11 @@ export default function ClientSidebar({ isOpen, onClose }) {
     navigate('/admin');
   };
 
+  const handleGoToCoach = () => {
+    switchRole('coach');
+    navigate('/coach');
+  };
+
   return (
     <>
       {/* Mobile Overlay */}
@@ -123,39 +128,36 @@ export default function ClientSidebar({ isOpen, onClose }) {
                 }
               >
                 {({ isActive }) => (
-                  <>
-                    <div className="flex items-center gap-3">
-                      <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-tennis-600'}`} />
-                      <span>{item.name}</span>
-                    </div>
-
-                    {item.badge && (
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
-                        isActive ? 'bg-tennis-700 text-white' : 'bg-tennis-100 text-tennis-800'
-                      }`}>
-                        {item.badge}
-                      </span>
-                    )}
-                  </>
+                  <div className="flex items-center gap-3">
+                    <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-tennis-600'}`} />
+                    <span>{item.name}</span>
+                  </div>
                 )}
               </NavLink>
             );
           })}
         </div>
 
-        {/* Switch to Admin Mode Box */}
+        {/* Switch to Docente or Admin Mode Box */}
         <div className="p-4 border-t border-slate-100 space-y-2 bg-slate-50/50">
-          <button
-            type="button"
-            onClick={handleGoToAdmin}
-            className="w-full flex items-center justify-between py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all shadow-sm group"
-          >
-            <div className="flex items-center gap-2">
-              <ArrowRightLeft className="w-3.5 h-3.5 text-tennis-400" />
-              <span>Panel Admin</span>
-            </div>
-            <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:translate-x-0.5 transition-transform" />
-          </button>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={handleGoToCoach}
+              className="py-2 px-2.5 rounded-xl border border-tennis-200 bg-tennis-50 hover:bg-tennis-100 text-tennis-900 text-xs font-semibold flex items-center justify-center gap-1 transition-colors"
+            >
+              <ArrowRightLeft className="w-3 h-3 text-tennis-600" />
+              <span>Docente</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleGoToAdmin}
+              className="py-2 px-2.5 rounded-xl border border-slate-800 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold flex items-center justify-center gap-1 transition-colors"
+            >
+              <ArrowRightLeft className="w-3 h-3 text-tennis-400" />
+              <span>Admin</span>
+            </button>
+          </div>
 
           <button
             type="button"

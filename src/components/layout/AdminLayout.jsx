@@ -14,6 +14,11 @@ export default function AdminLayout() {
     navigate('/app/dashboard');
   };
 
+  const handleGoToCoach = () => {
+    switchRole('coach');
+    navigate('/coach');
+  };
+
   return (
     <div className="min-h-screen bg-slate-100 flex">
       {/* Sidebar */}
@@ -34,8 +39,7 @@ export default function AdminLayout() {
             </button>
 
             <div className="flex items-center gap-2">
-              <div className="hidden sm:flex items-center gap-2 text-xs font-semibold px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <div className="hidden sm:flex items-center gap-2 text-xs font-semibold px-2.5 py-1 rounded-lg bg-slate-50 text-slate-700 border border-slate-200">
                 Sistema Operativo
               </div>
             </div>
@@ -43,22 +47,34 @@ export default function AdminLayout() {
 
           <div className="flex items-center gap-3">
             {user?.isDemo && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase bg-amber-100 text-amber-900 border border-amber-200 shadow-sm">
-                <Sparkles className="w-3 h-3 text-amber-600" />
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase bg-slate-100 text-slate-700 border border-slate-200 shadow-sm">
+                <Sparkles className="w-3 h-3 text-slate-500" />
                 Modo Demo
               </span>
             )}
 
-            {/* Quick Demo Switcher */}
-            <button
-              type="button"
-              onClick={handleToggleRole}
-              title="Cambiar a vista de socio"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-tennis-50 hover:bg-tennis-100 text-tennis-800 text-xs font-bold border border-tennis-200 transition-all shadow-sm"
-            >
-              <ArrowRightLeft className="w-3.5 h-3.5 text-tennis-600" />
-              <span className="hidden sm:inline">Ver como</span> Socio
-            </button>
+            {/* Quick Demo Switchers */}
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={handleGoToCoach}
+                title="Cambiar a vista de docente"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-tennis-50 hover:bg-tennis-100 text-tennis-900 text-xs font-bold border border-tennis-200 transition-all shadow-sm"
+              >
+                <ArrowRightLeft className="w-3.5 h-3.5 text-tennis-600" />
+                <span className="hidden sm:inline">Ver como</span> Docente
+              </button>
+
+              <button
+                type="button"
+                onClick={handleToggleRole}
+                title="Cambiar a vista de socio"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200 transition-all shadow-sm"
+              >
+                <ArrowRightLeft className="w-3.5 h-3.5 text-slate-600" />
+                <span className="hidden sm:inline">Ver como</span> Socio
+              </button>
+            </div>
 
             {/* Admin User Info */}
             <div className="flex items-center gap-2.5 pl-3 border-l border-slate-200">

@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 // Layouts
 import ClientLayout from './components/layout/ClientLayout';
 import AdminLayout from './components/layout/AdminLayout';
+import CoachLayout from './components/layout/CoachLayout';
 
 // Auth Pages
 import LoginPage from './pages/auth/LoginPage';
@@ -16,6 +17,12 @@ import BookCourtPage from './pages/client/BookCourtPage';
 import ClientTournamentsPage from './pages/client/ClientTournamentsPage';
 import ClientClassesPage from './pages/client/ClientClassesPage';
 import ClientPaymentsPage from './pages/client/ClientPaymentsPage';
+
+// Coach Pages
+import CoachDashboard from './pages/coach/CoachDashboard';
+import CoachClassesPage from './pages/coach/CoachClassesPage';
+import CoachPrivateLessonsPage from './pages/coach/CoachPrivateLessonsPage';
+import CoachProfilePage from './pages/coach/CoachProfilePage';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -34,6 +41,10 @@ function ProtectedRoute({ children, requireAdmin = false }) {
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (requireAdmin && !isAdmin) {
+    return <Navigate to="/app/dashboard" replace />;
   }
 
   return children;
@@ -84,6 +95,24 @@ export default function App() {
             <Route path="caja" element={<CashierAndReceiptsPage />} />
             <Route path="usuarios" element={<UsersManagementPage />} />
             <Route path="reportes" element={<ReportsPage />} />
+          </Route>
+
+          {/* Coach / Instructor Portal Routes (/coach) */}
+          <Route
+            path="/coach"
+            element={
+              <ProtectedRoute>
+                <CoachLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Navigate to="/coach/dashboard" replace />} />
+            <Route path="dashboard" element={<CoachDashboard />} />
+            <Route path="clases" element={<CoachClassesPage />} />
+            <Route path="particulares" element={<CoachPrivateLessonsPage />} />
+            <Route path="perfil" element={<CoachProfilePage />} />
+            <Route path="reservas" element={<BookCourtPage />} />
+            <Route path="torneos" element={<ClientTournamentsPage />} />
           </Route>
 
           {/* Catch all */}
