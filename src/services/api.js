@@ -5,6 +5,7 @@ import {
   INITIAL_STOCK,
   INITIAL_RESERVATIONS,
   INITIAL_TOURNAMENTS,
+  INITIAL_LEAGUES,
   INITIAL_COACHES,
   INITIAL_CLASSES,
   INITIAL_DISCOUNTS,
@@ -84,6 +85,7 @@ let courtsStore = [...INITIAL_COURTS];
 let stockStore = [...INITIAL_STOCK];
 let reservationsStore = [...INITIAL_RESERVATIONS];
 let tournamentsStore = [...INITIAL_TOURNAMENTS];
+let leaguesStore = [...INITIAL_LEAGUES];
 let coachesStore = [...INITIAL_COACHES];
 let classesStore = [...INITIAL_CLASSES];
 let discountsStore = [...INITIAL_DISCOUNTS];
@@ -327,21 +329,252 @@ export const tournamentsService = {
       id: `trn-${Date.now()}`,
       currentEnrolled: 0,
       status: 'inscripcion_abierta',
+      internalRules: trnData.internalRules || 'Reglamento Interno: Partidos al mejor de 3 sets con tie-break oficial.',
+      participants: [],
       bracket: []
     };
     tournamentsStore.push(newTrn);
     return { data: newTrn };
   },
+  async update(trnId, updatedData) {
+    await delay();
+    tournamentsStore = tournamentsStore.map(t =>
+      t.id === trnId ? { ...t, ...updatedData } : t
+    );
+    return { data: tournamentsStore.find(t => t.id === trnId) };
+  },
+  async delete(trnId) {
+    await delay();
+    tournamentsStore = tournamentsStore.filter(t => t.id !== trnId);
+    return { success: true };
+  },
+  async updateInternalRules(trnId, internalRules) {
+    await delay();
+    tournamentsStore = tournamentsStore.map(t =>
+      t.id === trnId ? { ...t, internalRules } : t
+    );
+    return { data: tournamentsStore.find(t => t.id === trnId) };
+  },
   async enroll(trnId, participantData) {
     await delay();
+    const newParticipant = {
+      id: `p-${Date.now()}`,
+      name: participantData.name || participantData.partnerName || 'Participante Inscripto',
+      dni: participantData.dni || participantData.partnerDni || '00.000.000',
+      phone: participantData.phone || '',
+      partnerName: participantData.partnerName || '',
+      partnerDni: participantData.partnerDni || '',
+      enrolledAt: new Date().toISOString().split('T')[0]
+    };
     tournamentsStore = tournamentsStore.map(t => {
       if (t.id === trnId) {
+        const nextList = [...(t.participants || []), newParticipant];
         return {
           ...t,
-          currentEnrolled: Math.min(t.maxParticipants, t.currentEnrolled + 1)
+          participants: nextList,
+          currentEnrolled: nextList.length
         };
       }
       return t;
+    });
+    return { success: true, participant: newParticipant };
+  },
+  async removeParticipant(trnId, participantId) {
+    await delay();
+    tournamentsStore = tournamentsStore.map(t => {
+      if (t.id === trnId) {
+        const nextList = (t.participants || []).filter(p => p.id !== participantId);
+        return {
+          ...t,
+          participants: nextList,
+          currentEnrolled: nextList.length
+        };
+      }
+      return t;
+    });
+    return { success: true };
+  }
+};
+
+export const leaguesService = {
+  async getAll() {
+    await delay();
+    return { data: leaguesStore };
+  },
+  async create(leagueData) {
+    await delay();
+    const newLeague = {
+      ...leagueData,
+      id: `liga-${Date.now()}`,
+      currentEnrolled: 0,
+      status: 'inscripcion_abierta',
+      internalRules: leagueData.internalRules || 'Reglamento Interno: Sistema todos contra todos por puntos.',
+      standings: [],
+      fixtures: [],
+      participants: []
+    };
+    leaguesStore.push(newLeague);
+    return { data: newLeague };
+  },
+  async update(leagueId, updatedData) {
+    await delay();
+    leaguesStore = leaguesStore.map(l =>
+      l.id === leagueId ? { ...l, ...updatedData } : l
+    );
+    return { data: leaguesStore.find(l => l.id === leagueId) };
+  },
+  async delete(leagueId) {
+    await delay();
+    leaguesStore = leaguesStore.filter(l => l.id !== leagueId);
+    return { success: true };
+  },
+  async updateInternalRules(leagueId, internalRules) {
+    await delay();
+    leaguesStore = leaguesStore.map(l =>
+      l.id === leagueId ? { ...l, internalRules } : l
+    );
+    return { data: leaguesStore.find(l => l.id === leagueId) };
+  },
+  async enroll(leagueId, participantData) {
+    await delay();
+    const newParticipant = {
+      id: `lp-${Date.now()}`,
+      name: participantData.name,
+      dni: participantData.dni || '00.000.000',
+      phone: participantData.phone || '',
+      partnerName: participantData.partnerName || '',
+      partnerDni: participantData.partnerDni || '',
+      enrolledAt: new Date().toISOString().split('T')[0]
+    };
+    leaguesStore = leaguesStore.map(l => {
+      if (l.id === leagueId) {
+        const nextList = [...(l.participants || []), newParticipant];
+        const nextStandings = [...(l.standings || [])];
+        if (!nextStandings.some(s => s.name === newParticipant.name)) {
+          nextStandings.push({
+            rank: nextStandings.length + 1,
+            name: newParticipant.name,
+            pj: 0,
+            pg: 0,
+            pp: 0,
+            sf: 0,
+            sc: 0,
+            dif: 0,
+            points: 0
+          });
+        }
+        return {
+          ...l,
+          participants: nextList,
+          standings: nextStandings,
+          currentEnrolled: nextList.length
+        };
+      }
+      return l;
+    });
+    return { success: true, participant: newParticipant };
+  },
+  async removeParticipant(leagueId, participantId) {
+    await delay();
+    let removedName = null;
+    leaguesStore = leaguesStore.map(l => {
+      if (l.id === leagueId) {
+        const target = (l.participants || []).find(p => p.id === participantId);
+        if (target) removedName = target.name;
+        const nextList = (l.participants || []).filter(p => p.id !== participantId);
+        const nextStandings = (l.standings || []).filter(s => s.name !== removedName)
+          .map((s, idx) => ({ ...s, rank: idx + 1 }));
+        return {
+          ...l,
+          participants: nextList,
+          standings: nextStandings,
+          currentEnrolled: nextList.length
+        };
+      }
+      return l;
+    });
+    return { success: true };
+  },
+  async updateMatchScore(leagueId, matchId, score, winner) {
+    await delay();
+    leaguesStore = leaguesStore.map(l => {
+      if (l.id === leagueId) {
+        let p1Name = null;
+        let p2Name = null;
+        const nextFixtures = (l.fixtures || []).map(f => ({
+          ...f,
+          matches: (f.matches || []).map(m => {
+            if (m.id === matchId) {
+              p1Name = m.p1;
+              p2Name = m.p2;
+              return { ...m, score, winner, status: 'finalizado' };
+            }
+            return m;
+          })
+        }));
+
+        let nextStandings = [...(l.standings || [])];
+        if (winner && (p1Name || p2Name)) {
+          const loser = (winner === p1Name) ? p2Name : p1Name;
+          nextStandings = nextStandings.map(s => {
+            if (s.name === winner) {
+              return {
+                ...s,
+                pj: (s.pj || 0) + 1,
+                pg: (s.pg || 0) + 1,
+                points: (s.points || 0) + 3,
+                sf: (s.sf || 0) + 2,
+                dif: (s.dif || 0) + 2
+              };
+            }
+            if (s.name === loser) {
+              return {
+                ...s,
+                pj: (s.pj || 0) + 1,
+                pp: (s.pp || 0) + 1,
+                sc: (s.sc || 0) + 2,
+                dif: (s.dif || 0) - 2
+              };
+            }
+            return s;
+          });
+          nextStandings.sort((a, b) => (b.points - a.points) || (b.dif - a.dif));
+          nextStandings = nextStandings.map((s, idx) => ({ ...s, rank: idx + 1 }));
+        }
+
+        return { ...l, fixtures: nextFixtures, standings: nextStandings };
+      }
+      return l;
+    });
+    return { success: true };
+  },
+  async addMatch(leagueId, roundName, matchData) {
+    await delay();
+    leaguesStore = leaguesStore.map(l => {
+      if (l.id === leagueId) {
+        const fixtures = [...(l.fixtures || [])];
+        let targetRound = fixtures.find(f => f.round === roundName);
+        const newMatch = {
+          id: `lm-${Date.now()}`,
+          p1: matchData.p1,
+          p2: matchData.p2,
+          score: 'Pendiente',
+          winner: null,
+          status: 'programado',
+          court: matchData.court || 'Cancha 1',
+          date: matchData.date || new Date().toISOString().split('T')[0]
+        };
+        if (targetRound) {
+          targetRound.matches = [...(targetRound.matches || []), newMatch];
+        } else {
+          fixtures.push({
+            round: roundName || `Jornada ${fixtures.length + 1}`,
+            matches: [newMatch]
+          });
+        }
+        return { ...l, fixtures };
+      }
+      return l;
     });
     return { success: true };
   }

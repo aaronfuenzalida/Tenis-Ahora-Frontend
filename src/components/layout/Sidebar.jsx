@@ -49,7 +49,7 @@ export default function Sidebar({ isOpen, onClose }) {
     {
       group: 'Competición y Enseñanza',
       items: [
-        { name: 'Torneos y Fixtures', to: '/admin/torneos', icon: Trophy },
+        { name: 'Torneos y Ligas', to: '/admin/torneos', icon: Trophy },
         { name: 'Profesores y Clases', to: '/admin/profesores-clases', icon: GraduationCap}
       ]
     },

@@ -544,16 +544,25 @@ export const INITIAL_TOURNAMENTS = [
   {
     id: 'trn-01',
     name: 'Gran Torneo Abierto de Primavera 2026',
-    category: 'Masculino', // Masculino, Femenino
-    modality: 'Singles', // Singles, Dobles / Pareja
+    category: 'Masculino',
+    modality: 'Singles',
     surfaceRequired: 'Ladrillo',
     startDate: '2026-09-05',
     endDate: '2026-09-12',
     registrationFee: 7500,
     maxParticipants: 16,
     currentEnrolled: 12,
-    status: 'inscripcion_abierta', // inscripcion_abierta, en_curso, finalizado
+    status: 'inscripcion_abierta',
     description: 'Torneo oficial del club avalado por la Asociación de Tenis. Modalidad eliminación directa con partidos al mejor de 3 sets.',
+    internalRules: 'Reglamento Interno Oficial: Partidos al mejor de 3 sets con tie-break a 7 puntos en todos los sets. Tolerancia máxima de espera de 15 minutos en cancha. Uso obligatorio de indumentaria adecuada para polvo de ladrillo y pelotas presurizadas provistas por la organización.',
+    participants: [
+      { id: 'p-1', name: 'Federico Gómez', dni: '38.452.129', phone: '11-4892-1234', enrolledAt: '2026-08-20' },
+      { id: 'p-2', name: 'Mariano Zabaleta', dni: '35.123.890', phone: '11-4455-6677', enrolledAt: '2026-08-21' },
+      { id: 'p-3', name: 'Gastón Gaudio', dni: '33.987.654', phone: '11-2233-4455', enrolledAt: '2026-08-22' },
+      { id: 'p-4', name: 'Juan Ignacio Chela', dni: '34.567.890', phone: '11-9988-7766', enrolledAt: '2026-08-23' },
+      { id: 'p-5', name: 'David Nalbandian', dni: '32.111.222', phone: '11-5544-3322', enrolledAt: '2026-08-24' },
+      { id: 'p-6', name: 'Guillermo Coria', dni: '31.333.444', phone: '11-8877-6655', enrolledAt: '2026-08-25' }
+    ],
     bracket: [
       {
         round: 'Cuartos de Final',
@@ -587,12 +596,96 @@ export const INITIAL_TOURNAMENTS = [
     surfaceRequired: 'Cemento',
     startDate: '2026-09-15',
     endDate: '2026-09-20',
-    registrationFee: 12000, // Por pareja
+    registrationFee: 12000,
     maxParticipants: 8,
     currentEnrolled: 6,
     status: 'inscripcion_abierta',
     description: 'Torneo femenino por parejas en canchas de cemento. Ambiente competitivo y distendido con tercer tiempo incluido.',
+    internalRules: 'Reglamento Interno: Partidos a dos sets con punto de oro en 40-40. En caso de empate en sets se define por Match Tie-break a 10 puntos.',
+    participants: [
+      { id: 'p-7', name: 'Lucía Benítez', dni: '40.112.334', phone: '11-6677-8899', partnerName: 'Camila Osorio', partnerDni: '41.223.445', enrolledAt: '2026-08-25' }
+    ],
     bracket: []
+  }
+];
+
+export const INITIAL_LEAGUES = [
+  {
+    id: 'liga-01',
+    name: 'Liga Apertura Masculina Primera División',
+    category: 'Masculino',
+    modality: 'Singles',
+    surfaceRequired: 'Ladrillo',
+    startDate: '2026-09-01',
+    endDate: '2026-11-30',
+    registrationFee: 15000,
+    maxParticipants: 8,
+    currentEnrolled: 6,
+    status: 'en_curso',
+    description: 'Liga regular del club con formato todos contra todos a una rueda. Partidos semanales programados en polvo de ladrillo.',
+    internalRules: 'Reglamento Interno de Liga: Sistema todos contra todos. Cada partido ganado suma 3 puntos y partido perdido 0 puntos. Los partidos se juegan al mejor de 3 sets completos. Criterios de desempate en la tabla: 1) Diferencia de sets, 2) Diferencia de games, 3) Resultado de enfrentamiento directo.',
+    standings: [
+      { rank: 1, name: 'Federico Gómez', pj: 5, pg: 4, pp: 1, sf: 9, sc: 3, dif: 6, points: 12 },
+      { rank: 2, name: 'Mariano Zabaleta', pj: 5, pg: 4, pp: 1, sf: 8, sc: 4, dif: 4, points: 12 },
+      { rank: 3, name: 'Gastón Gaudio', pj: 5, pg: 3, pp: 2, sf: 7, sc: 5, dif: 2, points: 9 },
+      { rank: 4, name: 'Juan Ignacio Chela', pj: 5, pg: 2, pp: 3, sf: 5, sc: 7, dif: -2, points: 6 },
+      { rank: 5, name: 'David Nalbandian', pj: 5, pg: 1, pp: 4, sf: 3, sc: 8, dif: -5, points: 3 },
+      { rank: 6, name: 'Guillermo Coria', pj: 5, pg: 1, pp: 4, sf: 3, sc: 8, dif: -5, points: 3 }
+    ],
+    fixtures: [
+      {
+        round: 'Jornada 1',
+        matches: [
+          { id: 'lm-1', p1: 'Federico Gómez', p2: 'Mariano Zabaleta', score: '6-4, 3-6, 6-3', winner: 'Federico Gómez', status: 'finalizado', court: 'Cancha 1', date: '2026-09-05' },
+          { id: 'lm-2', p1: 'Gastón Gaudio', p2: 'Juan Ignacio Chela', score: '6-2, 6-4', winner: 'Gastón Gaudio', status: 'finalizado', court: 'Cancha 2', date: '2026-09-05' },
+          { id: 'lm-3', p1: 'David Nalbandian', p2: 'Guillermo Coria', score: '4-6, 6-4, 7-5', winner: 'David Nalbandian', status: 'finalizado', court: 'Cancha 1', date: '2026-09-06' }
+        ]
+      },
+      {
+        round: 'Jornada 2',
+        matches: [
+          { id: 'lm-4', p1: 'Federico Gómez', p2: 'Gastón Gaudio', score: '7-5, 6-4', winner: 'Federico Gómez', status: 'finalizado', court: 'Cancha 1', date: '2026-09-12' },
+          { id: 'lm-5', p1: 'Mariano Zabaleta', p2: 'Guillermo Coria', score: '6-3, 6-2', winner: 'Mariano Zabaleta', status: 'finalizado', court: 'Cancha 2', date: '2026-09-12' },
+          { id: 'lm-6', p1: 'Juan Ignacio Chela', p2: 'David Nalbandian', score: '6-1, 6-3', winner: 'Juan Ignacio Chela', status: 'finalizado', court: 'Cancha 1', date: '2026-09-13' }
+        ]
+      },
+      {
+        round: 'Jornada 3',
+        matches: [
+          { id: 'lm-7', p1: 'Federico Gómez', p2: 'David Nalbandian', score: 'Pendiente', winner: null, status: 'programado', court: 'Cancha 1', date: '2026-09-19 15:00' },
+          { id: 'lm-8', p1: 'Mariano Zabaleta', p2: 'Gastón Gaudio', score: 'Pendiente', winner: null, status: 'programado', court: 'Cancha 2', date: '2026-09-19 17:00' },
+          { id: 'lm-9', p1: 'Juan Ignacio Chela', p2: 'Guillermo Coria', score: 'Pendiente', winner: null, status: 'programado', court: 'Cancha 1', date: '2026-09-20 16:00' }
+        ]
+      }
+    ],
+    participants: [
+      { id: 'lp-1', name: 'Federico Gómez', dni: '38.452.129', phone: '11-4892-1234', enrolledAt: '2026-08-15' },
+      { id: 'lp-2', name: 'Mariano Zabaleta', dni: '35.123.890', phone: '11-4455-6677', enrolledAt: '2026-08-16' },
+      { id: 'lp-3', name: 'Gastón Gaudio', dni: '33.987.654', phone: '11-2233-4455', enrolledAt: '2026-08-17' },
+      { id: 'lp-4', name: 'Juan Ignacio Chela', dni: '34.567.890', phone: '11-9988-7766', enrolledAt: '2026-08-18' },
+      { id: 'lp-5', name: 'David Nalbandian', dni: '32.111.222', phone: '11-5544-3322', enrolledAt: '2026-08-19' },
+      { id: 'lp-6', name: 'Guillermo Coria', dni: '31.333.444', phone: '11-8877-6655', enrolledAt: '2026-08-20' }
+    ]
+  },
+  {
+    id: 'liga-02',
+    name: 'Liga Interclubes Dobles Femenino',
+    category: 'Femenino',
+    modality: 'Pareja',
+    surfaceRequired: 'Cemento',
+    startDate: '2026-10-01',
+    endDate: '2026-12-15',
+    registrationFee: 20000,
+    maxParticipants: 8,
+    currentEnrolled: 4,
+    status: 'inscripcion_abierta',
+    description: 'Competencia regular femenina en modalidad dobles por zonas clasificatorias en cemento.',
+    internalRules: 'Reglamento Interno de Liga Dobles: Partidos disputados los sábados. Cada pareja debe presentar lista de buena fe.',
+    standings: [],
+    fixtures: [],
+    participants: [
+      { id: 'lp-7', name: 'Lucía Benítez', dni: '40.112.334', partnerName: 'Camila Osorio', partnerDni: '41.223.445', phone: '11-6677-8899', enrolledAt: '2026-09-01' }
+    ]
   }
 ];
 

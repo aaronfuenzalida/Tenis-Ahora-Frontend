@@ -32,7 +32,7 @@ export default function ClientSidebar({ isOpen, onClose }) {
       icon: Calendar
     },
     {
-      name: 'Torneos y Fixtures',
+      name: 'Torneos y Ligas',
       to: '/app/torneos',
       icon: Trophy
     },
