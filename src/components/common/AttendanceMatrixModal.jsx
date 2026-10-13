@@ -198,7 +198,7 @@ export default function AttendanceMatrixModal({
               <ShieldAlert className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
               <div>
                 <strong className="block font-black text-xs uppercase tracking-tight text-rose-800">
-                  ⚠️ ALERTA DE CUPO COMPLETO — Límite de 30 Alumnos Alcanzado
+                  ALERTA DE CUPO COMPLETO — Límite de 30 Alumnos Alcanzado
                 </strong>
                 <p className="text-[11px] text-rose-700 mt-0.5">
                   Por reglamento oficial de seguridad y calidad pedagógica del club, se inhabilitan nuevas inscripciones en esta clase. Para sumar más participantes, debe abrirse una nueva comisión o grupo horario.

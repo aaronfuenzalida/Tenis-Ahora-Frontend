@@ -693,12 +693,14 @@ export const INITIAL_COACHES = [
   {
     id: 'coach-01',
     name: 'Prof. Santiago Álvarez',
+    type: 'Profesor',
     dni: '27.890.123',
     phone: '+54 11 5566-7788',
     email: 'santiago.alvarez@tenisahora.com',
     specialty: 'Alto Rendimiento & Técnica Avanzada',
     experienceYears: 14,
     hasOfficialLicense: true,
+    availableHours: 'Lunes a Viernes 08:00 - 13:00, 16:00 - 21:00',
     licenseDetails: {
       titleName: 'Profesor Nacional de Tenis de Alta Competencia',
       institution: 'Asociación Argentina de Tenis (AAT) / ITF Nivel 2',
@@ -715,12 +717,14 @@ export const INITIAL_COACHES = [
   {
     id: 'coach-02',
     name: 'Entrenadora Valeria Morales',
+    type: 'Entrenador',
     dni: '32.145.678',
     phone: '+54 11 4433-2211',
     email: 'valeria.morales@tenisahora.com',
     specialty: 'Escuela de Menores & Formación Inicial',
     experienceYears: 9,
     hasOfficialLicense: true,
+    availableHours: 'Lunes a Jueves 14:00 - 20:00, Sábados 09:00 - 14:00',
     licenseDetails: {
       titleName: 'Licenciada en Educación Física y Entrenadora de Tenis Nivel 1',
       institution: 'Instituto Nacional de Educación Física & AAT',
@@ -733,6 +737,75 @@ export const INITIAL_COACHES = [
     hourlyRatePrivate: 5800,
     photo: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80',
     bio: 'Especialista en pedagogía deportiva, biomecánica del golpe y clínicas de tenis infantil y adultos principiantes.'
+  },
+  {
+    id: 'coach-03',
+    name: 'Entrenador Lucas Delgado',
+    type: 'Entrenador',
+    dni: '29.334.881',
+    phone: '+54 11 6677-9922',
+    email: 'lucas.delgado@tenisahora.com',
+    specialty: 'Preparación Física & Táctica de Competición',
+    experienceYears: 11,
+    hasOfficialLicense: true,
+    availableHours: 'Martes a Sábados 10:00 - 18:00',
+    licenseDetails: {
+      titleName: 'Entrenador Nacional Nivel 2 AAT',
+      institution: 'Asociación Argentina de Tenis (AAT)',
+      licenseNumber: 'AAT-LIC-88123',
+      issueDate: '2016-09-10',
+      expiryDate: '2027-12-31',
+      status: 'habilitado',
+      digitalDocumentUrl: 'Certificado_Oficial_AAT_Delgado_88123.pdf'
+    },
+    hourlyRatePrivate: 6200,
+    photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80',
+    bio: 'Preparador físico de tenistas federados, especialista en trabajo de apoyos, aceleración y resistencia en polvo de ladrillo.'
+  }
+];
+
+export const INITIAL_PRIVATE_CLASSES = [
+  {
+    id: 'prv-01',
+    coachId: 'coach-01',
+    coachName: 'Prof. Santiago Álvarez',
+    studentName: 'Federico Gómez',
+    studentDni: '38.452.129',
+    studentPhone: '11-4892-1234',
+    date: '2026-10-15',
+    time: '10:00 - 11:00',
+    courtAssigned: 'Cancha 1 (Ladrillo)',
+    hourlyRate: 6500,
+    status: 'confirmada',
+    notes: 'Perfeccionamiento de saque y revés con top-spin.'
+  },
+  {
+    id: 'prv-02',
+    coachId: 'coach-02',
+    coachName: 'Entrenadora Valeria Morales',
+    studentName: 'Romina Varela',
+    studentDni: '36.992.100',
+    studentPhone: '11-3344-5566',
+    date: '2026-10-16',
+    time: '16:00 - 17:00',
+    courtAssigned: 'Cancha 3 (Cemento)',
+    hourlyRate: 5800,
+    status: 'confirmada',
+    notes: 'Clase de movilidad en cancha y derecha invertida.'
+  },
+  {
+    id: 'prv-03',
+    coachId: 'coach-01',
+    coachName: 'Prof. Santiago Álvarez',
+    studentName: 'Martín Lanata',
+    studentDni: '37.114.990',
+    studentPhone: '11-2233-4455',
+    date: '2026-10-18',
+    time: '11:00 - 12:00',
+    courtAssigned: 'Cancha 2 (Ladrillo)',
+    hourlyRate: 6500,
+    status: 'programada',
+    notes: 'Clínica táctica para torneo.'
   }
 ];
 

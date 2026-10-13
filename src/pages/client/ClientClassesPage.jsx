@@ -9,8 +9,7 @@ import {
   FileText, 
   ShieldCheck, 
   Calendar, 
-  UserCheck, 
-  Star 
+  UserCheck 
 } from 'lucide-react';
 import CoachCredentialsModal from '../../components/common/CoachCredentialsModal';
 import Modal from '../../components/common/Modal';
@@ -22,22 +21,58 @@ export default function ClientClassesPage() {
   
   // Private lesson request modal
   const [privateLessonCoach, setPrivateLessonCoach] = useState(null);
+  const [privateLessonDate, setPrivateLessonDate] = useState('2026-10-22');
+  const [privateLessonTime, setPrivateLessonTime] = useState('11:00 - 12:00');
   const [privateLessonNotes, setPrivateLessonNotes] = useState('');
   const [privateSuccess, setPrivateSuccess] = useState(false);
 
   useEffect(() => {
-    coachesAndClassesService.getCoaches().then(res => setCoaches(res.data));
-    coachesAndClassesService.getClasses().then(res => setClasses(res.data));
+    loadData();
   }, []);
 
-  const handleRequestPrivateLesson = (e) => {
+  const loadData = async () => {
+    const [cRes, clRes] = await Promise.all([
+      coachesAndClassesService.getCoaches(),
+      coachesAndClassesService.getClasses()
+    ]);
+    setCoaches(cRes.data);
+    setClasses(clRes.data);
+  };
+
+  const handleEnrollGroupClass = async (cls) => {
+    try {
+      await coachesAndClassesService.enrollStudent(cls.id, {
+        name: 'Federico Gómez',
+        dni: '38.452.129'
+      });
+      alert(`Inscripción confirmada a "${cls.name}". El arancel mensual ha sido computado en su cuenta de socio.`);
+      await loadData();
+    } catch (err) {
+      alert(err.message || 'No fue posible completar la inscripción.');
+    }
+  };
+
+  const handleRequestPrivateLesson = async (e) => {
     e.preventDefault();
+    if (!privateLessonCoach) return;
     setPrivateSuccess(true);
-    setTimeout(() => {
-      setPrivateSuccess(false);
-      setPrivateLessonCoach(null);
-      alert('¡Solicitud de clase particular enviada! El profesor se comunicará para coordinar el horario en cancha.');
-    }, 1000);
+    await coachesAndClassesService.createPrivateClass({
+      coachId: privateLessonCoach.id,
+      coachName: privateLessonCoach.name,
+      studentName: 'Federico Gómez',
+      studentDni: '38.452.129',
+      studentPhone: '11-4892-1234',
+      date: privateLessonDate,
+      time: privateLessonTime,
+      courtAssigned: 'Cancha 1 (Ladrillo)',
+      hourlyRate: privateLessonCoach.hourlyRatePrivate || 6000,
+      notes: privateLessonNotes,
+      status: 'programada'
+    });
+    setPrivateSuccess(false);
+    setPrivateLessonCoach(null);
+    setPrivateLessonNotes('');
+    alert('Solicitud de clase particular registrada exitosamente. El docente coordinará los detalles en cancha.');
   };
 
   return (
@@ -46,11 +81,11 @@ export default function ClientClassesPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-slate-200">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
             Clases, Entrenamientos y Profesores
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Escuela de tenis para adultos y menores. Todos los profesores cuentan con <strong>Título Habilitante AAT / ITF</strong> verificado. Cupo máximo de 30 alumnos por clase.
+          <p className="text-xs text-slate-500 mt-1">
+            Escuela de tenis para adultos y menores. Todos los profesores cuentan con Título Habilitante y Certificación AAT / ITF verificado. Cupo máximo de hasta 30 alumnos por comisión.
           </p>
         </div>
       </div>
@@ -60,67 +95,71 @@ export default function ClientClassesPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Award className="w-5 h-5 text-tennis-600" />
-            <h2 className="text-lg font-extrabold text-slate-900">Staff de Profesores Habilitados</h2>
+            <h2 className="text-base font-bold text-slate-900">Staff de Profesores y Entrenadores Habilitados</h2>
           </div>
-          <span className="text-xs text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full font-bold border border-emerald-200 flex items-center gap-1">
-            <ShieldCheck className="w-3.5 h-3.5" /> Certificaciones 100% Verificadas
+          <span className="text-xs text-slate-600 font-semibold border border-slate-200 px-2.5 py-1 rounded-lg">
+            Certificaciones Oficiales Verificadas
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {coaches.map(coach => (
-            <div key={coach.id} className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col justify-between space-y-4">
-              <div className="flex items-start gap-4">
-                <img
-                  src={coach.photo}
-                  alt={coach.name}
-                  className="w-20 h-20 rounded-2xl object-cover border-2 border-tennis-500 shadow-sm shrink-0"
-                />
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-extrabold text-base text-slate-900">{coach.name}</h3>
-                  </div>
-                  <p className="text-xs text-tennis-700 font-semibold">{coach.specialty}</p>
-                  <p className="text-xs text-slate-500 mt-1">{coach.bio}</p>
-                  
-                  <div className="mt-2 flex items-center gap-2">
-                    <span className="text-[11px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md">
-                      {coach.experienceYears} años exp.
-                    </span>
-                    <span className="text-[11px] font-bold text-tennis-800 bg-tennis-50 px-2 py-0.5 rounded-md border border-tennis-200">
-                      ${coach.hourlyRatePrivate?.toLocaleString('es-AR')}/h clase particular
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Title & License highlight pill */}
-              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs">
-                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+            <div key={coach.id} className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-start gap-3.5">
+                  <img
+                    src={coach.photo}
+                    alt={coach.name}
+                    className="w-16 h-16 rounded-xl object-cover border border-slate-200 shrink-0"
+                  />
                   <div>
-                    <span className="font-bold text-slate-800 block">{coach.licenseDetails?.titleName}</span>
-                    <span className="text-[10px] text-slate-400">Matrícula: {coach.licenseDetails?.licenseNumber}</span>
+                    <span className="text-[10px] uppercase font-bold text-slate-500 block">
+                      {coach.type || 'Profesor'}
+                    </span>
+                    <h3 className="font-bold text-sm text-slate-900 leading-tight">{coach.name}</h3>
+                    <p className="text-xs text-tennis-700 font-medium">{coach.specialty}</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">{coach.experienceYears} años de trayectoria</p>
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setSelectedCoachForModal(coach)}
-                  className="px-2.5 py-1.5 rounded-lg bg-white hover:bg-tennis-50 text-tennis-700 font-bold text-xs border border-slate-200 transition-colors shrink-0"
-                >
-                  Ver Título Habilitante
-                </button>
+
+                <p className="text-xs text-slate-500 line-clamp-2">{coach.bio}</p>
+
+                {/* Title & License pill */}
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] uppercase font-bold text-slate-500">Título Oficial</span>
+                    <span className="text-xs font-semibold text-emerald-700 flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Habilitado
+                    </span>
+                  </div>
+                  <div className="font-semibold text-slate-800 line-clamp-1">{coach.licenseDetails?.titleName}</div>
+                  <div className="text-[11px] text-slate-500">
+                    Matrícula: {coach.licenseDetails?.licenseNumber}
+                  </div>
+                </div>
+
+                <div className="text-xs text-slate-600 pt-1 border-t border-slate-100 flex items-center justify-between">
+                  <span>Clase Particular:</span>
+                  <strong className="text-slate-900">${coach.hourlyRatePrivate?.toLocaleString('es-AR')}/h</strong>
+                </div>
               </div>
 
               {/* Actions */}
-              <div className="pt-1 flex gap-2">
+              <div className="pt-2 border-t border-slate-100 space-y-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedCoachForModal(coach)}
+                  className="w-full py-1.5 px-3 bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold text-xs rounded-lg border border-slate-200 text-center transition-colors"
+                >
+                  Ver Ficha y Certificación
+                </button>
                 <button
                   type="button"
                   onClick={() => setPrivateLessonCoach(coach)}
-                  className="w-full py-2.5 px-3 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-bold text-xs shadow-md transition-colors flex items-center justify-center gap-1.5"
+                  className="w-full py-2 px-3 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-semibold text-xs shadow-sm transition-colors flex items-center justify-center gap-1.5"
                 >
                   <Calendar className="w-3.5 h-3.5" />
-                  Solicitar Clase Particular
+                  Solicitar Turno Particular
                 </button>
               </div>
             </div>
@@ -133,74 +172,65 @@ export default function ClientClassesPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <GraduationCap className="w-5 h-5 text-tennis-600" />
-            <h2 className="text-lg font-extrabold text-slate-900">Clases Grupales Regulares</h2>
+            <h2 className="text-base font-bold text-slate-900">Clases Grupales y Escuela del Club</h2>
           </div>
-          <span className="text-xs text-slate-500 font-medium">Cupo máximo configurable: 30 alumnos</span>
+          <span className="text-xs text-slate-500 font-medium">Tope reglamentario: 30 alumnos por clase</span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {classes.map(cls => (
-            <div key={cls.id} className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <div>
-                  <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-tennis-100 text-tennis-800">
-                    Clase Grupal
-                  </span>
-                  <h3 className="text-base font-extrabold text-slate-900 mt-1">{cls.name}</h3>
-                </div>
-                <div className="text-right">
-                  <span className="text-xs text-slate-400 block">Cuota Mensual</span>
-                  <span className="text-base font-black text-slate-900">${cls.monthlyFee?.toLocaleString('es-AR')}</span>
-                </div>
-              </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {classes.map(cls => {
+            const enrolled = cls.students?.length || cls.currentEnrolled || 0;
+            const isFull = enrolled >= 30;
 
-              <div className="grid grid-cols-2 gap-3 text-xs">
-                <div className="p-3 bg-slate-50 rounded-xl">
-                  <span className="text-slate-400 block text-[10px] uppercase font-bold">Profesor a Cargo:</span>
-                  <span className="font-bold text-slate-800">{cls.coachName}</span>
-                </div>
-                <div className="p-3 bg-slate-50 rounded-xl">
-                  <span className="text-slate-400 block text-[10px] uppercase font-bold">Cancha Asignada:</span>
-                  <span className="font-bold text-slate-800">{cls.courtAssigned}</span>
-                </div>
-                <div className="p-3 bg-slate-50 rounded-xl">
-                  <span className="text-slate-400 block text-[10px] uppercase font-bold">Días y Horarios:</span>
-                  <span className="font-bold text-slate-800">{cls.scheduleDays} • {cls.scheduleTime}</span>
-                </div>
-                <div className="p-3 bg-slate-50 rounded-xl">
-                  <span className="text-slate-400 block text-[10px] uppercase font-bold">Cupo de Alumnos:</span>
-                  <span className={`font-bold ${cls.currentEnrolled >= 30 ? 'text-rose-600' : 'text-tennis-700'}`}>
-                    {cls.currentEnrolled} de {cls.maxCapacity || 30} máx. 
-                  </span>
-                </div>
-              </div>
-
-              {cls.currentEnrolled >= 30 ? (
-                <div className="space-y-2">
-                  <div className="p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-rose-800 text-[11px] font-bold flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-rose-600 animate-pulse shrink-0" />
-                    Cupo completo (30/30 alumnos). Inscripciones cerradas por reglamento .
+            return (
+              <div key={cls.id} className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-100 text-xs">
+                    <span className="font-semibold text-slate-600 uppercase text-[10px]">
+                      Escuela Oficial
+                    </span>
+                    <span className="font-semibold text-slate-800">
+                      {enrolled} / {cls.maxCapacity || 30} Alumnos
+                    </span>
                   </div>
+
+                  <h3 className="text-sm font-bold text-slate-900 leading-tight">{cls.name}</h3>
+
+                  <div className="space-y-1.5 text-xs bg-slate-50 p-3 rounded-xl border border-slate-200 text-slate-600">
+                    <div>Docente a Cargo: <strong className="text-slate-800">{cls.coachName}</strong></div>
+                    <div>Días y Horarios: <strong className="text-slate-800">{cls.scheduleDays} {cls.scheduleTime}</strong></div>
+                    <div>Cancha Asignada: <strong className="text-slate-800">{cls.courtAssigned}</strong></div>
+                    <div>Cuota Mensual: <strong className="text-slate-900">${cls.monthlyFee?.toLocaleString('es-AR')}</strong></div>
+                  </div>
+
+                  {isFull && (
+                    <div className="p-2.5 bg-slate-100 border border-slate-300 rounded-xl text-slate-700 text-xs font-semibold text-center">
+                      Cupo completo (30/30 alumnos). Inscripciones inhabilitadas.
+                    </div>
+                  )}
+                </div>
+
+                {isFull ? (
                   <button
                     type="button"
                     disabled
-                    className="w-full py-2.5 px-3 rounded-xl bg-slate-200 text-slate-400 font-bold text-xs cursor-not-allowed flex items-center justify-center gap-1.5"
+                    className="w-full py-2 px-3 rounded-xl bg-slate-200 text-slate-400 font-semibold text-xs cursor-not-allowed text-center"
                   >
-                    🚫 Inscripción Inhabilitada (Cupo Lleno)
+                    Inscripción Inhabilitada (Cupo Lleno)
                   </button>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => alert(`¡Inscripción registrada con éxito a "${cls.name}"! La cuota mensual se registrará en tu cuenta de socio.`)}
-                  className="w-full py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition-colors flex items-center justify-center gap-1.5"
-                >
-                  <UserCheck className="w-3.5 h-3.5" />
-                  Inscribirme a esta Clase
-                </button>
-              )}
-            </div>
-          ))}
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleEnrollGroupClass(cls)}
+                    className="w-full py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs transition-colors flex items-center justify-center gap-1.5"
+                  >
+                    <UserCheck className="w-3.5 h-3.5" />
+                    Inscribirme a esta Clase
+                  </button>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -215,23 +245,52 @@ export default function ClientClassesPage() {
       <Modal
         isOpen={!!privateLessonCoach}
         onClose={() => setPrivateLessonCoach(null)}
-        title={`Solicitud de Clase Particular con ${privateLessonCoach?.name}`}
+        title={`Solicitar Clase Particular con ${privateLessonCoach?.name}`}
         maxWidth="max-w-md"
       >
         <form onSubmit={handleRequestPrivateLesson} className="space-y-4 text-xs">
           <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-            <div className="font-bold text-slate-800">Tarifa por Hora: ${privateLessonCoach?.hourlyRatePrivate?.toLocaleString('es-AR')}</div>
-            <div className="text-slate-500 mt-1">Incluye profesor con Título Habilitante y canchas exclusivas del club.</div>
+            <div className="font-semibold text-slate-800">
+              Arancel Oficial: ${privateLessonCoach?.hourlyRatePrivate?.toLocaleString('es-AR')}/hora
+            </div>
+            <div className="text-slate-500 text-[11px] mt-0.5">
+              Docente con Título Habilitante y uso de canchas del complejo.
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="font-semibold text-slate-700 uppercase block mb-1">Fecha Deseada *</label>
+              <input
+                type="date"
+                required
+                value={privateLessonDate}
+                onChange={(e) => setPrivateLessonDate(e.target.value)}
+                className="w-full p-2 rounded-xl border border-slate-200"
+              />
+            </div>
+
+            <div>
+              <label className="font-semibold text-slate-700 uppercase block mb-1">Horario Preferido *</label>
+              <input
+                type="text"
+                required
+                placeholder="10:00 - 11:00"
+                value={privateLessonTime}
+                onChange={(e) => setPrivateLessonTime(e.target.value)}
+                className="w-full p-2 rounded-xl border border-slate-200"
+              />
+            </div>
           </div>
 
           <div>
-            <label className="font-bold text-slate-700 uppercase block mb-1">
-              Preferencias de Días y Horarios o Nivel Actual *
+            <label className="font-semibold text-slate-700 uppercase block mb-1">
+              Objetivo Técnico o Nivel de Juego *
             </label>
             <textarea
               required
               rows={3}
-              placeholder="Ej: Lunes o Miércoles a partir de las 18 hs. Busco mejorar mi revés con top-spin..."
+              placeholder="Ej: Trabajo de revés y saque con top-spin..."
               value={privateLessonNotes}
               onChange={(e) => setPrivateLessonNotes(e.target.value)}
               className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 text-xs"
@@ -241,9 +300,9 @@ export default function ClientClassesPage() {
           <button
             type="submit"
             disabled={privateSuccess}
-            className="w-full py-3 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-bold text-sm shadow-md"
+            className="w-full py-2.5 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-semibold text-xs shadow-sm"
           >
-            {privateSuccess ? 'Enviando solicitud...' : 'Enviar Solicitud al Profesor'}
+            {privateSuccess ? 'Enviando solicitud...' : 'Confirmar Solicitud de Turno'}
           </button>
         </form>
       </Modal>

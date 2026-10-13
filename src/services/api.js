@@ -8,6 +8,7 @@ import {
   INITIAL_LEAGUES,
   INITIAL_COACHES,
   INITIAL_CLASSES,
+  INITIAL_PRIVATE_CLASSES,
   INITIAL_DISCOUNTS,
   INITIAL_RECEIPTS,
   INITIAL_USERS
@@ -88,6 +89,7 @@ let tournamentsStore = [...INITIAL_TOURNAMENTS];
 let leaguesStore = [...INITIAL_LEAGUES];
 let coachesStore = [...INITIAL_COACHES];
 let classesStore = [...INITIAL_CLASSES];
+let privateClassesStore = [...INITIAL_PRIVATE_CLASSES];
 let discountsStore = [...INITIAL_DISCOUNTS];
 let receiptsStore = [...INITIAL_RECEIPTS];
 let usersStore = [...INITIAL_USERS];
@@ -581,13 +583,97 @@ export const leaguesService = {
 };
 
 export const coachesAndClassesService = {
+  // ---- Coaches / Professors ----
   async getCoaches() {
     await delay();
     return { data: coachesStore };
   },
+  async createCoach(coachData) {
+    await delay();
+    const newCoach = {
+      ...coachData,
+      id: `coach-${Date.now()}`,
+      hasOfficialLicense: true,
+      licenseDetails: {
+        titleName: coachData.licenseDetails?.titleName || 'Profesor de Tenis Certificado',
+        institution: coachData.licenseDetails?.institution || 'Asociación Argentina de Tenis (AAT)',
+        licenseNumber: coachData.licenseDetails?.licenseNumber || `AAT-LIC-${Math.floor(10000 + Math.random() * 90000)}`,
+        issueDate: coachData.licenseDetails?.issueDate || new Date().toISOString().split('T')[0],
+        expiryDate: coachData.licenseDetails?.expiryDate || '2029-12-31',
+        status: 'habilitado',
+        digitalDocumentUrl: coachData.licenseDetails?.digitalDocumentUrl || 'Certificado_Oficial_AAT_Registrado.pdf'
+      },
+      photo: coachData.photo || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80'
+    };
+    coachesStore.push(newCoach);
+    return { data: newCoach };
+  },
+  async updateCoach(coachId, updatedData) {
+    await delay();
+    coachesStore = coachesStore.map(c =>
+      c.id === coachId ? { ...c, ...updatedData } : c
+    );
+    return { data: coachesStore.find(c => c.id === coachId) };
+  },
+  async deleteCoach(coachId) {
+    await delay();
+    coachesStore = coachesStore.filter(c => c.id !== coachId);
+    return { success: true };
+  },
+  async updateCoachAvailability(coachId, availableHours) {
+    await delay();
+    coachesStore = coachesStore.map(c =>
+      c.id === coachId ? { ...c, availableHours } : c
+    );
+    return { data: coachesStore.find(c => c.id === coachId) };
+  },
+  async updateCoachLicense(coachId, licenseDetails) {
+    await delay();
+    coachesStore = coachesStore.map(c =>
+      c.id === coachId ? { ...c, licenseDetails: { ...c.licenseDetails, ...licenseDetails } } : c
+    );
+    return { data: coachesStore.find(c => c.id === coachId) };
+  },
+
+  // ---- Group Classes ----
   async getClasses() {
     await delay();
     return { data: classesStore };
+  },
+  async addClass(classData) {
+    await delay();
+    if (classData.maxCapacity > 30) {
+      throw new Error('El cupo reglamentario máximo es de hasta 30 alumnos.');
+    }
+    const newClass = {
+      ...classData,
+      id: `cls-${Date.now()}`,
+      maxCapacity: Math.min(Number(classData.maxCapacity) || 30, 30),
+      currentEnrolled: 0,
+      students: [],
+      sessions: classData.sessions || ['02/10', '04/10', '09/10', '11/10', '16/10', '18/10', '23/10', '25/10']
+    };
+    classesStore.push(newClass);
+    return { data: newClass };
+  },
+  async updateClass(classId, updatedData) {
+    await delay();
+    if (updatedData.maxCapacity && updatedData.maxCapacity > 30) {
+      throw new Error('El cupo reglamentario máximo es de hasta 30 alumnos.');
+    }
+    classesStore = classesStore.map(c =>
+      c.id === classId ? {
+        ...c,
+        ...updatedData,
+        maxCapacity: updatedData.maxCapacity ? Math.min(Number(updatedData.maxCapacity), 30) : c.maxCapacity
+      } : c
+    );
+    return { data: classesStore.find(c => c.id === classId) };
+  },
+  async deleteClass(classId) {
+    await delay();
+    classesStore = classesStore.filter(c => c.id !== classId);
+    return { success: true };
   },
   async toggleStudentAttendance(classId, studentId, sessionIndex) {
     await delay();
@@ -637,14 +723,16 @@ export const coachesAndClassesService = {
   async enrollStudent(classId, studentData) {
     await delay();
     const targetClass = classesStore.find(c => c.id === classId);
-    if (!targetClass) throw new Error('Clase no encontrada');
+    if (!targetClass) throw new Error('Clase no encontrada.');
     if ((targetClass.students?.length || 0) >= 30) {
-      throw new Error('No se pueden inscribir más alumnos: cupo máximo de 30 alcanzado .');
+      throw new Error('No es posible agregar más alumnos: el cupo reglamentario de 30 está completo.');
     }
     const newStudent = {
       id: `std-${Date.now()}`,
       name: studentData.name,
       dni: studentData.dni,
+      phone: studentData.phone || '',
+      enrolledAt: new Date().toISOString().split('T')[0],
       attendance: Array(targetClass.sessions?.length || 8).fill('P')
     };
     classesStore = classesStore.map(cls => {
@@ -659,6 +747,21 @@ export const coachesAndClassesService = {
       return cls;
     });
     return { success: true, student: newStudent };
+  },
+  async removeStudent(classId, studentId) {
+    await delay();
+    classesStore = classesStore.map(cls => {
+      if (cls.id === classId) {
+        const nextStudents = (cls.students || []).filter(st => st.id !== studentId);
+        return {
+          ...cls,
+          students: nextStudents,
+          currentEnrolled: nextStudents.length
+        };
+      }
+      return cls;
+    });
+    return { success: true };
   },
   async recordAttendance(classId, studentId, status) {
     await delay();
@@ -681,16 +784,40 @@ export const coachesAndClassesService = {
     });
     return { success: true };
   },
-  async addClass(classData) {
+
+  // ---- Private Classes ----
+  async getPrivateClasses() {
     await delay();
-    const newClass = {
-      ...classData,
-      id: `cls-${Date.now()}`,
-      currentEnrolled: 0,
-      students: []
+    return { data: privateClassesStore };
+  },
+  async createPrivateClass(data) {
+    await delay();
+    const newPrv = {
+      ...data,
+      id: `prv-${Date.now()}`,
+      status: 'programada'
     };
-    classesStore.push(newClass);
-    return { data: newClass };
+    privateClassesStore = [newPrv, ...privateClassesStore];
+    return { data: newPrv };
+  },
+  async updatePrivateClass(id, updatedData) {
+    await delay();
+    privateClassesStore = privateClassesStore.map(p =>
+      p.id === id ? { ...p, ...updatedData } : p
+    );
+    return { data: privateClassesStore.find(p => p.id === id) };
+  },
+  async cancelPrivateClass(id) {
+    await delay();
+    privateClassesStore = privateClassesStore.map(p =>
+      p.id === id ? { ...p, status: 'cancelada' } : p
+    );
+    return { success: true };
+  },
+  async deletePrivateClass(id) {
+    await delay();
+    privateClassesStore = privateClassesStore.filter(p => p.id !== id);
+    return { success: true };
   }
 };
 
