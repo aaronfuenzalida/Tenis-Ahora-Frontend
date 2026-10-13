@@ -4,14 +4,9 @@ import {
   Layers, 
   Plus, 
   Wrench, 
-  CheckCircle2, 
-  AlertCircle, 
   Printer, 
   Edit3, 
-  Clock, 
-  Sliders, 
-  ShieldAlert,
-  Calendar,
+  Trash2,
   CalendarDays
 } from 'lucide-react';
 import Modal from '../../components/common/Modal';
@@ -39,6 +34,13 @@ export default function CourtsManagementPage() {
     status: 'disponible'
   });
 
+  // Edit court modal
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [courtToEdit, setCourtToEdit] = useState(null);
+
+  // Delete confirmation modal
+  const [courtToDelete, setCourtToDelete] = useState(null);
+
   useEffect(() => {
     loadCourts();
   }, []);
@@ -48,13 +50,13 @@ export default function CourtsManagementPage() {
       courtsService.getAll(),
       reservationsService.getAll()
     ]);
-    setCourts(cRes.data);
+    setCourts(cRes.data || []);
     setReservations(rRes.data || []);
   };
 
   const handleToggleMaintenance = async (court) => {
     const nextStatus = court.status === 'mantenimiento' ? 'disponible' : 'mantenimiento';
-    await courtsService.updateStatus(court.id, nextStatus, maintenanceNotes || 'Mantenimiento preventivo de superficie');
+    await courtsService.updateStatus(court.id, nextStatus, maintenanceNotes || 'Mantenimiento de superficie');
     setShowMaintModal(false);
     setMaintenanceNotes('');
     loadCourts();
@@ -62,20 +64,48 @@ export default function CourtsManagementPage() {
 
   const handleCreateCourt = async (e) => {
     e.preventDefault();
-    const surfaceColors = {
-      Ladrillo: { surfaceColor: 'bg-orange-50 text-orange-800 border-orange-200', badgeColor: 'bg-orange-100 text-orange-800' },
-      Cemento: { surfaceColor: 'bg-sky-50 text-sky-800 border-sky-200', badgeColor: 'bg-sky-100 text-sky-800' },
-      Pasto: { surfaceColor: 'bg-emerald-50 text-emerald-800 border-emerald-200', badgeColor: 'bg-emerald-100 text-emerald-800' }
-    };
-
     const payload = {
       ...newCourt,
-      ...surfaceColors[newCourt.surfaceType],
       photo: 'https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?auto=format&fit=crop&w=600&q=80'
     };
 
     await courtsService.create(payload);
     setShowAddModal(false);
+    setNewCourt({
+      name: '',
+      surfaceType: 'Ladrillo',
+      capacity: 4,
+      pricePerHour: 4800,
+      description: '',
+      status: 'disponible'
+    });
+    loadCourts();
+  };
+
+  const handleOpenEdit = (court) => {
+    setCourtToEdit({
+      ...court,
+      pricePerHour: court.pricePerHour || 4800,
+      capacity: court.capacity || 4,
+      description: court.description || '',
+      surfaceType: court.surfaceType || 'Ladrillo'
+    });
+    setShowEditModal(true);
+  };
+
+  const handleSaveEditCourt = async (e) => {
+    e.preventDefault();
+    if (!courtToEdit) return;
+    await courtsService.update(courtToEdit.id, courtToEdit);
+    setShowEditModal(false);
+    setCourtToEdit(null);
+    loadCourts();
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!courtToDelete) return;
+    await courtsService.delete(courtToDelete.id);
+    setCourtToDelete(null);
     loadCourts();
   };
 
@@ -89,11 +119,11 @@ export default function CourtsManagementPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 no-print">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-            Gestión de Canchas y Tipos de Superficie
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+            Gestión de Canchas
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Administración de canchas (Ladrillo, Cemento, Pasto), características de superficie, capacidad y bloqueo por mantenimiento.
+            Administración de superficies, capacidades, tarifas por hora y estado operativo.
           </p>
         </div>
 
@@ -101,15 +131,15 @@ export default function CourtsManagementPage() {
           <button
             type="button"
             onClick={handlePrintReport}
-            className="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs border border-slate-200 shadow-sm flex items-center gap-1.5 transition-colors"
+            className="px-4 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs border border-slate-200 shadow-sm flex items-center gap-1.5 transition-colors"
           >
-            <Printer className="w-3.5 h-3.5" />
+            <Printer className="w-3.5 h-3.5 text-slate-500" />
             Reporte de Canchas
           </button>
           <button
             type="button"
             onClick={() => setShowAddModal(true)}
-            className="px-4 py-2.5 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-bold text-xs shadow-md hover:shadow-glow-green flex items-center gap-1.5 transition-all"
+            className="px-4 py-2 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-semibold text-xs shadow-sm flex items-center gap-1.5 transition-colors"
           >
             <Plus className="w-3.5 h-3.5" />
             Nueva Cancha
@@ -122,26 +152,26 @@ export default function CourtsManagementPage() {
         <button
           type="button"
           onClick={() => setActiveTab('cards')}
-          className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
+          className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
             activeTab === 'cards'
-              ? 'bg-slate-900 text-white shadow-sm'
+              ? 'bg-slate-900 text-white'
               : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
           }`}
         >
           <Layers className="w-3.5 h-3.5" />
-          Padrón de Canchas & Superficies
+          Padrón de Canchas
         </button>
         <button
           type="button"
           onClick={() => setActiveTab('timeline')}
-          className={`px-4 py-2 rounded-xl text-xs font-black transition-all flex items-center gap-1.5 ${
+          className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
             activeTab === 'timeline'
-              ? 'bg-tennis-600 text-white shadow-sm'
+              ? 'bg-tennis-600 text-white'
               : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
           }`}
         >
           <CalendarDays className="w-3.5 h-3.5" />
-          Cronograma Horario en Vivo (08:00 a 22:00)
+          Cronograma Horario
         </button>
       </div>
 
@@ -162,89 +192,227 @@ export default function CourtsManagementPage() {
         </div>
       ) : (
         /* Printable Area Report */
-        <div id="printable-area" className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-6">
+        <div id="printable-area" className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-6">
           
           {/* Printable Header only on paper */}
           <div className="hidden print:block text-center border-b pb-4">
-            <h2 className="text-xl font-bold text-tennis-900">TENIS AHORA CLUB — REPORTE OFICIAL DE CANCHAS</h2>
+            <h2 className="text-lg font-bold text-slate-900">TENIS AHORA — REPORTE DE CANCHAS</h2>
             <p className="text-xs text-slate-500">Superficies, Capacidades y Estado Operativo</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {courts.map(court => {
-            const isMaint = court.status === 'mantenimiento';
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {courts.map(court => {
+              const isMaint = court.status === 'mantenimiento';
 
-            return (
-              <div
-                key={court.id}
-                className={`bg-white rounded-2xl border p-5 space-y-4 shadow-sm flex flex-col justify-between ${
-                  isMaint ? 'border-amber-300 bg-amber-50/20' : 'border-slate-200'
-                }`}
-              >
-                <div>
-                  <div className="flex items-center justify-between">
-                    <span className={`text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-md ${court.badgeColor}`}>
-                      {court.surfaceType}
-                    </span>
-                    
-                    <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full ${
-                      isMaint 
-                        ? 'bg-amber-100 text-amber-800' 
-                        : 'bg-emerald-100 text-emerald-800'
-                    }`}>
-                      {isMaint ? <Wrench className="w-3 h-3" /> : <CheckCircle2 className="w-3 h-3" />}
-                      {isMaint ? 'Bloqueada p/ Mantenimiento' : 'Habilitada'}
-                    </span>
+              return (
+                <div
+                  key={court.id}
+                  className={`bg-white rounded-xl border p-5 space-y-4 flex flex-col justify-between ${
+                    isMaint ? 'border-amber-300 bg-amber-50/20' : 'border-slate-200'
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between text-xs pb-2 border-b border-slate-100">
+                      <span className="font-semibold text-slate-700">
+                        Superficie: {court.surfaceType}
+                      </span>
+                      <span className={`font-semibold ${isMaint ? 'text-amber-700' : 'text-slate-600'}`}>
+                        {isMaint ? 'En Mantenimiento' : 'Disponible'}
+                      </span>
+                    </div>
+
+                    <h3 className="text-base font-bold text-slate-900 mt-3">{court.name}</h3>
+                    <p className="text-xs text-slate-500 mt-1">{court.description || 'Sin observaciones adicionales'}</p>
+
+                    <div className="grid grid-cols-2 gap-2 mt-4 text-xs">
+                      <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-100">
+                        <span className="text-[10px] text-slate-400 block uppercase font-medium">Capacidad</span>
+                        <span className="font-semibold text-slate-800">{court.capacity} Jugadores ({court.capacity === 4 ? 'Dobles' : 'Singles'})</span>
+                      </div>
+
+                      <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-100">
+                        <span className="text-[10px] text-slate-400 block uppercase font-medium">Tarifa por Hora</span>
+                        <span className="font-bold text-slate-900">${court.pricePerHour?.toLocaleString('es-AR')} ARS</span>
+                      </div>
+                    </div>
+
+                    {isMaint && court.maintenanceNotes && (
+                      <div className="mt-3 p-2.5 bg-amber-50 text-amber-900 rounded-lg text-xs border border-amber-200">
+                        <span className="font-semibold">Detalle de mantenimiento:</span> {court.maintenanceNotes}
+                      </div>
+                    )}
                   </div>
 
-                  <h3 className="text-base font-extrabold text-slate-900 mt-3">{court.name}</h3>
-                  <p className="text-xs text-slate-500 mt-1">{court.description}</p>
+                  {/* Actions (No-print) */}
+                  <div className="pt-3 border-t border-slate-100 space-y-2 no-print">
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleOpenEdit(court)}
+                        className="py-1.5 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-xs flex items-center justify-center gap-1.5 transition-colors"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                        Modificar
+                      </button>
 
-                  <div className="grid grid-cols-2 gap-2 mt-4 text-xs">
-                    <div className="p-2.5 bg-slate-50 rounded-xl">
-                      <span className="text-[10px] text-slate-400 block uppercase font-bold">Capacidad:</span>
-                      <span className="font-bold text-slate-800">{court.capacity} Jugadores ({court.capacity === 4 ? 'Dobles' : 'Singles'})</span>
+                      <button
+                        type="button"
+                        onClick={() => setCourtToDelete(court)}
+                        className="py-1.5 px-3 rounded-lg bg-slate-100 hover:bg-red-50 text-slate-700 hover:text-red-700 font-medium text-xs flex items-center justify-center gap-1.5 transition-colors"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        Eliminar
+                      </button>
                     </div>
 
-                    <div className="p-2.5 bg-slate-50 rounded-xl">
-                      <span className="text-[10px] text-slate-400 block uppercase font-bold">Tarifa por Hora:</span>
-                      <span className="font-black text-tennis-700 text-sm">${court.pricePerHour?.toLocaleString('es-AR')} ARS</span>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedCourt(court);
+                        setMaintenanceNotes(court.maintenanceNotes || '');
+                        setShowMaintModal(true);
+                      }}
+                      className={`w-full py-2 px-3 rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 ${
+                        isMaint 
+                          ? 'bg-slate-900 hover:bg-slate-800 text-white'
+                          : 'bg-white hover:bg-amber-50 text-amber-800 border border-amber-200'
+                      }`}
+                    >
+                      <Wrench className="w-3.5 h-3.5" />
+                      {isMaint ? 'Habilitar Cancha' : 'Bloquear por Mantenimiento'}
+                    </button>
                   </div>
-
-                  {isMaint && court.maintenanceNotes && (
-                    <div className="mt-3 p-2.5 bg-amber-100/70 text-amber-900 rounded-xl text-xs flex items-start gap-1.5">
-                      <ShieldAlert className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
-                      <span><strong>Detalle Mantenimiento:</strong> {court.maintenanceNotes}</span>
-                    </div>
-                  )}
                 </div>
-
-                {/* Maintenance Toggle Action (No-print) */}
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-between no-print">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedCourt(court);
-                      setMaintenanceNotes(court.maintenanceNotes || '');
-                      setShowMaintModal(true);
-                    }}
-                    className={`w-full py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-                      isMaint 
-                        ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
-                        : 'bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200'
-                    }`}
-                  >
-                    <Wrench className="w-3.5 h-3.5" />
-                    {isMaint ? 'Desbloquear y Habilitar Cancha' : 'Bloquear por Mantenimiento'}
-                  </button>
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
-      </div>
       )}
+
+      {/* Edit Court Modal */}
+      <Modal
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setCourtToEdit(null);
+        }}
+        title={`Modificar Cancha: ${courtToEdit?.name || ''}`}
+        maxWidth="max-w-lg"
+      >
+        {courtToEdit && (
+          <form onSubmit={handleSaveEditCourt} className="space-y-4 text-xs">
+            <div>
+              <label className="font-semibold text-slate-700 block mb-1">Nombre / Identificación de Cancha *</label>
+              <input
+                type="text"
+                required
+                value={courtToEdit.name}
+                onChange={(e) => setCourtToEdit({ ...courtToEdit, name: e.target.value })}
+                className="w-full p-2.5 rounded-lg border border-slate-200 outline-none focus:border-tennis-600 text-xs"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="font-semibold text-slate-700 block mb-1">Tipo de Superficie *</label>
+                <select
+                  value={courtToEdit.surfaceType}
+                  onChange={(e) => setCourtToEdit({ ...courtToEdit, surfaceType: e.target.value })}
+                  className="w-full p-2.5 rounded-lg border border-slate-200 outline-none focus:border-tennis-600 bg-white text-xs"
+                >
+                  <option value="Ladrillo">Polvo de Ladrillo</option>
+                  <option value="Cemento">Cemento</option>
+                  <option value="Pasto">Pasto / Césped</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="font-semibold text-slate-700 block mb-1">Capacidad de Jugadores *</label>
+                <select
+                  value={courtToEdit.capacity}
+                  onChange={(e) => setCourtToEdit({ ...courtToEdit, capacity: Number(e.target.value) })}
+                  className="w-full p-2.5 rounded-lg border border-slate-200 outline-none focus:border-tennis-600 bg-white text-xs"
+                >
+                  <option value={2}>2 Jugadores (Singles)</option>
+                  <option value={4}>4 Jugadores (Dobles / Singles)</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="font-semibold text-slate-700 block mb-1">Precio por Hora (ARS) *</label>
+              <input
+                type="number"
+                min="0"
+                required
+                value={courtToEdit.pricePerHour}
+                onChange={(e) => setCourtToEdit({ ...courtToEdit, pricePerHour: Number(e.target.value) })}
+                className="w-full p-2.5 rounded-lg border border-slate-200 outline-none focus:border-tennis-600 text-xs"
+              />
+            </div>
+
+            <div>
+              <label className="font-semibold text-slate-700 block mb-1">Descripción o Especificaciones</label>
+              <input
+                type="text"
+                value={courtToEdit.description}
+                onChange={(e) => setCourtToEdit({ ...courtToEdit, description: e.target.value })}
+                className="w-full p-2.5 rounded-lg border border-slate-200 outline-none focus:border-tennis-600 text-xs"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowEditModal(false);
+                  setCourtToEdit(null);
+                }}
+                className="px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100 font-medium"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 rounded-lg bg-tennis-600 hover:bg-tennis-700 text-white font-semibold"
+              >
+                Guardar Modificaciones
+              </button>
+            </div>
+          </form>
+        )}
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={!!courtToDelete}
+        onClose={() => setCourtToDelete(null)}
+        title="Confirmar Eliminación de Cancha"
+        maxWidth="max-w-md"
+      >
+        <div className="space-y-4 text-xs">
+          <p className="text-slate-600">
+            ¿Está seguro de que desea eliminar la cancha <strong>{courtToDelete?.name}</strong>? Esta acción quitará la cancha del padrón y de la grilla de disponibilidad.
+          </p>
+
+          <div className="flex justify-end gap-2 pt-2">
+            <button
+              type="button"
+              onClick={() => setCourtToDelete(null)}
+              className="px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100 font-medium"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={handleConfirmDelete}
+              className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold"
+            >
+              Confirmar Eliminación
+            </button>
+          </div>
+        </div>
+      </Modal>
 
       {/* Maintenance Modal */}
       <Modal
@@ -255,19 +423,19 @@ export default function CourtsManagementPage() {
       >
         <div className="space-y-4 text-xs">
           <p className="text-slate-600">
-            Al bloquear una cancha por mantenimiento, el sistema <strong>impedirá automáticamente cualquier reserva</strong> en los horarios afectados.
+            Al bloquear una cancha por mantenimiento, el sistema impedirá reservas en los horarios afectados.
           </p>
 
           <div>
-            <label className="font-bold text-slate-700 uppercase block mb-1">
+            <label className="font-semibold text-slate-700 block mb-1">
               Motivo o Tareas a Realizar:
             </label>
             <textarea
               rows={3}
-              placeholder="Ej: Nivelación de polvo de ladrillo, tensado de red y calibrado de luminarias..."
+              placeholder="Descripción de tareas de mantenimiento..."
               value={maintenanceNotes}
               onChange={(e) => setMaintenanceNotes(e.target.value)}
-              className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 text-xs"
+              className="w-full p-2.5 rounded-lg border border-slate-200 outline-none focus:border-tennis-600 text-xs"
             />
           </div>
 
@@ -275,14 +443,14 @@ export default function CourtsManagementPage() {
             <button
               type="button"
               onClick={() => setShowMaintModal(false)}
-              className="px-3 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-medium"
+              className="px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100 font-medium"
             >
               Cancelar
             </button>
             <button
               type="button"
               onClick={() => handleToggleMaintenance(selectedCourt)}
-              className="px-4 py-2 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-bold"
+              className="px-4 py-2 rounded-lg bg-tennis-600 hover:bg-tennis-700 text-white font-semibold"
             >
               Guardar Estado
             </button>
@@ -294,68 +462,69 @@ export default function CourtsManagementPage() {
       <Modal
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
-        title="Registrar Nueva Cancha de Tenis"
+        title="Registrar Nueva Cancha"
         maxWidth="max-w-lg"
       >
         <form onSubmit={handleCreateCourt} className="space-y-4 text-xs">
           <div>
-            <label className="font-bold text-slate-700 uppercase block mb-1">Nombre / Número de Cancha *</label>
+            <label className="font-semibold text-slate-700 block mb-1">Nombre / Identificación de Cancha *</label>
             <input
               type="text"
               required
-              placeholder="Cancha 6 - Juan Ignacio Chela"
+              placeholder="Cancha 6"
               value={newCourt.name}
               onChange={(e) => setNewCourt({ ...newCourt, name: e.target.value })}
-              className="w-full p-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
+              className="w-full p-2.5 rounded-lg border border-slate-200 outline-none focus:border-tennis-600 text-xs"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="font-bold text-slate-700 uppercase block mb-1">Tipo de Superficie *</label>
+              <label className="font-semibold text-slate-700 block mb-1">Tipo de Superficie *</label>
               <select
                 value={newCourt.surfaceType}
                 onChange={(e) => setNewCourt({ ...newCourt, surfaceType: e.target.value })}
-                className="w-full p-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white"
+                className="w-full p-2.5 rounded-lg border border-slate-200 outline-none focus:border-tennis-600 bg-white text-xs"
               >
-                <option value="Ladrillo">Polvo de Ladrillo (Clay)</option>
-                <option value="Cemento">Cemento (Hard Court)</option>
-                <option value="Pasto">Césped / Pasto (Grass)</option>
+                <option value="Ladrillo">Polvo de Ladrillo</option>
+                <option value="Cemento">Cemento</option>
+                <option value="Pasto">Pasto / Césped</option>
               </select>
             </div>
 
             <div>
-              <label className="font-bold text-slate-700 uppercase block mb-1">Capacidad *</label>
+              <label className="font-semibold text-slate-700 block mb-1">Capacidad *</label>
               <select
                 value={newCourt.capacity}
                 onChange={(e) => setNewCourt({ ...newCourt, capacity: Number(e.target.value) })}
-                className="w-full p-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white"
+                className="w-full p-2.5 rounded-lg border border-slate-200 outline-none focus:border-tennis-600 bg-white text-xs"
               >
                 <option value={2}>2 Jugadores (Singles)</option>
                 <option value={4}>4 Jugadores (Dobles / Singles)</option>
               </select>
             </div>
-
-            <div>
-              <label className="font-bold text-slate-700 uppercase block mb-1">Precio por Hora (ARS) *</label>
-              <input
-                type="number"
-                required
-                value={newCourt.pricePerHour}
-                onChange={(e) => setNewCourt({ ...newCourt, pricePerHour: Number(e.target.value) })}
-                className="w-full p-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
-              />
-            </div>
           </div>
 
           <div>
-            <label className="font-bold text-slate-700 uppercase block mb-1">Descripción / Características</label>
+            <label className="font-semibold text-slate-700 block mb-1">Precio por Hora (ARS) *</label>
+            <input
+              type="number"
+              min="0"
+              required
+              value={newCourt.pricePerHour}
+              onChange={(e) => setNewCourt({ ...newCourt, pricePerHour: Number(e.target.value) })}
+              className="w-full p-2.5 rounded-lg border border-slate-200 outline-none focus:border-tennis-600 text-xs"
+            />
+          </div>
+
+          <div>
+            <label className="font-semibold text-slate-700 block mb-1">Descripción / Características</label>
             <input
               type="text"
-              placeholder="Superficie rápida homologada..."
+              placeholder="Detalles sobre luminarias o superficie..."
               value={newCourt.description}
               onChange={(e) => setNewCourt({ ...newCourt, description: e.target.value })}
-              className="w-full p-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
+              className="w-full p-2.5 rounded-lg border border-slate-200 outline-none focus:border-tennis-600 text-xs"
             />
           </div>
 
@@ -363,13 +532,13 @@ export default function CourtsManagementPage() {
             <button
               type="button"
               onClick={() => setShowAddModal(false)}
-              className="px-3 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-medium"
+              className="px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100 font-medium"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-bold"
+              className="px-4 py-2 rounded-lg bg-tennis-600 hover:bg-tennis-700 text-white font-semibold"
             >
               Crear Cancha
             </button>

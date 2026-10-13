@@ -43,7 +43,7 @@ export default function Sidebar({ isOpen, onClose }) {
     {
       group: 'Inventario y Equipamiento',
       items: [
-        { name: 'Stock de Materiales', to: '/admin/stock', icon: Package }
+        { name: 'Gestión de Stock', to: '/admin/stock', icon: Package }
       ]
     },
     {

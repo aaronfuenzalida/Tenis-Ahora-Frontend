@@ -105,6 +105,18 @@ export const courtsService = {
     );
     return { data: courtsStore.find(c => c.id === courtId) };
   },
+  async update(courtId, updatedData) {
+    await delay();
+    courtsStore = courtsStore.map(c => 
+      c.id === courtId ? { ...c, ...updatedData } : c
+    );
+    return { data: courtsStore.find(c => c.id === courtId) };
+  },
+  async delete(courtId) {
+    await delay();
+    courtsStore = courtsStore.filter(c => c.id !== courtId);
+    return { success: true };
+  },
   async create(courtData) {
     await delay();
     const newCourt = {
@@ -121,6 +133,54 @@ export const stockService = {
   async getAll() {
     await delay();
     return { data: stockStore };
+  },
+  async create(itemData) {
+    await delay();
+    const total = Number(itemData.totalStock) || 0;
+    const inUse = Number(itemData.inUseStock) || 0;
+    const available = Math.max(0, total - inUse);
+    const minAlertThreshold = Number(itemData.minAlertThreshold) || 1;
+    const newItem = {
+      id: `stock-${Date.now()}`,
+      name: itemData.name,
+      category: itemData.category || 'Equipamiento',
+      description: itemData.description || '',
+      totalStock: total,
+      availableStock: available,
+      inUseStock: inUse,
+      minAlertThreshold,
+      unit: itemData.unit || 'unidades',
+      status: available <= minAlertThreshold ? 'alerta_baja' : 'normal'
+    };
+    stockStore.push(newItem);
+    return { data: newItem };
+  },
+  async update(itemId, updatedData) {
+    await delay();
+    stockStore = stockStore.map(item => {
+      if (item.id === itemId) {
+        const total = Number(updatedData.totalStock !== undefined ? updatedData.totalStock : item.totalStock);
+        const inUse = Number(updatedData.inUseStock !== undefined ? updatedData.inUseStock : item.inUseStock);
+        const available = Math.max(0, total - inUse);
+        const minThreshold = Number(updatedData.minAlertThreshold !== undefined ? updatedData.minAlertThreshold : item.minAlertThreshold);
+        return {
+          ...item,
+          ...updatedData,
+          totalStock: total,
+          inUseStock: inUse,
+          availableStock: available,
+          minAlertThreshold: minThreshold,
+          status: available <= minThreshold ? 'alerta_baja' : 'normal'
+        };
+      }
+      return item;
+    });
+    return { data: stockStore.find(i => i.id === itemId) };
+  },
+  async delete(itemId) {
+    await delay();
+    stockStore = stockStore.filter(i => i.id !== itemId);
+    return { success: true };
   },
   async updateStock(itemId, totalStock) {
     await delay();

@@ -81,9 +81,9 @@ export default function AdminDashboard() {
           </div>
           <Link
             to="/admin/stock"
-            className="px-3 py-1 bg-amber-600 text-white font-bold rounded-lg text-xs hover:bg-amber-700 shrink-0"
+            className="px-3 py-1 bg-amber-600 text-white font-semibold rounded-lg text-xs hover:bg-amber-700 shrink-0"
           >
-            Reponer Stock
+            Gestionar Stock
           </Link>
         </div>
       )}
@@ -180,15 +180,17 @@ export default function AdminDashboard() {
                 }`}
               >
                 <div>
-                  <div className="flex items-center justify-between">
-                    <span className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md ${court.badgeColor}`}>
+                  <div className="flex items-center justify-between text-xs pb-1 border-b border-slate-100">
+                    <span className="font-semibold text-slate-700">
                       {court.surfaceType}
                     </span>
-                    <span className={`w-2.5 h-2.5 rounded-full ${
-                      isMaint ? 'bg-amber-500' : 'bg-emerald-500'
-                    }`} />
+                    <span className={`text-[11px] font-medium ${
+                      isMaint ? 'text-amber-700' : 'text-slate-500'
+                    }`}>
+                      {isMaint ? 'Mantenimiento' : 'Disponible'}
+                    </span>
                   </div>
-                  <h3 className="font-extrabold text-xs text-slate-900 mt-2">{court.name.split('-')[0]}</h3>
+                  <h3 className="font-bold text-xs text-slate-900 mt-2">{court.name.split('-')[0]}</h3>
                   <p className="text-[11px] text-slate-500 mt-0.5">{court.name.split('-')[1]}</p>
                 </div>
 
@@ -294,7 +296,7 @@ export default function AdminDashboard() {
           <div className="flex items-center justify-between">
             <h2 className="text-base font-extrabold text-slate-900">Stock de Equipamiento</h2>
             <Link to="/admin/stock" className="text-xs font-bold text-tennis-700 hover:underline">
-              Gestionar
+              Gestionar Stock
             </Link>
           </div>
 
@@ -303,8 +305,8 @@ export default function AdminDashboard() {
               <div key={item.id} className="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-bold text-slate-800">{item.name}</span>
-                  <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded-md ${
-                    item.status === 'alerta_baja' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'
+                  <span className={`text-xs font-semibold ${
+                    item.status === 'alerta_baja' ? 'text-amber-700' : 'text-slate-600'
                   }`}>
                     {item.availableStock} Disp.
                   </span>
