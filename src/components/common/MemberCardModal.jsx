@@ -1,5 +1,4 @@
 import React from 'react';
-import { Printer, ShieldCheck, QrCode, CheckCircle2, Award, Sparkles, X } from 'lucide-react';
 import Modal from './Modal';
 import Logo from './Logo';
 
@@ -19,9 +18,8 @@ export default function MemberCardModal({ isOpen, onClose, member }) {
       <div className="space-y-6">
         
         {/* Instruction Banner (Hidden on Print) */}
-        <div className="p-3 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs text-emerald-900 flex items-center justify-between no-print">
+        <div className="p-3 bg-tennis-50 rounded-2xl border border-tennis-200 text-xs text-tennis-900 flex items-center justify-between no-print">
           <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>Credencial lista para imprimir y plastificar en tamaño tarjeta estándar (85mm × 54mm).</span>
           </div>
           <button
@@ -29,7 +27,6 @@ export default function MemberCardModal({ isOpen, onClose, member }) {
             onClick={handlePrint}
             className="px-3 py-1.5 bg-tennis-600 hover:bg-tennis-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm transition-colors"
           >
-            <Printer className="w-3.5 h-3.5" />
             Imprimir Carnet
           </button>
         </div>
@@ -50,7 +47,6 @@ export default function MemberCardModal({ isOpen, onClose, member }) {
               {/* Subtle background tennis pattern */}
               <div className="absolute -right-8 -bottom-8 w-40 h-40 rounded-full border-4 border-white/5 pointer-events-none" />
               <div className="absolute right-6 -bottom-16 w-36 h-36 rounded-full border-4 border-tennis-400/10 pointer-events-none" />
-              <div className="absolute top-0 right-0 left-0 h-1 bg-gradient-to-r from-tennis-500 via-emerald-400 to-amber-400" />
 
               {/* Card Header */}
               <div className="flex items-center justify-between z-10">
@@ -60,11 +56,11 @@ export default function MemberCardModal({ isOpen, onClose, member }) {
                   </div>
                   <div>
                     <div className="text-xs font-black tracking-wider uppercase text-white leading-none">Club Tenis Ahora</div>
-                    <div className="text-[9px] text-emerald-300 font-medium">Asociación Civil Deportiva</div>
+                    <div className="text-[9px] text-tennis-300 font-medium">Asociación Civil Deportiva</div>
                   </div>
                 </div>
                 <div className="text-right">
-                  <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-tennis-500/30 text-tennis-200 border border-tennis-400/30">
+                  <span className="text-[9px] font-black uppercase tracking-wider text-tennis-200">
                     {roleLabel}
                   </span>
                 </div>
@@ -85,7 +81,7 @@ export default function MemberCardModal({ isOpen, onClose, member }) {
                 <div className="min-w-0 flex-1">
                   <h3 className="font-black text-sm text-white tracking-wide truncate">{member.name}</h3>
                   <div className="text-[11px] text-tennis-200 font-mono mt-0.5">DNI: <strong className="text-white font-bold">{member.dni}</strong></div>
-                  <div className="text-[10px] text-slate-300 truncate mt-0.5">N° Socio: <strong className="text-amber-300 font-mono">{memberNumber}</strong></div>
+                  <div className="text-[10px] text-slate-300 truncate mt-0.5">N° Socio: <strong className="text-slate-300 font-mono">{memberNumber}</strong></div>
                   <div className="text-[9px] text-slate-400 mt-0.5">Alta: {memberSince}</div>
                 </div>
 
@@ -159,9 +155,8 @@ export default function MemberCardModal({ isOpen, onClose, member }) {
           <button
             type="button"
             onClick={handlePrint}
-            className="px-4 py-2 bg-tennis-600 hover:bg-tennis-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-md hover:shadow-glow-green transition-all"
+            className="px-4 py-2 bg-tennis-600 hover:bg-tennis-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-md transition-all"
           >
-            <Printer className="w-3.5 h-3.5" />
             Imprimir Credencial
           </button>
         </div>

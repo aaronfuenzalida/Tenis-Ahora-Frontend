@@ -1,20 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { courtsService, reservationsService } from '../../services/api';
-import { 
-  Layers, 
-  Plus, 
-  Wrench, 
-  Printer, 
-  Edit3, 
-  Trash2,
-  CalendarDays
-} from 'lucide-react';
+import { courtsService, reservationsService, courtTypesService } from '../../services/api';
+import { Edit3, Trash2 } from 'lucide-react';
 import Modal from '../../components/common/Modal';
 import CourtTimelineGrid from '../../components/common/CourtTimelineGrid';
+import CourtTypesPanel from '../../components/admin/CourtTypesPanel';
+import CourtAvailabilityPanel from '../../components/admin/CourtAvailabilityPanel';
 
 export default function CourtsManagementPage() {
   const [courts, setCourts] = useState([]);
   const [reservations, setReservations] = useState([]);
+  const [courtTypes, setCourtTypes] = useState([]);
   const [selectedCourt, setSelectedCourt] = useState(null);
   const [showMaintModal, setShowMaintModal] = useState(false);
   const [maintenanceNotes, setMaintenanceNotes] = useState('');
@@ -46,12 +41,25 @@ export default function CourtsManagementPage() {
   }, []);
 
   const loadCourts = async () => {
-    const [cRes, rRes] = await Promise.all([
+    const [cRes, rRes, tRes] = await Promise.all([
       courtsService.getAll(),
-      reservationsService.getAll()
+      reservationsService.getAll(),
+      courtTypesService.getAll()
     ]);
     setCourts(cRes.data || []);
     setReservations(rRes.data || []);
+    setCourtTypes(tRes.data || []);
+  };
+
+  const activeCourtTypes = courtTypes.filter(t => t.active !== false);
+
+  const handleSurfaceChange = (surfaceName, current, setter) => {
+    const type = courtTypes.find(t => t.name === surfaceName);
+    setter({
+      ...current,
+      surfaceType: surfaceName,
+      pricePerHour: type && !current.id ? type.basePricePerHour : current.pricePerHour
+    });
   };
 
   const handleToggleMaintenance = async (court) => {
@@ -122,9 +130,6 @@ export default function CourtsManagementPage() {
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
             Gestión de Canchas
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Administración de superficies, capacidades, tarifas por hora y estado operativo.
-          </p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -133,15 +138,13 @@ export default function CourtsManagementPage() {
             onClick={handlePrintReport}
             className="px-4 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs border border-slate-200 shadow-sm flex items-center gap-1.5 transition-colors"
           >
-            <Printer className="w-3.5 h-3.5 text-slate-500" />
-            Reporte de Canchas
+            {activeTab === 'types' ? 'Reporte de Tipos de Cancha' : activeTab === 'availability' ? 'Reporte de Horarios' : 'Reporte de Canchas'}
           </button>
           <button
             type="button"
             onClick={() => setShowAddModal(true)}
             className="px-4 py-2 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-semibold text-xs shadow-sm flex items-center gap-1.5 transition-colors"
           >
-            <Plus className="w-3.5 h-3.5" />
             Nueva Cancha
           </button>
         </div>
@@ -158,7 +161,6 @@ export default function CourtsManagementPage() {
               : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
           }`}
         >
-          <Layers className="w-3.5 h-3.5" />
           Padrón de Canchas
         </button>
         <button
@@ -170,12 +172,37 @@ export default function CourtsManagementPage() {
               : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
           }`}
         >
-          <CalendarDays className="w-3.5 h-3.5" />
           Cronograma Horario
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('availability')}
+          className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
+            activeTab === 'availability'
+              ? 'bg-slate-900 text-white'
+              : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
+          }`}
+        >
+          Horarios Disponibles
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('types')}
+          className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
+            activeTab === 'types'
+              ? 'bg-slate-900 text-white'
+              : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
+          }`}
+        >
+          Tipos de Cancha
         </button>
       </div>
 
-      {activeTab === 'timeline' ? (
+      {activeTab === 'types' ? (
+        <CourtTypesPanel courts={courts} onChange={loadCourts} />
+      ) : activeTab === 'availability' ? (
+        <CourtAvailabilityPanel courts={courts} onUpdated={loadCourts} />
+      ) : activeTab === 'timeline' ? (
         <div className="no-print space-y-4">
           <CourtTimelineGrid
             courts={courts}
@@ -208,7 +235,7 @@ export default function CourtsManagementPage() {
                 <div
                   key={court.id}
                   className={`bg-white rounded-xl border p-5 space-y-4 flex flex-col justify-between ${
-                    isMaint ? 'border-amber-300 bg-amber-50/20' : 'border-slate-200'
+                    isMaint ? 'border-slate-300 bg-slate-50/20' : 'border-slate-200'
                   }`}
                 >
                   <div>
@@ -216,7 +243,7 @@ export default function CourtsManagementPage() {
                       <span className="font-semibold text-slate-700">
                         Superficie: {court.surfaceType}
                       </span>
-                      <span className={`font-semibold ${isMaint ? 'text-amber-700' : 'text-slate-600'}`}>
+                      <span className={`font-semibold ${isMaint ? 'text-slate-700' : 'text-slate-600'}`}>
                         {isMaint ? 'En Mantenimiento' : 'Disponible'}
                       </span>
                     </div>
@@ -237,7 +264,7 @@ export default function CourtsManagementPage() {
                     </div>
 
                     {isMaint && court.maintenanceNotes && (
-                      <div className="mt-3 p-2.5 bg-amber-50 text-amber-900 rounded-lg text-xs border border-amber-200">
+                      <div className="mt-3 p-2.5 bg-slate-50 text-slate-900 rounded-lg text-xs border border-slate-200">
                         <span className="font-semibold">Detalle de mantenimiento:</span> {court.maintenanceNotes}
                       </div>
                     )}
@@ -258,7 +285,7 @@ export default function CourtsManagementPage() {
                       <button
                         type="button"
                         onClick={() => setCourtToDelete(court)}
-                        className="py-1.5 px-3 rounded-lg bg-slate-100 hover:bg-red-50 text-slate-700 hover:text-red-700 font-medium text-xs flex items-center justify-center gap-1.5 transition-colors"
+                        className="py-1.5 px-3 rounded-lg bg-slate-100 hover:bg-slate-50 text-slate-700 hover:text-slate-700 font-medium text-xs flex items-center justify-center gap-1.5 transition-colors"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                         Eliminar
@@ -275,10 +302,9 @@ export default function CourtsManagementPage() {
                       className={`w-full py-2 px-3 rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 ${
                         isMaint 
                           ? 'bg-slate-900 hover:bg-slate-800 text-white'
-                          : 'bg-white hover:bg-amber-50 text-amber-800 border border-amber-200'
+                          : 'bg-white hover:bg-slate-50 text-slate-800 border border-slate-200'
                       }`}
                     >
-                      <Wrench className="w-3.5 h-3.5" />
                       {isMaint ? 'Habilitar Cancha' : 'Bloquear por Mantenimiento'}
                     </button>
                   </div>
@@ -317,12 +343,15 @@ export default function CourtsManagementPage() {
                 <label className="font-semibold text-slate-700 block mb-1">Tipo de Superficie *</label>
                 <select
                   value={courtToEdit.surfaceType}
-                  onChange={(e) => setCourtToEdit({ ...courtToEdit, surfaceType: e.target.value })}
+                  onChange={(e) => handleSurfaceChange(e.target.value, courtToEdit, setCourtToEdit)}
                   className="w-full p-2.5 rounded-lg border border-slate-200 outline-none focus:border-tennis-600 bg-white text-xs"
                 >
-                  <option value="Ladrillo">Polvo de Ladrillo</option>
-                  <option value="Cemento">Cemento</option>
-                  <option value="Pasto">Pasto / Césped</option>
+                  {activeCourtTypes.map(t => (
+                    <option key={t.id} value={t.name}>{t.label || t.name}</option>
+                  ))}
+                  {!activeCourtTypes.some(t => t.name === courtToEdit.surfaceType) && (
+                    <option value={courtToEdit.surfaceType}>{courtToEdit.surfaceType}</option>
+                  )}
                 </select>
               </div>
 
@@ -406,7 +435,7 @@ export default function CourtsManagementPage() {
             <button
               type="button"
               onClick={handleConfirmDelete}
-              className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold"
+              className="px-4 py-2 rounded-lg bg-slate-600 hover:bg-slate-700 text-white font-semibold"
             >
               Confirmar Eliminación
             </button>
@@ -483,12 +512,12 @@ export default function CourtsManagementPage() {
               <label className="font-semibold text-slate-700 block mb-1">Tipo de Superficie *</label>
               <select
                 value={newCourt.surfaceType}
-                onChange={(e) => setNewCourt({ ...newCourt, surfaceType: e.target.value })}
+                onChange={(e) => handleSurfaceChange(e.target.value, newCourt, setNewCourt)}
                 className="w-full p-2.5 rounded-lg border border-slate-200 outline-none focus:border-tennis-600 bg-white text-xs"
               >
-                <option value="Ladrillo">Polvo de Ladrillo</option>
-                <option value="Cemento">Cemento</option>
-                <option value="Pasto">Pasto / Césped</option>
+                {activeCourtTypes.map(t => (
+                  <option key={t.id} value={t.name}>{t.label || t.name}</option>
+                ))}
               </select>
             </div>
 

@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { mensajeDeError } from '../../services/api';
 import Logo from '../../components/common/Logo';
-import { User, Mail, Phone, MapPin, Lock, CreditCard, ArrowRight, CheckCircle2 } from 'lucide-react';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -63,7 +62,7 @@ export default function RegisterPage() {
         </div>
 
         {error && (
-          <div className="mt-4 p-3 bg-red-50 text-red-700 text-xs rounded-xl border border-red-200 font-semibold">
+          <div className="mt-4 p-3 bg-slate-50 text-slate-700 text-xs rounded-xl border border-slate-200 font-semibold">
             {error}
           </div>
         )}
@@ -78,9 +77,6 @@ export default function RegisterPage() {
                 Nombre *
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                  <User className="w-4 h-4" />
-                </div>
                 <input
                   type="text"
                   name="nombre"
@@ -88,7 +84,7 @@ export default function RegisterPage() {
                   value={formData.nombre}
                   onChange={handleChange}
                   placeholder="Guillermo"
-                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-tennis-500/20 focus:border-tennis-600 outline-none"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-tennis-500/20 focus:border-tennis-600 outline-none"
                 />
               </div>
             </div>
@@ -99,9 +95,6 @@ export default function RegisterPage() {
                 Apellido *
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                  <User className="w-4 h-4" />
-                </div>
                 <input
                   type="text"
                   name="apellido"
@@ -109,7 +102,7 @@ export default function RegisterPage() {
                   value={formData.apellido}
                   onChange={handleChange}
                   placeholder="Vilas"
-                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-tennis-500/20 focus:border-tennis-600 outline-none"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-tennis-500/20 focus:border-tennis-600 outline-none"
                 />
               </div>
             </div>
@@ -121,9 +114,6 @@ export default function RegisterPage() {
                 Documento (DNI) *
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                  <CreditCard className="w-4 h-4" />
-                </div>
                 <input
                   type="text"
                   name="dni"
@@ -131,7 +121,7 @@ export default function RegisterPage() {
                   value={formData.dni}
                   onChange={handleChange}
                   placeholder="38.452.129"
-                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-tennis-500/20 focus:border-tennis-600 outline-none"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-tennis-500/20 focus:border-tennis-600 outline-none"
                 />
               </div>
             </div>
@@ -142,9 +132,6 @@ export default function RegisterPage() {
                 Correo Electrónico *
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                  <Mail className="w-4 h-4" />
-                </div>
                 <input
                   type="email"
                   name="email"
@@ -152,7 +139,7 @@ export default function RegisterPage() {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="tuemail@dominio.com"
-                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-tennis-500/20 focus:border-tennis-600 outline-none"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-tennis-500/20 focus:border-tennis-600 outline-none"
                 />
               </div>
             </div>
@@ -163,9 +150,6 @@ export default function RegisterPage() {
                 Teléfono / WhatsApp *
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                  <Phone className="w-4 h-4" />
-                </div>
                 <input
                   type="tel"
                   name="phone"
@@ -173,7 +157,7 @@ export default function RegisterPage() {
                   value={formData.phone}
                   onChange={handleChange}
                   placeholder="+54 11 4892-1234"
-                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-tennis-500/20 focus:border-tennis-600 outline-none"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-tennis-500/20 focus:border-tennis-600 outline-none"
                 />
               </div>
             </div>
@@ -184,9 +168,6 @@ export default function RegisterPage() {
                 Dirección / Domicilio *
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                  <MapPin className="w-4 h-4" />
-                </div>
                 <input
                   type="text"
                   name="address"
@@ -194,7 +175,7 @@ export default function RegisterPage() {
                   value={formData.address}
                   onChange={handleChange}
                   placeholder="Av. San Martín 1420, Florencio Varela"
-                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-tennis-500/20 focus:border-tennis-600 outline-none"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-tennis-500/20 focus:border-tennis-600 outline-none"
                 />
               </div>
             </div>
@@ -205,9 +186,6 @@ export default function RegisterPage() {
                 Contraseña *
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                  <Lock className="w-4 h-4" />
-                </div>
                 <input
                   type="password"
                   name="password"
@@ -215,7 +193,7 @@ export default function RegisterPage() {
                   value={formData.password}
                   onChange={handleChange}
                   placeholder="••••••••"
-                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-tennis-500/20 focus:border-tennis-600 outline-none"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-tennis-500/20 focus:border-tennis-600 outline-none"
                 />
               </div>
             </div>
@@ -226,9 +204,6 @@ export default function RegisterPage() {
                 Confirmar Contraseña *
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                  <Lock className="w-4 h-4" />
-                </div>
                 <input
                   type="password"
                   name="confirmPassword"
@@ -236,7 +211,7 @@ export default function RegisterPage() {
                   value={formData.confirmPassword}
                   onChange={handleChange}
                   placeholder="••••••••"
-                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-tennis-500/20 focus:border-tennis-600 outline-none"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-tennis-500/20 focus:border-tennis-600 outline-none"
                 />
               </div>
             </div>
@@ -247,10 +222,9 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-4 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-bold text-sm shadow-md hover:shadow-glow-green flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+              className="w-full py-3 px-4 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-bold text-sm shadow-md flex items-center justify-center gap-2 transition-all disabled:opacity-50"
             >
               {loading ? 'Creando cuenta...' : 'Completar registro'}
-              <ArrowRight className="w-4 h-4" />
             </button>
           </div>
         </form>

@@ -1,16 +1,5 @@
 import React, { useState } from 'react';
-import { 
-  Calendar as CalendarIcon, 
-  Clock, 
-  ChevronLeft, 
-  ChevronRight, 
-  CheckCircle2, 
-  Lock, 
-  Wrench, 
-  Sparkles, 
-  Info,
-  Check
-} from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function CourtTimelineGrid({
   courts = [],
@@ -174,7 +163,6 @@ export default function CourtTimelineGrid({
             </button>
 
             <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 rounded-2xl border border-slate-200">
-              <CalendarIcon className="w-4 h-4 text-tennis-600 shrink-0" />
               <div>
                 <span className="text-[10px] font-extrabold uppercase text-slate-400 block leading-none">
                   Fecha del Cronograma
@@ -263,8 +251,8 @@ export default function CourtTimelineGrid({
             <span className="text-slate-400 uppercase text-[10px]">Referencias:</span>
             
             <div className="flex items-center gap-1.5">
-              <span className="w-3.5 h-3.5 rounded-md bg-emerald-500 border border-emerald-600" />
-              <span className="text-emerald-900 font-extrabold">Verde = Libre (Clic para reservar)</span>
+              <span className="w-3.5 h-3.5 rounded-md bg-tennis-500 border border-tennis-600" />
+              <span className="text-tennis-900 font-extrabold">Verde = Libre (Clic para reservar)</span>
             </div>
 
             <div className="flex items-center gap-1.5">
@@ -273,8 +261,8 @@ export default function CourtTimelineGrid({
             </div>
 
             <div className="flex items-center gap-1.5">
-              <span className="w-3.5 h-3.5 rounded-md bg-amber-400 border border-amber-500" />
-              <span className="text-amber-800">Amarillo = Bloqueado por Mantenimiento</span>
+              <span className="w-3.5 h-3.5 rounded-md bg-slate-400 border border-slate-500" />
+              <span className="text-slate-800">Amarillo = Bloqueado por Mantenimiento</span>
             </div>
           </div>
 
@@ -302,7 +290,7 @@ export default function CourtTimelineGrid({
                         {court.surfaceType} • {court.capacity === 4 ? 'Dobles' : 'Singles'}
                       </div>
                     </div>
-                    <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-white/10 text-tennis-300">
+                    <span className="text-[10px] font-black text-tennis-300">
                       ${court.pricePerHour?.toLocaleString('es-AR')}/h
                     </span>
                   </div>
@@ -319,7 +307,6 @@ export default function CourtTimelineGrid({
                 {/* Time slot header cell */}
                 <td className="py-3 px-2 text-center font-mono font-bold text-slate-700 bg-slate-50/70 border-r border-slate-200 select-none">
                   <div className="flex items-center justify-center gap-1 text-[11px]">
-                    <Clock className="w-3 h-3 text-slate-400 shrink-0" />
                     <span>{slot}</span>
                   </div>
                 </td>
@@ -333,16 +320,15 @@ export default function CourtTimelineGrid({
                     return (
                       <td key={court.id} className="p-1.5 border-r border-slate-100 last:border-r-0">
                         <div 
-                          className="h-16 p-2 rounded-2xl bg-amber-50 border border-amber-200 flex flex-col justify-between select-none opacity-85"
+                          className="h-16 p-2 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between select-none opacity-85"
                           title="Cancha bloqueada por mantenimiento y acondicionamiento reglamentario."
                         >
-                          <div className="flex items-center justify-between text-[10px] font-bold text-amber-900">
+                          <div className="flex items-center justify-between text-[10px] font-bold text-slate-900">
                             <span className="flex items-center gap-1">
-                              <Wrench className="w-3 h-3 text-amber-600" />
                               Mantenimiento
                             </span>
                           </div>
-                          <p className="text-[9px] text-amber-800 line-clamp-1">{status.detail}</p>
+                          <p className="text-[9px] text-slate-800 line-clamp-1">{status.detail}</p>
                         </div>
                       </td>
                     );
@@ -357,7 +343,6 @@ export default function CourtTimelineGrid({
                         >
                           <div className="flex items-center justify-between text-[10px] font-bold text-slate-500">
                             <span className="flex items-center gap-1">
-                              <Lock className="w-3 h-3 text-slate-400" />
                               Ocupado
                             </span>
                           </div>
@@ -375,33 +360,33 @@ export default function CourtTimelineGrid({
                         onClick={() => onSelectSlot(court, slot, selectedDate)}
                         className={`w-full h-16 p-2 rounded-2xl text-left flex flex-col justify-between transition-all group ${
                           isSelected
-                            ? 'bg-emerald-600 text-white shadow-md ring-2 ring-emerald-500 scale-[0.98]'
-                            : 'bg-emerald-50/70 hover:bg-emerald-100/90 text-emerald-950 border border-emerald-300/80 hover:border-emerald-400 hover:shadow-xs'
+                            ? 'bg-tennis-600 text-white shadow-md ring-2 ring-tennis-500 scale-[0.98]'
+                            : 'bg-tennis-50/70 hover:bg-tennis-100/90 text-tennis-950 border border-tennis-300/80 hover:border-tennis-400 hover:shadow-xs'
                         }`}
                       >
                         <div className="flex items-center justify-between w-full">
                           <span className={`text-[10px] font-black uppercase px-1.5 py-0.2 rounded ${
-                            isSelected ? 'bg-white text-emerald-800' : 'bg-emerald-200/60 text-emerald-900'
+                            isSelected ? 'bg-white text-tennis-800' : 'bg-tennis-200/60 text-tennis-900'
                           }`}>
                             Libre
                           </span>
                           
                           {isSelected ? (
                             <span className="text-[10px] font-black flex items-center gap-0.5 text-white">
-                              <Check className="w-3 h-3" /> Elegido
+                              Elegido
                             </span>
                           ) : (
-                            <span className="text-[10px] font-black text-emerald-800">
+                            <span className="text-[10px] font-black text-tennis-800">
                               {status.detail}
                             </span>
                           )}
                         </div>
 
                         <div className="flex items-center justify-between w-full mt-1">
-                          <span className={`text-[10px] font-bold ${isSelected ? 'text-emerald-100' : 'text-emerald-700'}`}>
+                          <span className={`text-[10px] font-bold ${isSelected ? 'text-tennis-100' : 'text-tennis-700'}`}>
                             {slotDuration}h de turno
                           </span>
-                          <span className={`text-[10px] font-extrabold ${isSelected ? 'text-white underline' : 'text-emerald-800 group-hover:underline'}`}>
+                          <span className={`text-[10px] font-extrabold ${isSelected ? 'text-white underline' : 'text-tennis-800 group-hover:underline'}`}>
                             {isSelected ? 'Confirmando...' : 'Reservar →'}
                           </span>
                         </div>
@@ -418,17 +403,14 @@ export default function CourtTimelineGrid({
 
       {/* Selected Slot Notice Footer */}
       {selectedCourt && selectedTimeSlot && (
-        <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-300 text-emerald-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs animate-fadeIn">
+        <div className="p-4 bg-tennis-50 rounded-2xl border border-tennis-300 text-tennis-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-black shrink-0 shadow-sm">
-              <CheckCircle2 className="w-6 h-6" />
-            </div>
             <div>
-              <span className="text-[10px] font-black uppercase text-emerald-700">Turno Seleccionado en Grilla</span>
-              <div className="font-black text-sm text-emerald-950">
+              <span className="text-[10px] font-black uppercase text-tennis-700">Turno Seleccionado en Grilla</span>
+              <div className="font-black text-sm text-tennis-950">
                 {selectedCourt.name} ({selectedCourt.surfaceType}) • {selectedTimeSlot}
               </div>
-              <p className="text-xs text-emerald-800">
+              <p className="text-xs text-tennis-800">
                 Fecha: {formattedDateTitle} • Costo Cancha: ${(selectedCourt.pricePerHour * slotDuration).toLocaleString('es-AR')}
               </p>
             </div>
@@ -436,7 +418,7 @@ export default function CourtTimelineGrid({
 
           <a
             href="#booking-players-form"
-            className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs text-center shadow-md transition-all shrink-0"
+            className="px-4 py-2.5 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-black text-xs text-center shadow-md transition-all shrink-0"
           >
             Continuar con Jugadores y Seña 50% ↓
           </a>

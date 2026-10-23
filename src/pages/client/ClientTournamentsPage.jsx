@@ -1,14 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { tournamentsService, leaguesService } from '../../services/api';
-import { 
-  Trophy, 
-  Users, 
-  Calendar, 
-  CheckCircle2, 
-  Swords, 
-  FileText, 
-  Printer 
-} from 'lucide-react';
 import Modal from '../../components/common/Modal';
 import TournamentBracketTree from '../../components/common/TournamentBracketTree';
 
@@ -100,9 +91,6 @@ export default function ClientTournamentsPage() {
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
             Torneos y Ligas del Club
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Participe en las competencias oficiales de tenis en modalidades Singles y Dobles sobre Polvo de Ladrillo, Cemento y Césped.
-          </p>
         </div>
 
         {/* Switcher Tab */}
@@ -184,7 +172,6 @@ export default function ClientTournamentsPage() {
                       }}
                       className="w-full py-2 px-3 rounded-xl bg-tennis-50 hover:bg-tennis-100 text-tennis-800 font-semibold text-xs border border-tennis-200 flex items-center justify-center gap-1.5 transition-colors"
                     >
-                      <Trophy className="w-3.5 h-3.5 text-tennis-600" />
                       Inscribirme a este Torneo
                     </button>
                   </div>
@@ -322,7 +309,6 @@ export default function ClientTournamentsPage() {
                       }}
                       className="w-full py-2 px-3 rounded-xl bg-tennis-50 hover:bg-tennis-100 text-tennis-800 font-semibold text-xs border border-tennis-200 flex items-center justify-center gap-1.5 transition-colors"
                     >
-                      <Trophy className="w-3.5 h-3.5 text-tennis-600" />
                       Inscribirme a esta Liga
                     </button>
                   </div>

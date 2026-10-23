@@ -2,18 +2,7 @@ import React from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Logo from '../common/Logo';
-import { 
-  Home, 
-  Calendar, 
-  Trophy, 
-  GraduationCap, 
-  Receipt, 
-  User, 
-  LogOut, 
-  ArrowRightLeft, 
-  ShieldCheck,
-  ChevronRight
-} from 'lucide-react';
+import { Home, Calendar, Trophy, GraduationCap, Receipt } from 'lucide-react';
 
 export default function ClientSidebar({ isOpen, onClose }) {
   const { user, logout, switchRole } = useAuth();
@@ -88,13 +77,10 @@ export default function ClientSidebar({ isOpen, onClose }) {
         {/* Socio Profile Card / Member Pill */}
         <div className="p-4 mx-4 my-3 bg-tennis-50/70 rounded-2xl border border-tennis-200/80">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-tennis-600 text-white flex items-center justify-center font-extrabold text-sm shadow-glow-green">
+            <div className="w-10 h-10 rounded-xl bg-tennis-600 text-white flex items-center justify-center font-extrabold text-sm">
               {user?.name ? user.name.charAt(0) : 'S'}
             </div>
             <div className="overflow-hidden">
-              <span className="text-[10px] font-extrabold uppercase tracking-wider text-tennis-800 block">
-                Socio Activo
-              </span>
               <div className="font-bold text-xs text-slate-900 truncate">
                 {user?.name || 'Federico Gómez'}
               </div>
@@ -122,7 +108,7 @@ export default function ClientSidebar({ isOpen, onClose }) {
                 className={({ isActive }) =>
                   `flex items-center justify-between px-3.5 py-3 rounded-2xl text-xs font-bold transition-all ${
                     isActive
-                      ? 'bg-tennis-600 text-white shadow-md shadow-tennis-600/20'
+                      ? 'bg-tennis-600 text-white'
                       : 'text-slate-600 hover:text-tennis-900 hover:bg-slate-50'
                   }`
                 }
@@ -146,7 +132,6 @@ export default function ClientSidebar({ isOpen, onClose }) {
               onClick={handleGoToCoach}
               className="py-2 px-2.5 rounded-xl border border-tennis-200 bg-tennis-50 hover:bg-tennis-100 text-tennis-900 text-xs font-semibold flex items-center justify-center gap-1 transition-colors"
             >
-              <ArrowRightLeft className="w-3 h-3 text-tennis-600" />
               <span>Docente</span>
             </button>
             <button
@@ -154,7 +139,6 @@ export default function ClientSidebar({ isOpen, onClose }) {
               onClick={handleGoToAdmin}
               className="py-2 px-2.5 rounded-xl border border-slate-800 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold flex items-center justify-center gap-1 transition-colors"
             >
-              <ArrowRightLeft className="w-3 h-3 text-tennis-400" />
               <span>Admin</span>
             </button>
           </div>
@@ -162,9 +146,8 @@ export default function ClientSidebar({ isOpen, onClose }) {
           <button
             type="button"
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold text-red-600 hover:bg-red-50 transition-colors"
+            className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 transition-colors"
           >
-            <LogOut className="w-3.5 h-3.5" />
             Cerrar Sesión
           </button>
         </div>

@@ -1,16 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { coachesAndClassesService } from '../../services/api';
-import { 
-  GraduationCap, 
-  Award, 
-  Users, 
-  Clock, 
-  CheckCircle2, 
-  FileText, 
-  ShieldCheck, 
-  Calendar, 
-  UserCheck 
-} from 'lucide-react';
 import CoachCredentialsModal from '../../components/common/CoachCredentialsModal';
 import Modal from '../../components/common/Modal';
 
@@ -84,9 +73,6 @@ export default function ClientClassesPage() {
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
             Clases, Entrenamientos y Profesores
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Escuela de tenis para adultos y menores. Todos los profesores cuentan con Título Habilitante y Certificación AAT / ITF verificado. Cupo máximo de hasta 30 alumnos por comisión.
-          </p>
         </div>
       </div>
 
@@ -94,10 +80,9 @@ export default function ClientClassesPage() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Award className="w-5 h-5 text-tennis-600" />
             <h2 className="text-base font-bold text-slate-900">Staff de Profesores y Entrenadores Habilitados</h2>
           </div>
-          <span className="text-xs text-slate-600 font-semibold border border-slate-200 px-2.5 py-1 rounded-lg">
+          <span className="text-xs text-slate-600 font-semibold">
             Certificaciones Oficiales Verificadas
           </span>
         </div>
@@ -128,8 +113,8 @@ export default function ClientClassesPage() {
                 <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1 text-xs">
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] uppercase font-bold text-slate-500">Título Oficial</span>
-                    <span className="text-xs font-semibold text-emerald-700 flex items-center gap-1">
-                      <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Habilitado
+                    <span className="text-xs font-semibold text-tennis-700 flex items-center gap-1">
+                      Habilitado
                     </span>
                   </div>
                   <div className="font-semibold text-slate-800 line-clamp-1">{coach.licenseDetails?.titleName}</div>
@@ -158,7 +143,6 @@ export default function ClientClassesPage() {
                   onClick={() => setPrivateLessonCoach(coach)}
                   className="w-full py-2 px-3 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-semibold text-xs shadow-sm transition-colors flex items-center justify-center gap-1.5"
                 >
-                  <Calendar className="w-3.5 h-3.5" />
                   Solicitar Turno Particular
                 </button>
               </div>
@@ -171,7 +155,6 @@ export default function ClientClassesPage() {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <GraduationCap className="w-5 h-5 text-tennis-600" />
             <h2 className="text-base font-bold text-slate-900">Clases Grupales y Escuela del Club</h2>
           </div>
           <span className="text-xs text-slate-500 font-medium">Tope reglamentario: 30 alumnos por clase</span>
@@ -224,7 +207,6 @@ export default function ClientClassesPage() {
                     onClick={() => handleEnrollGroupClass(cls)}
                     className="w-full py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs transition-colors flex items-center justify-center gap-1.5"
                   >
-                    <UserCheck className="w-3.5 h-3.5" />
                     Inscribirme a esta Clase
                   </button>
                 )}

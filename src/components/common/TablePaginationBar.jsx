@@ -1,13 +1,5 @@
 import React from 'react';
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  ChevronsLeft, 
-  ChevronsRight, 
-  ArrowUpDown, 
-  ChevronUp, 
-  ChevronDown 
-} from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ArrowUpDown, ChevronUp, ChevronDown } from 'lucide-react';
 
 /**
  * Reusable sortable table header component

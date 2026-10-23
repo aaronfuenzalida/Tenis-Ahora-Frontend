@@ -1,20 +1,5 @@
 import React, { useState } from 'react';
-import { 
-  Users, 
-  CheckCircle2, 
-  XCircle, 
-  AlertTriangle, 
-  Printer, 
-  UserPlus, 
-  ShieldAlert, 
-  Search, 
-  Filter, 
-  Sparkles,
-  Info,
-  Calendar,
-  X,
-  Clock
-} from 'lucide-react';
+import { Search, Filter, X } from 'lucide-react';
 import Modal from './Modal';
 import { formatDNI, isValidDNI } from '../../utils/formatters';
 
@@ -131,7 +116,7 @@ export default function AttendanceMatrixModal({
         <div className="p-4 bg-slate-900 text-white rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
           <div>
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-tennis-500 text-slate-950">
+              <span className="text-[10px] font-black uppercase tracking-wider text-tennis-300">
                 Escuela de Tenis • {classItem.monthName || 'Octubre 2026'}
               </span>
               <span className="text-slate-400 font-medium text-[11px]">
@@ -152,7 +137,6 @@ export default function AttendanceMatrixModal({
               onClick={() => onOpenPrintSheet(classItem)}
               className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/20 flex items-center gap-1.5 transition-colors"
             >
-              <Printer className="w-3.5 h-3.5 text-tennis-400" />
               Imprimir Planilla A4
             </button>
             <button
@@ -160,7 +144,6 @@ export default function AttendanceMatrixModal({
               onClick={() => onBulkMark(classItem.id, sessions.length - 1, 'P')}
               className="px-3.5 py-2 rounded-xl bg-tennis-500 hover:bg-tennis-400 text-slate-950 font-black text-xs shadow-md transition-colors flex items-center gap-1.5"
             >
-              <CheckCircle2 className="w-3.5 h-3.5" />
               Todos Presentes Hoy
             </button>
           </div>
@@ -170,10 +153,9 @@ export default function AttendanceMatrixModal({
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <span className="font-extrabold uppercase tracking-wider text-[11px] text-slate-500 flex items-center gap-1.5">
-              <Users className="w-4 h-4 text-tennis-600" />
               Control de Cupo Máximo Reglamentario
             </span>
-            <span className={`text-xs font-black ${isCupoLleno ? 'text-rose-600' : 'text-slate-700'}`}>
+            <span className={`text-xs font-black ${isCupoLleno ? 'text-slate-600' : 'text-slate-700'}`}>
               {totalStudents} / {maxCapacity} Alumnos ({Math.round((totalStudents / maxCapacity) * 100)}%)
             </span>
           </div>
@@ -181,11 +163,11 @@ export default function AttendanceMatrixModal({
           {/* Progress bar */}
           <div className="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
             <div 
-              className={`h-full transition-all duration-300 ${
+              className={`h-full ${
                 isCupoLleno 
-                  ? 'bg-rose-500 animate-pulse' 
+                  ? 'bg-slate-500' 
                   : totalStudents >= 25 
-                  ? 'bg-amber-500' 
+                  ? 'bg-slate-500' 
                   : 'bg-tennis-500'
               }`}
               style={{ width: `${Math.min(100, (totalStudents / maxCapacity) * 100)}%` }}
@@ -194,13 +176,12 @@ export default function AttendanceMatrixModal({
 
           {/* Full capacity warning banner */}
           {isCupoLleno ? (
-            <div className="p-3 bg-rose-50 border-2 border-rose-300 rounded-2xl text-rose-900 flex items-start gap-3 shadow-sm">
-              <ShieldAlert className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+            <div className="p-3 bg-slate-50 border-2 border-slate-300 rounded-2xl text-slate-900 flex items-start gap-3 shadow-sm">
               <div>
-                <strong className="block font-black text-xs uppercase tracking-tight text-rose-800">
+                <strong className="block font-black text-xs uppercase tracking-tight text-slate-800">
                   ALERTA DE CUPO COMPLETO — Límite de 30 Alumnos Alcanzado
                 </strong>
-                <p className="text-[11px] text-rose-700 mt-0.5">
+                <p className="text-[11px] text-slate-700 mt-0.5">
                   Por reglamento oficial de seguridad y calidad pedagógica del club, se inhabilitan nuevas inscripciones en esta clase. Para sumar más participantes, debe abrirse una nueva comisión o grupo horario.
                 </p>
               </div>
@@ -213,7 +194,6 @@ export default function AttendanceMatrixModal({
                 onClick={() => setShowAddStudentForm(!showAddStudentForm)}
                 className="text-tennis-700 font-bold hover:underline flex items-center gap-1"
               >
-                <UserPlus className="w-3.5 h-3.5" />
                 {showAddStudentForm ? 'Ocultar Formulario' : 'Inscribir Nuevo Alumno'}
               </button>
             </div>
@@ -225,16 +205,12 @@ export default function AttendanceMatrixModal({
           <form onSubmit={handleCreateStudent} className="p-4 bg-tennis-50/60 rounded-2xl border border-tennis-200 space-y-3">
             <div className="flex items-center justify-between">
               <h4 className="font-extrabold text-xs uppercase text-tennis-900 flex items-center gap-1.5">
-                <UserPlus className="w-4 h-4 text-tennis-700" />
                 Inscribir Alumno a la Clase
               </h4>
-              <span className="text-[10px] text-tennis-700 font-semibold">
-                Cupo restante: {maxCapacity - totalStudents}
-              </span>
             </div>
 
             {enrollError && (
-              <div className="p-2 bg-rose-100 border border-rose-300 text-rose-800 rounded-xl text-[11px] font-bold">
+              <div className="p-2 bg-slate-100 border border-slate-300 text-slate-800 rounded-xl text-[11px] font-bold">
                 {enrollError}
               </div>
             )}
@@ -294,14 +270,14 @@ export default function AttendanceMatrixModal({
             <span className="text-lg font-black text-slate-900">{totalStudents} alumnos</span>
           </div>
 
-          <div className="p-3 bg-emerald-50 rounded-2xl border border-emerald-200 text-center">
-            <span className="text-[10px] font-bold uppercase text-emerald-700 block">Alumnos Regulares (≥75%)</span>
-            <span className="text-lg font-black text-emerald-800">{regularCount} alumnos</span>
+          <div className="p-3 bg-tennis-50 rounded-2xl border border-tennis-200 text-center">
+            <span className="text-[10px] font-bold uppercase text-tennis-700 block">Alumnos Regulares (≥75%)</span>
+            <span className="text-lg font-black text-tennis-800">{regularCount} alumnos</span>
           </div>
 
-          <div className="p-3 bg-rose-50 rounded-2xl border border-rose-200 text-center">
-            <span className="text-[10px] font-bold uppercase text-rose-700 block">En Riesgo (&lt;75%)</span>
-            <span className="text-lg font-black text-rose-800">{riesgoCount} alumnos</span>
+          <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 text-center">
+            <span className="text-[10px] font-bold uppercase text-slate-700 block">En Riesgo (&lt;75%)</span>
+            <span className="text-lg font-black text-slate-800">{riesgoCount} alumnos</span>
           </div>
 
           <div className="p-3 bg-tennis-50 rounded-2xl border border-tennis-200 text-center">
@@ -354,9 +330,9 @@ export default function AttendanceMatrixModal({
           {/* Interactive Cell Toggle Legend */}
           <div className="flex items-center gap-2 text-[10px] font-bold border-l pl-3 border-slate-200">
             <span className="text-slate-400 uppercase">1-Clic:</span>
-            <span className="px-1.5 py-0.5 rounded bg-emerald-600 text-white font-black">P: Presente</span>
-            <span className="px-1.5 py-0.5 rounded bg-rose-600 text-white font-black">A: Ausente</span>
-            <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white font-black">J: Justificado</span>
+            <span className="text-slate-600">P: Presente</span>
+            <span className="text-slate-600">A: Ausente</span>
+            <span className="text-slate-600">J: Justificado</span>
           </div>
         </div>
 
@@ -376,9 +352,9 @@ export default function AttendanceMatrixModal({
                   </th>
                 ))}
 
-                <th className="py-2.5 px-2 text-center w-14 border-l border-slate-200 text-emerald-700">P</th>
-                <th className="py-2.5 px-2 text-center w-14 text-rose-700">A</th>
-                <th className="py-2.5 px-2 text-center w-14 text-amber-700">J</th>
+                <th className="py-2.5 px-2 text-center w-14 border-l border-slate-200 text-tennis-700">P</th>
+                <th className="py-2.5 px-2 text-center w-14 text-slate-700">A</th>
+                <th className="py-2.5 px-2 text-center w-14 text-slate-700">J</th>
                 <th className="py-2.5 px-3 text-center min-w-[90px] border-l border-slate-200">% Asistencia</th>
                 <th className="py-2.5 px-3 text-center min-w-[120px]">Estado / Condición</th>
               </tr>
@@ -418,11 +394,11 @@ export default function AttendanceMatrixModal({
 
                         let cellClass = 'bg-slate-100 text-slate-400 hover:bg-slate-200 border border-slate-200';
                         if (status === 'P') {
-                          cellClass = 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm ring-1 ring-emerald-600/30 font-black';
+                          cellClass = 'bg-tennis-500 hover:bg-tennis-600 text-white shadow-sm ring-1 ring-tennis-600/30 font-black';
                         } else if (status === 'A') {
-                          cellClass = 'bg-rose-500 hover:bg-rose-600 text-white shadow-sm ring-1 ring-rose-600/30 font-black';
+                          cellClass = 'bg-slate-500 hover:bg-slate-600 text-white shadow-sm ring-1 ring-slate-600/30 font-black';
                         } else if (status === 'J') {
-                          cellClass = 'bg-amber-400 hover:bg-amber-500 text-amber-950 shadow-sm ring-1 ring-amber-500/30 font-black';
+                          cellClass = 'bg-slate-400 hover:bg-slate-500 text-slate-950 shadow-sm ring-1 ring-slate-500/30 font-black';
                         }
 
                         return (
@@ -431,7 +407,7 @@ export default function AttendanceMatrixModal({
                               type="button"
                               title={`Clic para alternar (Actual: ${status === 'P' ? 'Presente' : status === 'A' ? 'Ausente' : status === 'J' ? 'Justificado' : 'Sin registrar'})`}
                               onClick={() => onToggleAttendance(classItem.id, student.id, sIdx)}
-                              className={`w-7 h-7 rounded-lg text-xs font-mono flex items-center justify-center mx-auto transition-transform active:scale-90 ${cellClass}`}
+                              className={`w-7 h-7 rounded-lg text-xs font-mono flex items-center justify-center mx-auto ${cellClass}`}
                             >
                               {status}
                             </button>
@@ -440,20 +416,20 @@ export default function AttendanceMatrixModal({
                       })}
 
                       {/* Counts */}
-                      <td className="py-2.5 px-2 text-center font-black text-emerald-700 border-l border-slate-100">
+                      <td className="py-2.5 px-2 text-center font-black text-tennis-700 border-l border-slate-100">
                         {pCount}
                       </td>
-                      <td className="py-2.5 px-2 text-center font-black text-rose-700">
+                      <td className="py-2.5 px-2 text-center font-black text-slate-700">
                         {aCount}
                       </td>
-                      <td className="py-2.5 px-2 text-center font-black text-amber-700">
+                      <td className="py-2.5 px-2 text-center font-black text-slate-700">
                         {jCount}
                       </td>
 
                       {/* Percentage */}
                       <td className="py-2.5 px-3 text-center border-l border-slate-100">
                         <div className="flex items-center justify-center gap-1.5">
-                          <span className={`font-black text-xs ${isRegular ? 'text-emerald-700' : 'text-rose-600 font-black'}`}>
+                          <span className={`font-black text-xs ${isRegular ? 'text-tennis-700' : 'text-slate-600 font-black'}`}>
                             {percentage}%
                           </span>
                         </div>
@@ -462,13 +438,11 @@ export default function AttendanceMatrixModal({
                       {/* Condition Badge */}
                       <td className="py-2.5 px-3 text-center">
                         {isRegular ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300">
-                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                          <span className="inline-flex items-center gap-1 text-[10px] font-black text-tennis-800">
                             Regular
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-100 text-rose-800 border border-rose-300 animate-pulse">
-                            <AlertTriangle className="w-3 h-3 text-rose-600" />
+                          <span className="inline-flex items-center gap-1 text-[10px] font-black text-slate-800">
                             En riesgo (&lt;75%)
                           </span>
                         )}
@@ -483,9 +457,8 @@ export default function AttendanceMatrixModal({
 
         {/* Footer info & close */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-slate-200">
-          <div className="text-[11px] text-slate-500 flex items-center gap-1.5">
-            <Info className="w-4 h-4 text-tennis-600 shrink-0" />
-            <span>Los cambios de estado se guardan en tiempo real al hacer clic en cada celda.</span>
+          <div className="text-[11px] text-slate-500">
+            Los cambios de estado se guardan en tiempo real al hacer clic en cada celda.
           </div>
 
           <div className="flex items-center gap-2 justify-end">
@@ -494,7 +467,6 @@ export default function AttendanceMatrixModal({
               onClick={() => onOpenPrintSheet(classItem)}
               className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1.5"
             >
-              <Printer className="w-3.5 h-3.5" />
               Vista de Impresión
             </button>
             <button

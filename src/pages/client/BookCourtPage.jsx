@@ -1,22 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { courtsService, stockService, reservationsService } from '../../services/api';
-import { 
-  Calendar as CalendarIcon, 
-  Clock, 
-  Users, 
-  Package, 
-  ShieldCheck, 
-  CreditCard, 
-  QrCode, 
-  CheckCircle2, 
-  AlertTriangle, 
-  Info,
-  ChevronRight,
-  Printer,
-  CalendarDays,
-  Layers
-} from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import QRModal from '../../components/common/QRModal';
 import ReceiptModal from '../../components/common/ReceiptModal';
 import CourtTimelineGrid from '../../components/common/CourtTimelineGrid';
@@ -243,14 +228,10 @@ export default function BookCourtPage() {
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">
             Reserva de Canchas de Tenis
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Elegí superficie (Ladrillo, Cemento, Pasto), equipamiento con stock garantizado y aboná el 50% de seña para confirmar tu turno.
-          </p>
         </div>
 
         {/* Date Selector (up to 30 days) */}
         <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-2xl border border-slate-200 shadow-sm">
-          <CalendarIcon className="w-4 h-4 text-tennis-600" />
           <div className="text-xs">
             <div className="flex items-center gap-1.5">
               <span className="text-slate-400 font-medium">Fecha de Turno:</span>
@@ -291,7 +272,6 @@ export default function BookCourtPage() {
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <CalendarDays className="w-3.5 h-3.5" />
               Cronograma Grilla Horaria (Recomendado)
             </button>
             <button
@@ -303,7 +283,6 @@ export default function BookCourtPage() {
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              <Layers className="w-3.5 h-3.5" />
               Vista por Canchas
             </button>
           </div>
@@ -317,9 +296,6 @@ export default function BookCourtPage() {
       {bookingSuccess ? (
         /* Success Screen */
         <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm text-center max-w-2xl mx-auto space-y-4">
-          <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
-            <CheckCircle2 className="w-10 h-10" />
-          </div>
           
           <h2 className="text-2xl font-extrabold text-slate-900">¡Reserva Confirmada Exitosamente!</h2>
           <p className="text-sm text-slate-600">
@@ -345,9 +321,8 @@ export default function BookCourtPage() {
             <button
               type="button"
               onClick={() => setShowReceiptModal(true)}
-              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md hover:shadow-glow-green"
+              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md"
             >
-              <Printer className="w-4 h-4" />
               Imprimir Comprobante con QR
             </button>
             <button
@@ -444,7 +419,7 @@ export default function BookCourtPage() {
                         key={idx} 
                         className={`p-3 rounded-xl border space-y-2 transition-all ${
                           isDup 
-                            ? 'bg-red-50/70 border-red-300 ring-1 ring-red-400' 
+                            ? 'bg-slate-50/70 border-slate-300 ring-1 ring-slate-400' 
                             : 'bg-slate-50 border-slate-200'
                         }`}
                       >
@@ -453,7 +428,7 @@ export default function BookCourtPage() {
                             Jugador {idx + 1} {idx === 0 && '(Titular / Socio)'}
                           </span>
                           {isDup && (
-                            <span className="text-[10px] font-bold text-red-600 bg-red-100 px-1.5 py-0.5 rounded">
+                            <span className="text-[10px] font-bold text-slate-600">
                               DNI Duplicado
                             </span>
                           )}
@@ -479,12 +454,12 @@ export default function BookCourtPage() {
                               onChange={(e) => handlePlayerChange(idx, 'dni', e.target.value)}
                               className={`w-full px-2.5 py-1.5 bg-white rounded-lg border text-xs focus:ring-1 outline-none font-bold ${
                                 isDup || isDniInvalid 
-                                  ? 'border-red-300 text-red-800 focus:ring-red-400' 
+                                  ? 'border-slate-300 text-slate-800 focus:ring-slate-400' 
                                   : 'border-slate-200 text-slate-800 focus:ring-tennis-500'
                               }`}
                             />
                             {isDniInvalid && (
-                              <span className="text-[9px] text-red-600 block mt-0.5">7-8 dígitos</span>
+                              <span className="text-[9px] text-slate-600 block mt-0.5">7-8 dígitos</span>
                             )}
                           </div>
 
@@ -520,14 +495,13 @@ export default function BookCourtPage() {
                       Incluye Red, Pelotas y Raquetas sin costo extra.
                     </p>
                   </div>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                  <span className="text-[10px] font-bold text-tennis-800">
                     Sin costo ($0)
                   </span>
                 </div>
 
                 {!canBookWithStock && (
-                  <div className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-start gap-2 text-xs text-red-800">
-                    <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                  <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-start gap-2 text-xs text-slate-800">
                     <div>
                       <strong>Bloqueo por falta de stock:</strong>
                       <p className="text-[11px] mt-0.5">
@@ -542,12 +516,12 @@ export default function BookCourtPage() {
                     <div className="font-bold text-slate-800">1 Red Reglamentaria de Tenis</div>
                     <div className="text-[11px] text-slate-400">Stock: {netStock?.availableStock ?? 0} u.</div>
                   </div>
-                  <span className={`text-xs font-bold px-2 py-1 rounded-lg border ${
+                  <span className={`text-xs font-bold ${
                     hasNetStock 
-                      ? 'text-emerald-700 bg-emerald-50 border-emerald-200' 
-                      : 'text-red-700 bg-red-50 border-red-200'
+                      ? 'text-tennis-700' 
+                      : 'text-slate-700'
                   }`}>
-                    {hasNetStock ? '✓ Asignada ($0)' : 'Sin Stock'}
+                    {hasNetStock ? 'Asignada ($0)' : 'Sin Stock'}
                   </span>
                 </div>
 
@@ -556,12 +530,12 @@ export default function BookCourtPage() {
                     <div className="font-bold text-slate-800">Pelotas Reglamentarias de Tenis</div>
                     <div className="text-[11px] text-slate-400">Stock: {ballStock?.availableStock ?? 0} pelotas</div>
                   </div>
-                  <span className={`text-xs font-bold px-2 py-1 rounded-lg border ${
+                  <span className={`text-xs font-bold ${
                     hasBallStock 
-                      ? 'text-emerald-700 bg-emerald-50 border-emerald-200' 
-                      : 'text-red-700 bg-red-50 border-red-200'
+                      ? 'text-tennis-700' 
+                      : 'text-slate-700'
                   }`}>
-                    {hasBallStock ? '✓ Asignadas ($0)' : 'Sin Stock'}
+                    {hasBallStock ? 'Asignadas ($0)' : 'Sin Stock'}
                   </span>
                 </div>
 
@@ -572,12 +546,12 @@ export default function BookCourtPage() {
                     </div>
                     <div className="text-[11px] text-slate-400">Stock: {racketStock?.availableStock ?? 0} u.</div>
                   </div>
-                  <span className={`text-xs font-bold px-2 py-1 rounded-lg border ${
+                  <span className={`text-xs font-bold ${
                     hasRacketStock 
-                      ? 'text-emerald-700 bg-emerald-50 border-emerald-200' 
-                      : 'text-red-700 bg-red-50 border-red-200'
+                      ? 'text-tennis-700' 
+                      : 'text-slate-700'
                   }`}>
-                    {hasRacketStock ? `✓ Asignadas (${requiredRackets} u.) ($0)` : 'Sin Stock'}
+                    {hasRacketStock ? `Asignadas (${requiredRackets} u.) ($0)` : 'Sin Stock'}
                   </span>
                 </div>
               </div>
@@ -590,11 +564,10 @@ export default function BookCourtPage() {
 
                 <div className="grid grid-cols-3 gap-2">
                   {[
-                    { id: 'Mercado Pago (QR)', label: 'QR MP', icon: QrCode },
-                    { id: 'Tarjeta de Débito', label: 'Débito', icon: CreditCard },
-                    { id: 'Tarjeta de Crédito', label: 'Crédito', icon: CreditCard }
+                    { id: 'Mercado Pago (QR)', label: 'QR MP' },
+                    { id: 'Tarjeta de Débito', label: 'Débito' },
+                    { id: 'Tarjeta de Crédito', label: 'Crédito' }
                   ].map(method => {
-                    const Icon = method.icon;
                     return (
                       <button
                         key={method.id}
@@ -606,7 +579,6 @@ export default function BookCourtPage() {
                             : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
                         }`}
                       >
-                        <Icon className="w-4 h-4 mx-auto mb-1 text-tennis-600" />
                         {method.label}
                       </button>
                     );
@@ -620,19 +592,19 @@ export default function BookCourtPage() {
                   </div>
                   <div className="flex justify-between text-slate-600">
                     <span>Equipamiento (Red, Pelotas, {requiredRackets} Raquetas):</span>
-                    <span className="font-semibold text-emerald-700">Incluido ($0)</span>
+                    <span className="font-semibold text-tennis-700">Incluido ($0)</span>
                   </div>
                   <div className="flex justify-between text-slate-800 font-bold pt-1 border-t border-slate-100">
                     <span>Costo Total de la Reserva:</span>
                     <span>${totalReservation.toLocaleString('es-AR')}</span>
                   </div>
 
-                  <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 space-y-1">
-                    <div className="flex justify-between items-center text-emerald-900 font-extrabold text-sm">
+                  <div className="p-3 bg-tennis-50 rounded-xl border border-tennis-200 space-y-1">
+                    <div className="flex justify-between items-center text-tennis-900 font-extrabold text-sm">
                       <span>Abonar Ahora (Seña 50%):</span>
                       <span>${deposit50.toLocaleString('es-AR')} ARS</span>
                     </div>
-                    <div className="text-[11px] text-emerald-700 flex items-center justify-between">
+                    <div className="text-[11px] text-tennis-700 flex items-center justify-between">
                       <span>Saldo al finalizar el partido (50%):</span>
                       <span className="font-bold">${remaining50.toLocaleString('es-AR')}</span>
                     </div>
@@ -643,7 +615,7 @@ export default function BookCourtPage() {
                   type="button"
                   disabled={!canBookWithStock || !selectedTimeSlot}
                   onClick={handleProceedPayment}
-                  className="w-full py-3.5 px-4 rounded-xl bg-tennis-600 hover:bg-tennis-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-extrabold text-sm shadow-md hover:shadow-glow-green flex items-center justify-center gap-2 transition-all"
+                  className="w-full py-3.5 px-4 rounded-xl bg-tennis-600 hover:bg-tennis-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-extrabold text-sm shadow-md flex items-center justify-center gap-2 transition-all"
                 >
                   {!selectedTimeSlot 
                     ? 'Seleccioná un horario en la grilla'
@@ -654,7 +626,6 @@ export default function BookCourtPage() {
                 </button>
 
                 <div className="text-[11px] text-slate-400 text-center flex items-center justify-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
                   Se emitirá automáticamente el recibo oficial con código QR
                 </div>
               </div>
@@ -731,7 +702,7 @@ export default function BookCourtPage() {
                           />
                           <div>
                             <div className="flex items-center gap-2">
-                              <span className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md ${court.badgeColor}`}>
+                              <span className="text-[10px] font-extrabold uppercase text-slate-500">
                                 {court.surfaceType}
                               </span>
                               <h3 className="text-sm font-bold text-slate-900">{court.name}</h3>
@@ -747,8 +718,8 @@ export default function BookCourtPage() {
                           <div className="text-base font-extrabold text-slate-900">
                             ${court.pricePerHour?.toLocaleString('es-AR')} <span className="text-[10px] font-normal text-slate-500">/hora</span>
                           </div>
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full mt-1 ${
-                            isMaint ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'
+                          <span className={`text-[10px] font-bold mt-1 ${
+                            isMaint ? 'text-slate-800' : 'text-tennis-800'
                           }`}>
                             {isMaint ? 'En Mantenimiento' : 'Disponible'}
                           </span>
@@ -806,7 +777,6 @@ export default function BookCourtPage() {
                             : 'bg-white text-slate-700 border-slate-200 hover:border-tennis-400'
                         }`}
                       >
-                        <Clock className="w-3.5 h-3.5 mx-auto mb-1 opacity-80" />
                         {slot}
                       </button>
                     );
@@ -861,7 +831,7 @@ export default function BookCourtPage() {
                       key={idx} 
                       className={`p-3 rounded-xl border space-y-2 transition-all ${
                         isDup 
-                          ? 'bg-red-50/70 border-red-300 ring-1 ring-red-400' 
+                          ? 'bg-slate-50/70 border-slate-300 ring-1 ring-slate-400' 
                           : 'bg-slate-50 border-slate-200'
                       }`}
                     >
@@ -870,7 +840,7 @@ export default function BookCourtPage() {
                           Jugador {idx + 1} {idx === 0 && '(Titular / Socio)'}
                         </span>
                         {isDup && (
-                          <span className="text-[10px] font-bold text-red-600 bg-red-100 px-1.5 py-0.5 rounded">
+                          <span className="text-[10px] font-bold text-slate-600">
                             DNI Duplicado
                           </span>
                         )}
@@ -896,12 +866,12 @@ export default function BookCourtPage() {
                             onChange={(e) => handlePlayerChange(idx, 'dni', e.target.value)}
                             className={`w-full px-2.5 py-1.5 bg-white rounded-lg border text-xs focus:ring-1 outline-none font-bold ${
                               isDup || isDniInvalid 
-                                ? 'border-red-300 text-red-800 focus:ring-red-400' 
+                                ? 'border-slate-300 text-slate-800 focus:ring-slate-400' 
                                 : 'border-slate-200 text-slate-800 focus:ring-tennis-500'
                             }`}
                           />
                           {isDniInvalid && (
-                            <span className="text-[9px] text-red-600 block mt-0.5">7-8 dígitos</span>
+                            <span className="text-[9px] text-slate-600 block mt-0.5">7-8 dígitos</span>
                           )}
                         </div>
 
@@ -937,14 +907,13 @@ export default function BookCourtPage() {
                     Incluye Red, Pelotas y Raquetas sin costo extra.
                   </p>
                 </div>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                <span className="text-[10px] font-bold text-tennis-800">
                   Sin costo extra ($0)
                 </span>
               </div>
 
               {!canBookWithStock && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-xl flex items-start gap-2 text-xs text-red-800">
-                  <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-start gap-2 text-xs text-slate-800">
                   <div>
                     <strong>Bloqueo por falta de stock</strong>
                     <p className="text-[11px] mt-0.5">
@@ -960,12 +929,12 @@ export default function BookCourtPage() {
                   <div className="font-bold text-slate-800">1 Red Reglamentaria de Tenis</div>
                   <div className="text-[11px] text-slate-400">Stock disponible: {netStock?.availableStock ?? 0} u.</div>
                 </div>
-                <span className={`text-xs font-bold px-2 py-1 rounded-lg border ${
+                <span className={`text-xs font-bold ${
                   hasNetStock 
-                    ? 'text-emerald-700 bg-emerald-50 border-emerald-200' 
-                    : 'text-red-700 bg-red-50 border-red-200'
+                    ? 'text-tennis-700' 
+                    : 'text-slate-700'
                 }`}>
-                  {hasNetStock ? '✓ Asignada ($0)' : 'Sin Stock'}
+                  {hasNetStock ? 'Asignada ($0)' : 'Sin Stock'}
                 </span>
               </div>
 
@@ -975,12 +944,12 @@ export default function BookCourtPage() {
                   <div className="font-bold text-slate-800">Pelotas Reglamentarias de Tenis</div>
                   <div className="text-[11px] text-slate-400">Stock disponible: {ballStock?.availableStock ?? 0} pelotas</div>
                 </div>
-                <span className={`text-xs font-bold px-2 py-1 rounded-lg border ${
+                <span className={`text-xs font-bold ${
                   hasBallStock 
-                    ? 'text-emerald-700 bg-emerald-50 border-emerald-200' 
-                    : 'text-red-700 bg-red-50 border-red-200'
+                    ? 'text-tennis-700' 
+                    : 'text-slate-700'
                 }`}>
-                  {hasBallStock ? '✓ Asignadas ($0)' : 'Sin Stock'}
+                  {hasBallStock ? 'Asignadas ($0)' : 'Sin Stock'}
                 </span>
               </div>
 
@@ -992,12 +961,12 @@ export default function BookCourtPage() {
                   </div>
                   <div className="text-[11px] text-slate-400">Stock disponible: {racketStock?.availableStock ?? 0} u.</div>
                 </div>
-                <span className={`text-xs font-bold px-2 py-1 rounded-lg border ${
+                <span className={`text-xs font-bold ${
                   hasRacketStock 
-                    ? 'text-emerald-700 bg-emerald-50 border-emerald-200' 
-                    : 'text-red-700 bg-red-50 border-red-200'
+                    ? 'text-tennis-700' 
+                    : 'text-slate-700'
                 }`}>
-                  {hasRacketStock ? `✓ Asignadas (${requiredRackets} u.) ($0)` : 'Sin Stock'}
+                  {hasRacketStock ? `Asignadas (${requiredRackets} u.) ($0)` : 'Sin Stock'}
                 </span>
               </div>
 
@@ -1014,11 +983,10 @@ export default function BookCourtPage() {
 
               <div className="grid grid-cols-3 gap-2">
                 {[
-                  { id: 'Mercado Pago (QR)', label: 'QR MP', icon: QrCode },
-                  { id: 'Tarjeta de Débito', label: 'Débito', icon: CreditCard },
-                  { id: 'Tarjeta de Crédito', label: 'Crédito', icon: CreditCard }
+                  { id: 'Mercado Pago (QR)', label: 'QR MP' },
+                  { id: 'Tarjeta de Débito', label: 'Débito' },
+                  { id: 'Tarjeta de Crédito', label: 'Crédito' }
                 ].map(method => {
-                  const Icon = method.icon;
                   return (
                     <button
                       key={method.id}
@@ -1030,7 +998,6 @@ export default function BookCourtPage() {
                           : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
                       }`}
                     >
-                      <Icon className="w-4 h-4 mx-auto mb-1 text-tennis-600" />
                       {method.label}
                     </button>
                   );
@@ -1045,7 +1012,7 @@ export default function BookCourtPage() {
                 </div>
                 <div className="flex justify-between text-slate-600">
                   <span>Equipamiento (Red, Pelotas, {requiredRackets} Raquetas):</span>
-                  <span className="font-semibold text-emerald-700">Incluido ($0)</span>
+                  <span className="font-semibold text-tennis-700">Incluido ($0)</span>
                 </div>
                 <div className="flex justify-between text-slate-800 font-bold pt-1 border-t border-slate-100">
                   <span>Costo Total de la Reserva:</span>
@@ -1053,12 +1020,12 @@ export default function BookCourtPage() {
                 </div>
 
                 {/* 50% Deposit highlight box */}
-                <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 space-y-1">
-                  <div className="flex justify-between items-center text-emerald-900 font-extrabold text-sm">
+                <div className="p-3 bg-tennis-50 rounded-xl border border-tennis-200 space-y-1">
+                  <div className="flex justify-between items-center text-tennis-900 font-extrabold text-sm">
                     <span>Abonar Ahora (Seña 50%):</span>
                     <span>${deposit50.toLocaleString('es-AR')} ARS</span>
                   </div>
-                  <div className="text-[11px] text-emerald-700 flex items-center justify-between">
+                  <div className="text-[11px] text-tennis-700 flex items-center justify-between">
                     <span>Saldo al finalizar el partido (50%):</span>
                     <span className="font-bold">${remaining50.toLocaleString('es-AR')}</span>
                   </div>
@@ -1070,14 +1037,13 @@ export default function BookCourtPage() {
                 type="button"
                 disabled={!canBookWithStock}
                 onClick={handleProceedPayment}
-                className="w-full py-3.5 px-4 rounded-xl bg-tennis-600 hover:bg-tennis-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-extrabold text-sm shadow-md hover:shadow-glow-green flex items-center justify-center gap-2 transition-all"
+                className="w-full py-3.5 px-4 rounded-xl bg-tennis-600 hover:bg-tennis-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-extrabold text-sm shadow-md flex items-center justify-center gap-2 transition-all"
               >
                 {canBookWithStock ? 'Pagar seña y confirmar reserva' : 'Sin stock de equipamiento'}
                 <ChevronRight className="w-4 h-4" />
               </button>
 
               <div className="text-[11px] text-slate-400 text-center flex items-center justify-center gap-1">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
                 Se emitirá automáticamente el recibo oficial con código QR
               </div>
             </div>

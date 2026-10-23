@@ -1,5 +1,4 @@
 import React from 'react';
-import { Award, CheckCircle2, FileText, Calendar, Building, ShieldCheck, Download, ExternalLink } from 'lucide-react';
 import Modal from './Modal';
 
 export default function CoachCredentialsModal({ isOpen, onClose, coach }) {
@@ -20,8 +19,8 @@ export default function CoachCredentialsModal({ isOpen, onClose, coach }) {
           <div>
             <div className="flex items-center gap-2">
               <h4 className="font-bold text-base text-slate-900">{coach.name}</h4>
-              <span className="text-xs font-semibold text-emerald-700 flex items-center gap-1">
-                <CheckCircle2 className="w-3.5 h-3.5" /> Habilitado
+              <span className="text-xs font-semibold text-tennis-700 flex items-center gap-1">
+                Habilitado
               </span>
             </div>
             <p className="text-xs text-slate-500">{coach.specialty}</p>
@@ -30,13 +29,9 @@ export default function CoachCredentialsModal({ isOpen, onClose, coach }) {
         </div>
 
         {/* Certificate Card */}
-        <div className="border-2 border-emerald-500/40 rounded-2xl p-5 bg-gradient-to-br from-emerald-50/50 via-white to-tennis-50/30 relative overflow-hidden shadow-sm">
-          <div className="absolute top-2 right-2 text-tennis-200 opacity-20">
-            <Award className="w-28 h-28" />
-          </div>
+        <div className="border-2 border-tennis-500/40 rounded-2xl p-5 bg-white relative overflow-hidden shadow-sm">
 
           <div className="flex items-center gap-2 text-tennis-800 font-bold text-xs uppercase tracking-wider mb-2">
-            <ShieldCheck className="w-4 h-4 text-tennis-600" />
             Certificado Registrado y Verificado por el Club
           </div>
 
@@ -47,37 +42,36 @@ export default function CoachCredentialsModal({ isOpen, onClose, coach }) {
           <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
             <div className="p-2.5 bg-white/80 rounded-xl border border-slate-200">
               <span className="text-slate-400 block font-medium flex items-center gap-1">
-                <Building className="w-3.5 h-3.5" /> Institución Emisora:
+                Institución Emisora:
               </span>
               <span className="font-semibold text-slate-800 mt-0.5 block">{license?.institution}</span>
             </div>
 
             <div className="p-2.5 bg-white/80 rounded-xl border border-slate-200">
               <span className="text-slate-400 block font-medium flex items-center gap-1">
-                <Award className="w-3.5 h-3.5" /> N° de Matrícula / Registro:
+                N° de Matrícula / Registro:
               </span>
               <span className="font-bold text-tennis-700 mt-0.5 block">{license?.licenseNumber}</span>
             </div>
 
             <div className="p-2.5 bg-white/80 rounded-xl border border-slate-200">
               <span className="text-slate-400 block font-medium flex items-center gap-1">
-                <Calendar className="w-3.5 h-3.5" /> Fecha de Emisión:
+                Fecha de Emisión:
               </span>
               <span className="font-semibold text-slate-700 mt-0.5 block">{license?.issueDate}</span>
             </div>
 
             <div className="p-2.5 bg-white/80 rounded-xl border border-slate-200">
               <span className="text-slate-400 block font-medium flex items-center gap-1">
-                <CheckCircle2 className="w-3.5 h-3.5" /> Vigencia Habilitación:
+                Vigencia Habilitación:
               </span>
-              <span className="font-bold text-emerald-700 mt-0.5 block">{license?.expiryDate}</span>
+              <span className="font-bold text-tennis-700 mt-0.5 block">{license?.expiryDate}</span>
             </div>
           </div>
 
           {/* Digital File Attachment */}
           <div className="mt-4 flex items-center justify-between p-3 bg-white rounded-xl border border-slate-200">
             <div className="flex items-center gap-2.5">
-              <FileText className="w-5 h-5 text-red-500" />
               <div>
                 <div className="text-xs font-semibold text-slate-800">{license?.digitalDocumentUrl}</div>
                 <div className="text-[10px] text-slate-400">Documento PDF digitalizado firmado</div>
@@ -88,14 +82,13 @@ export default function CoachCredentialsModal({ isOpen, onClose, coach }) {
               onClick={() => alert(`Descargando copia legalizada de: ${license?.digitalDocumentUrl}`)}
               className="px-3 py-1.5 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-lg inline-flex items-center gap-1 transition-colors"
             >
-              <Download className="w-3.5 h-3.5" /> Ver PDF
+              Ver PDF
             </button>
           </div>
         </div>
 
         {/* Requirements footer */}
-        <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-900 flex items-start gap-2">
-          <ShieldCheck className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+        <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-900 flex items-start gap-2">
           <span>
             <strong>Validación Reglamentaria:</strong> Conforme al reglamento del Club Tenis Ahora y la AAT, ningún instructor puede dictar clases grupales ni particulares sin la validación previa de su título habilitante.
           </span>

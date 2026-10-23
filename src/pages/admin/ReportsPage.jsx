@@ -1,22 +1,4 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { 
-  BarChart3, 
-  DollarSign, 
-  Calendar, 
-  Users, 
-  Printer, 
-  TrendingUp, 
-  Layers, 
-  CheckCircle2, 
-  Filter,
-  CreditCard,
-  QrCode,
-  Banknote,
-  Clock,
-  Sparkles,
-  PieChart,
-  Award
-} from 'lucide-react';
 import { courtsService, reservationsService, stockService, coachesAndClassesService } from '../../services/api';
 
 // Date filter options
@@ -63,9 +45,7 @@ export default function ReportsPage() {
               hoursBooked: 34,
               totalHours: 40,
               revenue: 163200,
-              gradient: 'from-amber-600 to-orange-600',
-              bgColor: 'bg-amber-500',
-              badgeColor: 'bg-orange-100 text-orange-900 border-orange-200',
+              bgColor: 'bg-slate-500',
               status: 'Alta Demanda'
             },
             {
@@ -75,9 +55,7 @@ export default function ReportsPage() {
               hoursBooked: 28,
               totalHours: 40,
               revenue: 134400,
-              gradient: 'from-sky-500 to-blue-600',
-              bgColor: 'bg-sky-500',
-              badgeColor: 'bg-sky-100 text-sky-900 border-sky-200',
+              bgColor: 'bg-slate-500',
               status: 'Torneo Activo'
             },
             {
@@ -87,17 +65,15 @@ export default function ReportsPage() {
               hoursBooked: 16,
               totalHours: 20,
               revenue: 88000,
-              gradient: 'from-emerald-500 to-tennis-600',
-              bgColor: 'bg-emerald-500',
-              badgeColor: 'bg-emerald-100 text-emerald-900 border-emerald-200',
+              bgColor: 'bg-tennis-500',
               status: 'Premium'
             }
           ],
           paymentStats: [
-            { name: 'Mercado Pago (QR)', amount: 18432, percent: 48, count: 4, color: '#009ee3', icon: QrCode },
-            { name: 'Tarjeta de Débito', amount: 9216, percent: 24, count: 2, color: '#10b981', icon: CreditCard },
-            { name: 'Tarjeta de Crédito', amount: 6912, percent: 18, count: 1, color: '#8b5cf6', icon: CreditCard },
-            { name: 'Efectivo en Caja', amount: 3840, percent: 10, count: 1, color: '#f59e0b', icon: Banknote },
+            { name: 'Mercado Pago (QR)', amount: 18432, percent: 48, count: 4, color: '#15803d' },
+            { name: 'Tarjeta de Débito', amount: 9216, percent: 24, count: 2, color: '#4ade80' },
+            { name: 'Tarjeta de Crédito', amount: 6912, percent: 18, count: 1, color: '#64748b' },
+            { name: 'Efectivo en Caja', amount: 3840, percent: 10, count: 1, color: '#cbd5e1' },
           ]
         };
 
@@ -115,9 +91,7 @@ export default function ReportsPage() {
               hoursBooked: 648,
               totalHours: 800,
               revenue: 3110400,
-              gradient: 'from-amber-600 to-orange-600',
-              bgColor: 'bg-amber-500',
-              badgeColor: 'bg-orange-100 text-orange-900 border-orange-200',
+              bgColor: 'bg-slate-500',
               status: 'Favorita Socios'
             },
             {
@@ -127,9 +101,7 @@ export default function ReportsPage() {
               hoursBooked: 536,
               totalHours: 800,
               revenue: 2572800,
-              gradient: 'from-sky-500 to-blue-600',
-              bgColor: 'bg-sky-500',
-              badgeColor: 'bg-sky-100 text-sky-900 border-sky-200',
+              bgColor: 'bg-slate-500',
               status: 'Liga & Escuela'
             },
             {
@@ -139,17 +111,15 @@ export default function ReportsPage() {
               hoursBooked: 292,
               totalHours: 400,
               revenue: 1606000,
-              gradient: 'from-emerald-500 to-tennis-600',
-              bgColor: 'bg-emerald-500',
-              badgeColor: 'bg-emerald-100 text-emerald-900 border-emerald-200',
+              bgColor: 'bg-tennis-500',
               status: 'Cancha Estrella'
             }
           ],
           paymentStats: [
-            { name: 'Mercado Pago (QR)', amount: 445200, percent: 50, count: 93, color: '#009ee3', icon: QrCode },
-            { name: 'Tarjeta de Débito', amount: 204792, percent: 23, count: 43, color: '#10b981', icon: CreditCard },
-            { name: 'Tarjeta de Crédito', amount: 160272, percent: 18, count: 33, color: '#8b5cf6', icon: CreditCard },
-            { name: 'Efectivo en Caja', amount: 80136, percent: 9, count: 17, color: '#f59e0b', icon: Banknote },
+            { name: 'Mercado Pago (QR)', amount: 445200, percent: 50, count: 93, color: '#15803d' },
+            { name: 'Tarjeta de Débito', amount: 204792, percent: 23, count: 43, color: '#4ade80' },
+            { name: 'Tarjeta de Crédito', amount: 160272, percent: 18, count: 33, color: '#64748b' },
+            { name: 'Efectivo en Caja', amount: 80136, percent: 9, count: 17, color: '#cbd5e1' },
           ]
         };
 
@@ -167,9 +137,7 @@ export default function ReportsPage() {
               hoursBooked: 1100,
               totalHours: 1320,
               revenue: 5280000,
-              gradient: 'from-amber-600 to-orange-600',
-              bgColor: 'bg-amber-500',
-              badgeColor: 'bg-orange-100 text-orange-900 border-orange-200',
+              bgColor: 'bg-slate-500',
               status: 'Histórico Top'
             },
             {
@@ -179,9 +147,7 @@ export default function ReportsPage() {
               hoursBooked: 890,
               totalHours: 1320,
               revenue: 4272000,
-              gradient: 'from-sky-500 to-blue-600',
-              bgColor: 'bg-sky-500',
-              badgeColor: 'bg-sky-100 text-sky-900 border-sky-200',
+              bgColor: 'bg-slate-500',
               status: 'Estable'
             },
             {
@@ -191,17 +157,15 @@ export default function ReportsPage() {
               hoursBooked: 495,
               totalHours: 660,
               revenue: 2722500,
-              gradient: 'from-emerald-500 to-tennis-600',
-              bgColor: 'bg-emerald-500',
-              badgeColor: 'bg-emerald-100 text-emerald-900 border-emerald-200',
+              bgColor: 'bg-tennis-500',
               status: 'Alta Rentabilidad'
             }
           ],
           paymentStats: [
-            { name: 'Mercado Pago (QR)', amount: 710500, percent: 49, count: 152, color: '#009ee3', icon: QrCode },
-            { name: 'Tarjeta de Débito', amount: 362500, percent: 25, count: 77, color: '#10b981', icon: CreditCard },
-            { name: 'Tarjeta de Crédito', amount: 246500, percent: 17, count: 53, color: '#8b5cf6', icon: CreditCard },
-            { name: 'Efectivo en Caja', amount: 130500, percent: 9, count: 28, color: '#f59e0b', icon: Banknote },
+            { name: 'Mercado Pago (QR)', amount: 710500, percent: 49, count: 152, color: '#15803d' },
+            { name: 'Tarjeta de Débito', amount: 362500, percent: 25, count: 77, color: '#4ade80' },
+            { name: 'Tarjeta de Crédito', amount: 246500, percent: 17, count: 53, color: '#64748b' },
+            { name: 'Efectivo en Caja', amount: 130500, percent: 9, count: 28, color: '#cbd5e1' },
           ]
         };
 
@@ -220,9 +184,7 @@ export default function ReportsPage() {
               hoursBooked: 82,
               totalHours: 100,
               revenue: 393600,
-              gradient: 'from-amber-600 to-orange-600',
-              bgColor: 'bg-amber-500',
-              badgeColor: 'bg-orange-100 text-orange-900 border-orange-200',
+              bgColor: 'bg-slate-500',
               status: 'Superficie más solicitada'
             },
             {
@@ -232,9 +194,7 @@ export default function ReportsPage() {
               hoursBooked: 65,
               totalHours: 100,
               revenue: 312000,
-              gradient: 'from-sky-500 to-blue-600',
-              bgColor: 'bg-sky-500',
-              badgeColor: 'bg-sky-100 text-sky-900 border-sky-200',
+              bgColor: 'bg-slate-500',
               status: 'Torneo Apertura en juego'
             },
             {
@@ -244,17 +204,15 @@ export default function ReportsPage() {
               hoursBooked: 37,
               totalHours: 50,
               revenue: 203500,
-              gradient: 'from-emerald-500 to-tennis-600',
-              bgColor: 'bg-emerald-500',
-              badgeColor: 'bg-emerald-100 text-emerald-900 border-emerald-200',
+              bgColor: 'bg-tennis-500',
               status: 'Cancha Premium'
             }
           ],
           paymentStats: [
-            { name: 'Mercado Pago (QR)', amount: 56064, percent: 48, count: 12, color: '#009ee3', icon: QrCode },
-            { name: 'Tarjeta de Débito', amount: 28032, percent: 24, count: 6, color: '#10b981', icon: CreditCard },
-            { name: 'Tarjeta de Crédito', amount: 21024, percent: 18, count: 4, color: '#8b5cf6', icon: CreditCard },
-            { name: 'Efectivo en Caja', amount: 11680, percent: 10, count: 2, color: '#f59e0b', icon: Banknote },
+            { name: 'Mercado Pago (QR)', amount: 56064, percent: 48, count: 12, color: '#15803d' },
+            { name: 'Tarjeta de Débito', amount: 28032, percent: 24, count: 6, color: '#4ade80' },
+            { name: 'Tarjeta de Crédito', amount: 21024, percent: 18, count: 4, color: '#64748b' },
+            { name: 'Efectivo en Caja', amount: 11680, percent: 10, count: 2, color: '#cbd5e1' },
           ]
         };
     }
@@ -286,17 +244,13 @@ export default function ReportsPage() {
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">
             Reportes, Estadísticas y Gráficos Visuales
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Visualización analítica oficial <strong>Ocupación por superficie, distribución de ingresos y filtros por período</strong>.
-          </p>
         </div>
 
         <button
           type="button"
           onClick={() => window.print()}
-          className="px-5 py-2.5 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-bold text-xs shadow-md hover:shadow-glow-green flex items-center gap-2 transition-all"
+          className="px-5 py-2.5 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-bold text-xs shadow-md flex items-center gap-2 transition-all"
         >
-          <Printer className="w-4 h-4" />
           Imprimir Reporte
         </button>
       </div>
@@ -304,15 +258,9 @@ export default function ReportsPage() {
       {/* QUICK DATE RANGE FILTERS */}
       <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm space-y-3 no-print">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-tennis-600" />
-            <h2 className="text-xs font-extrabold uppercase text-slate-700 tracking-wider">
-              Filtro Rápido por Rango de Fechas
-            </h2>
-          </div>
-          <span className="text-xs text-tennis-800 font-bold bg-tennis-50 px-3 py-1 rounded-full border border-tennis-200">
-            Período Activo: <strong>{reportData.label}</strong>
-          </span>
+          <h2 className="text-xs font-extrabold uppercase text-slate-700 tracking-wider">
+            Filtro Rápido por Rango de Fechas
+          </h2>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -325,7 +273,7 @@ export default function ReportsPage() {
                 onClick={() => setDateFilter(filter.id)}
                 className={`p-3 rounded-2xl border text-left transition-all ${
                   isSelected
-                    ? 'bg-slate-900 text-white border-slate-900 shadow-sm ring-2 ring-tennis-400'
+                    ? 'bg-slate-900 text-white border-slate-900'
                     : 'bg-slate-50/70 border-slate-200 text-slate-700 hover:bg-white hover:border-slate-300'
                 }`}
               >
@@ -344,26 +292,20 @@ export default function ReportsPage() {
         <div className="p-5 bg-white rounded-3xl border border-slate-200 shadow-sm space-y-1">
           <div className="flex items-center justify-between text-slate-400">
             <span className="text-[10px] font-bold uppercase tracking-wider">Ingresos Totales</span>
-            <DollarSign className="w-4 h-4 text-tennis-600" />
           </div>
           <div className="text-2xl font-black text-slate-900 font-mono">
             ${reportData.totalRevenue.toLocaleString('es-AR')}
           </div>
-          <span className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
-            <TrendingUp className="w-3 h-3" />
-            Liquidación al día
-          </span>
         </div>
 
         <div className="p-5 bg-white rounded-3xl border border-slate-200 shadow-sm space-y-1">
           <div className="flex items-center justify-between text-slate-400">
             <span className="text-[10px] font-bold uppercase tracking-wider">Ocupación Promedio</span>
-            <Calendar className="w-4 h-4 text-sky-600" />
           </div>
           <div className="text-2xl font-black text-slate-900 font-mono">
             {reportData.avgOccupancy}%
           </div>
-          <span className="text-[11px] text-sky-600 font-semibold">
+          <span className="text-[11px] text-slate-600 font-semibold">
             5 Canchas activas (08 a 22 hs)
           </span>
         </div>
@@ -371,25 +313,20 @@ export default function ReportsPage() {
         <div className="p-5 bg-white rounded-3xl border border-slate-200 shadow-sm space-y-1">
           <div className="flex items-center justify-between text-slate-400">
             <span className="text-[10px] font-bold uppercase tracking-wider">Reservas & Turnos</span>
-            <Clock className="w-4 h-4 text-amber-600" />
           </div>
           <div className="text-2xl font-black text-slate-900 font-mono">
             {reportData.totalBookings} turnos
           </div>
-          <span className="text-[11px] text-slate-500 font-semibold">
-            Señas 50% cobradas
-          </span>
         </div>
 
         <div className="p-5 bg-white rounded-3xl border border-slate-200 shadow-sm space-y-1">
           <div className="flex items-center justify-between text-slate-400">
             <span className="text-[10px] font-bold uppercase tracking-wider">Canal de Pago Líder</span>
-            <QrCode className="w-4 h-4 text-sky-500" />
           </div>
           <div className="text-2xl font-black text-slate-900 truncate">
             Mercado Pago
           </div>
-          <span className="text-[11px] text-sky-600 font-semibold">
+          <span className="text-[11px] text-slate-600 font-semibold">
             48% del volumen cobrado
           </span>
         </div>
@@ -398,12 +335,11 @@ export default function ReportsPage() {
       {/* Tabs Selector (No-print) */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 no-print">
         {[
-          { id: 'ingresos', label: '1. Distribución de Ingresos y Medios de Pago', icon: DollarSign },
-          { id: 'reservas', label: '2. Ocupación Comparativa por Superficie', icon: Layers },
-          { id: 'canchas', label: '3. Ficha Técnica de Canchas', icon: Calendar },
-          { id: 'asistencia', label: '4. Asistencia a Clases', icon: Users }
+          { id: 'ingresos', label: '1. Distribución de Ingresos y Medios de Pago' },
+          { id: 'reservas', label: '2. Ocupación Comparativa por Superficie' },
+          { id: 'canchas', label: '3. Ficha Técnica de Canchas' },
+          { id: 'asistencia', label: '4. Asistencia a Clases' }
         ].map(tab => {
-          const Icon = tab.icon;
           return (
             <button
               key={tab.id}
@@ -415,7 +351,6 @@ export default function ReportsPage() {
                   : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
               }`}
             >
-              <Icon className={`w-4 h-4 ${activeTab === tab.id ? 'text-tennis-400' : 'text-slate-400'}`} />
               {tab.label}
             </button>
           );
@@ -440,21 +375,9 @@ export default function ReportsPage() {
         {activeTab === 'ingresos' && (
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
-              <div>
-                <h3 className="text-base font-extrabold text-slate-900">
-                  Distribución Porcentual de Ingresos por Medio de Pago
-                </h3>
-                <p className="text-xs text-slate-500">
-                  Gráfico circular y comparativa financiera: Mercado Pago QR vs Débito vs Crédito vs Efectivo.
-                </p>
-              </div>
-
-              <div className="text-right">
-                <span className="text-[10px] uppercase font-bold text-slate-400 block">Total Recaudado</span>
-                <span className="text-lg font-black text-tennis-800 font-mono">
-                  ${reportData.totalRevenue.toLocaleString('es-AR')} ARS
-                </span>
-              </div>
+              <h3 className="text-base font-extrabold text-slate-900">
+                Distribución Porcentual de Ingresos por Medio de Pago
+              </h3>
             </div>
 
             {/* Visual Circular Chart (SVG Donut) + Method Breakdown */}
@@ -485,7 +408,7 @@ export default function ReportsPage() {
                         strokeWidth="24"
                         strokeDasharray={slice.strokeDasharray}
                         strokeDashoffset={slice.strokeDashoffset}
-                        className="transition-all duration-700 ease-out hover:opacity-85"
+                        className=" hover:opacity-85"
                       />
                     ))}
                   </svg>
@@ -496,31 +419,21 @@ export default function ReportsPage() {
                     <span className="text-xl font-black text-slate-900 font-mono">
                       ${reportData.totalRevenue.toLocaleString('es-AR')}
                     </span>
-                    <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full mt-0.5 border border-emerald-200">
-                      100% Cobrado
-                    </span>
                   </div>
                 </div>
-
-                <span className="text-[11px] text-slate-400 mt-2 font-medium">
-                  Gráfico circular de recaudación por canal
-                </span>
               </div>
 
               {/* Payment Methods Detail & Progress Bars */}
               <div className="lg:col-span-7 space-y-3.5">
                 {reportData.paymentStats.map((item) => {
-                  const Icon = item.icon;
                   return (
                     <div key={item.name} className="p-3.5 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-2">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2.5">
-                          <div 
-                            className="w-8 h-8 rounded-xl flex items-center justify-center text-white shrink-0 shadow-xs"
+                          <div
+                            className="w-2.5 h-2.5 rounded-sm shrink-0"
                             style={{ backgroundColor: item.color }}
-                          >
-                            <Icon className="w-4 h-4" />
-                          </div>
+                          />
                           <div>
                             <span className="font-extrabold text-xs text-slate-900 block leading-tight">{item.name}</span>
                             <span className="text-[10px] text-slate-400 font-medium">{item.count} transacciones registradas</span>
@@ -531,7 +444,7 @@ export default function ReportsPage() {
                           <span className="font-black text-sm text-slate-900 font-mono block">
                             ${item.amount.toLocaleString('es-AR')}
                           </span>
-                          <span className="text-xs font-black px-2 py-0.5 rounded-full text-slate-800 bg-slate-100">
+                          <span className="text-xs font-black text-slate-800">
                             {item.percent}%
                           </span>
                         </div>
@@ -540,7 +453,7 @@ export default function ReportsPage() {
                       {/* Percentage progress bar */}
                       <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
                         <div 
-                          className="h-full rounded-full transition-all duration-700"
+                          className="h-full rounded-full"
                           style={{ width: `${item.percent}%`, backgroundColor: item.color }}
                         />
                       </div>
@@ -573,7 +486,7 @@ export default function ReportsPage() {
                       <td className="py-2.5 px-3">{r.participants[0]?.name} ({r.participants[0]?.dni})</td>
                       <td className="py-2.5 px-3 font-mono">{r.date}</td>
                       <td className="py-2.5 px-3">
-                        <span className="px-2 py-0.5 rounded-md bg-slate-100 font-semibold text-slate-700 text-[11px]">
+                        <span className="font-semibold text-slate-700 text-[11px]">
                           {r.depositPaymentMethod}
                         </span>
                       </td>
@@ -593,40 +506,23 @@ export default function ReportsPage() {
         {activeTab === 'reservas' && (
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
-              <div>
-                <h3 className="text-base font-extrabold text-slate-900">
-                  Ocupación Comparativa por Tipo de Superficie
-                </h3>
-                <p className="text-xs text-slate-500">
-                  Barras de porcentaje comparativas: Polvo de Ladrillo vs Cemento vs Pasto Natural.
-                </p>
-              </div>
-
-              <div className="text-right">
-                <span className="text-[10px] uppercase font-bold text-slate-400 block">Tasa Global de Uso</span>
-                <span className="text-lg font-black text-tennis-800 font-mono">
-                  {reportData.avgOccupancy}% de Capacidad
-                </span>
-              </div>
+              <h3 className="text-base font-extrabold text-slate-900">
+                Ocupación Comparativa por Tipo de Superficie
+              </h3>
             </div>
 
             {/* COMPARATIVE PERCENTAGE BARS */}
             <div className="space-y-4">
-              {reportData.surfaceStats.map((item, index) => (
+              {reportData.surfaceStats.map((item) => (
                 <div key={item.surface} className="p-4 bg-slate-50/80 rounded-3xl border border-slate-200/90 space-y-3">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <span className="w-6 h-6 rounded-full bg-slate-900 text-white font-bold text-xs flex items-center justify-center">
-                        #{index + 1}
-                      </span>
-                      <div>
-                        <h4 className="font-black text-sm text-slate-900">{item.surface}</h4>
-                        <span className="text-[11px] text-slate-500">{item.courts}</span>
-                      </div>
+                    <div>
+                      <h4 className="font-black text-sm text-slate-900">{item.surface}</h4>
+                      <span className="text-[11px] text-slate-500">{item.courts}</span>
                     </div>
 
                     <div className="flex items-center gap-3">
-                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold border ${item.badgeColor}`}>
+                      <span className="text-xs font-semibold text-slate-500">
                         {item.status}
                       </span>
                       <div className="text-right">
@@ -636,17 +532,12 @@ export default function ReportsPage() {
                     </div>
                   </div>
 
-                  {/* Comparative Progress Bar with gradient */}
                   <div className="space-y-1">
-                    <div className="w-full bg-slate-200 rounded-full h-4 overflow-hidden p-0.5">
-                      <div 
-                        className={`h-full rounded-full bg-gradient-to-r ${item.gradient} transition-all duration-700 relative`}
+                    <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-tennis-600"
                         style={{ width: `${item.percent}%` }}
-                      >
-                        <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-black text-white">
-                          {item.percent}%
-                        </span>
-                      </div>
+                      />
                     </div>
 
                     <div className="flex items-center justify-between text-[11px] text-slate-500 font-medium px-1">
@@ -660,14 +551,11 @@ export default function ReportsPage() {
 
             {/* Benchmark Comparison Summary */}
             <div className="p-4 bg-tennis-50/70 border border-tennis-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-              <div className="flex items-center gap-2">
-                <Award className="w-5 h-5 text-tennis-700 shrink-0" />
-                <div>
-                  <span className="font-extrabold text-tennis-950 block">Conclusión Técnica de Uso de Canchas</span>
-                  <span className="text-tennis-800 text-[11px]">
-                    El Polvo de Ladrillo presenta la mayor preferencia de los socios (82%), mientras que la Cancha 5 (Pasto) rinde el mayor ingreso unitario por hora.
-                  </span>
-                </div>
+              <div>
+                <span className="font-extrabold text-tennis-950 block">Conclusión Técnica de Uso de Canchas</span>
+                <span className="text-tennis-800 text-[11px]">
+                  El Polvo de Ladrillo presenta la mayor preferencia de los socios (82%), mientras que la Cancha 5 (Pasto) rinde el mayor ingreso unitario por hora.
+                </span>
               </div>
             </div>
 
@@ -696,7 +584,7 @@ export default function ReportsPage() {
                       <td className="py-2.5 px-3 font-mono">{r.date} ({r.startTime} a {r.endTime} hs)</td>
                       <td className="py-2.5 px-3 capitalize">{r.playersType}</td>
                       <td className="py-2.5 px-3 text-center">
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                        <span className="text-[10px] font-bold text-tennis-800">
                           {r.status}
                         </span>
                       </td>
@@ -729,15 +617,15 @@ export default function ReportsPage() {
                   <tr key={c.id}>
                     <td className="py-2.5 px-3 font-bold text-slate-900">{c.name}</td>
                     <td className="py-2.5 px-3">
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${c.badgeColor}`}>
+                      <span className="text-[11px] text-slate-600">
                         {c.surfaceType}
                       </span>
                     </td>
                     <td className="py-2.5 px-3">{c.capacity} Jugadores ({c.capacity === 4 ? 'Dobles' : 'Singles'})</td>
                     <td className="py-2.5 px-3 font-bold text-tennis-700 font-mono">${c.pricePerHour?.toLocaleString('es-AR')}</td>
                     <td className="py-2.5 px-3 text-center">
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                        c.status === 'disponible' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                      <span className={`text-[10px] font-bold ${
+                        c.status === 'disponible' ? 'text-tennis-800' : 'text-slate-800'
                       }`}>
                         {c.status}
                       </span>
@@ -759,10 +647,15 @@ export default function ReportsPage() {
                 <div key={cls.id} className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
                   <div className="flex justify-between items-center">
                     <div>
-                      <h4 className="font-extrabold text-sm text-slate-900">{cls.name}</h4>
-                      <p className="text-xs text-slate-500">Profesor: {cls.coachName} • Cancha: {cls.courtAssigned}</p>
+                      <h4 className="font-extrabold text-sm text-slate-900">
+                        <span className={`mr-2 text-[10px] font-bold uppercase ${(cls.kind || 'clase') === 'entrenamiento' ? 'text-slate-800' : 'text-tennis-800'}`}>
+                          {(cls.kind || 'clase') === 'entrenamiento' ? 'Entrenamiento' : 'Clase'}
+                        </span>
+                        {cls.name}
+                      </h4>
+                      <p className="text-xs text-slate-500">{(cls.kind || 'clase') === 'entrenamiento' ? 'Entrenador' : 'Profesor'}: {cls.coachName} • Cancha: {cls.courtAssigned}</p>
                     </div>
-                    <span className="text-xs font-bold text-tennis-700 bg-white px-3 py-1 rounded-full border">
+                    <span className="text-xs font-bold text-tennis-700">
                       {cls.currentEnrolled} Alumnos Registrados
                     </span>
                   </div>
@@ -787,7 +680,7 @@ export default function ReportsPage() {
                             <td className="py-2 px-3 font-semibold text-slate-800">{st.name}</td>
                             <td className="py-2 px-3 text-slate-500 font-mono">{st.dni}</td>
                             <td className="py-2 px-3 text-center">{present} / {total} Clases</td>
-                            <td className="py-2 px-3 text-right font-bold text-emerald-700 font-mono">{percent}%</td>
+                            <td className="py-2 px-3 text-right font-bold text-tennis-700 font-mono">{percent}%</td>
                           </tr>
                         );
                       })}

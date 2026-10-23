@@ -2,20 +2,7 @@ import React from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Logo from '../common/Logo';
-import { 
-  LayoutDashboard, 
-  Layers, 
-  Calendar, 
-  Package, 
-  Trophy, 
-  GraduationCap, 
-  DollarSign, 
-  Users, 
-  BarChart3, 
-  ArrowLeft,
-  ShieldCheck,
-  AlertCircle
-} from 'lucide-react';
+import { LayoutDashboard, Layers, Calendar, Package, Trophy, GraduationCap, DollarSign, Users, BarChart3 } from 'lucide-react';
 
 export default function Sidebar({ isOpen, onClose }) {
   const { switchRole } = useAuth();
@@ -41,7 +28,7 @@ export default function Sidebar({ isOpen, onClose }) {
     {
       group: 'Canchas y Reservas',
       items: [
-        { name: 'Gestión de Canchas', to: '/admin/canchas', icon: Layers },
+        { name: 'Canchas, Tipos y Horarios', to: '/admin/canchas', icon: Layers },
         { name: 'Control de Reservas', to: '/admin/reservas', icon: Calendar }
       ]
     },
@@ -54,14 +41,14 @@ export default function Sidebar({ isOpen, onClose }) {
     {
       group: 'Competición y Enseñanza',
       items: [
-        { name: 'Torneos y Ligas', to: '/admin/torneos', icon: Trophy },
-        { name: 'Profesores y Clases', to: '/admin/profesores-clases', icon: GraduationCap}
+        { name: 'Torneos, Ligas y Competencias', to: '/admin/torneos', icon: Trophy },
+        { name: 'Docentes, Clases y Entrenamientos', to: '/admin/profesores-clases', icon: GraduationCap}
       ]
     },
     {
       group: 'Caja y Administración',
       items: [
-        { name: 'Caja y Recibos', to: '/admin/caja', icon: DollarSign },
+        { name: 'Caja, Facturas y Reembolsos', to: '/admin/caja', icon: DollarSign },
         { name: 'Padrón de Usuarios', to: '/admin/usuarios', icon: Users },
         { name: 'Reportes y Estadísticas', to: '/admin/reportes', icon: BarChart3 }
       ]
@@ -108,7 +95,7 @@ export default function Sidebar({ isOpen, onClose }) {
                       className={({ isActive }) =>
                         `flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
                           isActive
-                            ? 'bg-tennis-600 text-white shadow-sm shadow-tennis-600/30'
+                            ? 'bg-tennis-600 text-white'
                             : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
                         }`
                       }
@@ -119,20 +106,6 @@ export default function Sidebar({ isOpen, onClose }) {
                             <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
                             <span>{item.name}</span>
                           </div>
-                          
-                          {item.badge && (
-                            <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-bold ${
-                              isActive ? 'bg-tennis-700 text-white' : 'bg-slate-800 text-slate-400'
-                            }`}>
-                              {item.badge}
-                            </span>
-                          )}
-
-                          {item.alertBadge && (
-                            <span className="text-[10px] px-1.5 py-0.5 rounded-md font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                              {item.alertBadge}
-                            </span>
-                          )}
                         </>
                       )}
                     </NavLink>
@@ -151,7 +124,6 @@ export default function Sidebar({ isOpen, onClose }) {
               onClick={handleReturnToClient}
               className="flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-colors border border-slate-700 cursor-pointer"
             >
-              <ArrowLeft className="w-3 h-3 text-tennis-400" />
               <span>Socio</span>
             </button>
             <button
@@ -159,7 +131,6 @@ export default function Sidebar({ isOpen, onClose }) {
               onClick={handleGoToCoach}
               className="flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-tennis-950/80 hover:bg-tennis-900 text-tennis-300 text-xs font-semibold transition-colors border border-tennis-800/60 cursor-pointer"
             >
-              <GraduationCap className="w-3.5 h-3.5 text-tennis-400" />
               <span>Docente</span>
             </button>
           </div>

@@ -1,24 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { receiptsService } from '../../services/api';
-import { 
-  DollarSign, 
-  Receipt, 
-  Printer, 
-  QrCode, 
-  Percent, 
-  CreditCard, 
-  Plus, 
-  CheckCircle2, 
-  Search, 
-  Tag, 
-  ShieldCheck,
-  Calculator,
-  ChevronDown,
-  ChevronUp
-} from 'lucide-react';
+import { Receipt, Search, ChevronDown, ChevronUp } from 'lucide-react';
 import ReceiptModal from '../../components/common/ReceiptModal';
 import Modal from '../../components/common/Modal';
 import POSDiscountCalculator from '../../components/admin/POSDiscountCalculator';
+import InvoicesPanel from '../../components/admin/InvoicesPanel';
+import RefundsPanel from '../../components/admin/RefundsPanel';
+import DiscountsPanel from '../../components/admin/DiscountsPanel';
 import TablePaginationBar, { TableSortHeader } from '../../components/common/TablePaginationBar';
 import { useTablePagination } from '../../hooks/useTablePagination';
 
@@ -28,6 +16,7 @@ export default function CashierAndReceiptsPage() {
   const [selectedReceipt, setSelectedReceipt] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showSimulator, setShowSimulator] = useState(true);
+  const [activeTab, setActiveTab] = useState('recibos'); // recibos | facturas | reembolsos | descuentos
 
   // Register New Charge Modal
   const [showChargeModal, setShowChargeModal] = useState(false);
@@ -117,11 +106,8 @@ export default function CashierAndReceiptsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 no-print">
         <div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-            Caja, Cobros, Descuentos y Recibos Fiscales
+            Caja, Cobros, Facturas, Reembolsos y Descuentos
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Simulador de cobro con políticas de descuento reglamentarias y libro oficial de caja.
-          </p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -134,7 +120,6 @@ export default function CashierAndReceiptsPage() {
                 : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
             }`}
           >
-            <Calculator className="w-3.5 h-3.5 text-tennis-600" />
             <span>{showSimulator ? 'Ocultar Simulador' : 'Abrir Simulador'}</span>
             {showSimulator ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
           </button>
@@ -144,11 +129,38 @@ export default function CashierAndReceiptsPage() {
             onClick={() => window.print()}
             className="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs border border-slate-200 shadow-sm flex items-center gap-1.5 transition-colors"
           >
-            <Printer className="w-3.5 h-3.5" />
-            Imprimir Libro
+            {activeTab === 'facturas' ? 'Imprimir Facturas' : activeTab === 'reembolsos' ? 'Imprimir Reembolsos' : activeTab === 'descuentos' ? 'Imprimir Descuentos' : 'Imprimir Libro de Recibos'}
           </button>
         </div>
       </div>
+
+      {/* Section Tabs */}
+      <div className="flex items-center gap-2 flex-wrap no-print">
+        {[
+          { id: 'recibos', label: 'Recibos y Cobros' },
+          { id: 'facturas', label: 'Facturas' },
+          { id: 'reembolsos', label: 'Reembolsos' },
+          { id: 'descuentos', label: 'Descuentos' }
+        ].map(tab => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setActiveTab(tab.id)}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+              activeTab === tab.id ? 'bg-slate-900 text-white shadow-sm' : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === 'facturas' && <InvoicesPanel />}
+      {activeTab === 'reembolsos' && <RefundsPanel />}
+      {activeTab === 'descuentos' && <DiscountsPanel onChange={loadData} />}
+
+      {activeTab === 'recibos' && (
+      <>
 
       {/* POS Realtime Checkout & Discount Simulator */}
       {showSimulator && (
@@ -157,14 +169,15 @@ export default function CashierAndReceiptsPage() {
         </div>
       )}
 
-      {/* Discounts Management Bar */}
-      <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-3">
+      {/* Discounts quick view */}
+      <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-3 no-print">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Tag className="w-4 h-4 text-tennis-600" />
-            <h2 className="text-sm font-extrabold text-slate-900">Políticas de Descuentos Activas en el Club (TP Oficial)</h2>
+            <h2 className="text-sm font-extrabold text-slate-900">Políticas de Descuentos Activas en el Club</h2>
           </div>
-          <span className="text-xs text-slate-400">Aplicación automática en cobro</span>
+          <button type="button" onClick={() => setActiveTab('descuentos')} className="text-xs text-tennis-700 font-bold hover:underline">
+            Administrar descuentos
+          </button>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -172,7 +185,7 @@ export default function CashierAndReceiptsPage() {
             <div key={d.id} className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-1">
               <div className="flex items-center justify-between">
                 <span className="font-extrabold text-xs text-slate-800">{d.name}</span>
-                <span className="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 font-black text-xs">
+                <span className="text-tennis-800 font-black text-xs">
                   {d.discountPercent}% OFF
                 </span>
               </div>
@@ -187,7 +200,6 @@ export default function CashierAndReceiptsPage() {
       <div id="printable-area" className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <Receipt className="w-5 h-5 text-tennis-600" />
             <div>
               <h2 className="text-base font-extrabold text-slate-900">Registro General de Recibos y Cobros</h2>
               <span className="text-xs text-slate-400">Haz clic en los encabezados para ordenar</span>
@@ -280,8 +292,7 @@ export default function CashierAndReceiptsPage() {
                       {rec.concept}
                     </td>
                     <td className="py-3 px-3">
-                      <span className="font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md inline-flex items-center gap-1 text-[11px]">
-                        <CreditCard className="w-3 h-3 text-tennis-600" />
+                      <span className="font-semibold text-slate-700 inline-flex items-center gap-1 text-[11px]">
                         {rec.paymentMethod}
                       </span>
                     </td>
@@ -294,7 +305,6 @@ export default function CashierAndReceiptsPage() {
                         onClick={() => setSelectedReceipt(rec)}
                         className="px-3 py-1.5 rounded-xl bg-tennis-50 hover:bg-tennis-100 text-tennis-800 font-bold text-xs border border-tennis-200 inline-flex items-center gap-1 transition-colors"
                       >
-                        <Printer className="w-3.5 h-3.5" />
                         Ver Recibo
                       </button>
                     </td>
@@ -318,6 +328,9 @@ export default function CashierAndReceiptsPage() {
           pageSizeOptions={[10, 20, 50]}
         />
       </div>
+
+      </>
+      )}
 
       {/* Modal to register new POS charge */}
       <Modal
@@ -384,9 +397,10 @@ export default function CashierAndReceiptsPage() {
                 onChange={(e) => setChargeData({ ...chargeData, paymentMethod: e.target.value })}
                 className="w-full p-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white font-bold"
               >
-                <option value="Mercado Pago (QR)">Mercado Pago (QR)</option>
                 <option value="Tarjeta de Débito">Tarjeta de Débito</option>
                 <option value="Tarjeta de Crédito">Tarjeta de Crédito</option>
+                <option value="Mercado Pago (QR)">Billetera Virtual: Mercado Pago (QR)</option>
+                <option value="Billetera Virtual (MODO / Cuenta DNI)">Billetera Virtual: MODO / Cuenta DNI / Otras</option>
                 <option value="Efectivo">Efectivo en Caja</option>
               </select>
             </div>

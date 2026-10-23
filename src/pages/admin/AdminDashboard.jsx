@@ -1,21 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { courtsService, reservationsService, stockService, tournamentsService } from '../../services/api';
-import { 
-  DollarSign, 
-  Layers, 
-  Calendar, 
-  Package, 
-  Trophy, 
-  TrendingUp, 
-  AlertTriangle, 
-  Clock, 
-  CheckCircle2, 
-  ShieldCheck, 
-  Printer, 
-  ArrowUpRight,
-  ArrowRight
-} from 'lucide-react';
 import ReceiptModal from '../../components/common/ReceiptModal';
 
 export default function AdminDashboard() {
@@ -42,29 +27,22 @@ export default function AdminDashboard() {
       {/* Top Banner (Mosaic Dashboard Style) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-              Panel de Control General
-            </h1>
-          </div>
-          <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-            Monitoreo en tiempo real de canchas, turnos, stock de materiales, torneos y caja del club.
-          </p>
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+            Panel de Control General
+          </h1>
         </div>
 
         <div className="flex items-center gap-2">
           <Link
             to="/admin/reservas"
-            className="px-4 py-2.5 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-bold text-xs shadow-md hover:shadow-glow-green transition-all flex items-center gap-1.5"
+            className="px-4 py-2.5 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-bold text-xs shadow-md transition-all flex items-center gap-1.5"
           >
-            <Calendar className="w-3.5 h-3.5" />
             Gestionar Reservas
           </Link>
           <Link
             to="/admin/reportes"
             className="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs border border-slate-200 shadow-sm transition-colors flex items-center gap-1.5"
           >
-            <Printer className="w-3.5 h-3.5" />
             Imprimir Reportes
           </Link>
         </div>
@@ -72,16 +50,15 @@ export default function AdminDashboard() {
 
       {/* Low Stock Alert if any */}
       {lowStockAlerts.length > 0 && (
-        <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-between text-xs text-amber-900">
+        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs text-slate-900">
           <div className="flex items-center gap-2.5">
-            <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
             <span>
               <strong>Alerta de Stock Crítico:</strong> {lowStockAlerts.map(s => s.name).join(', ')} por debajo del nivel mínimo.
             </span>
           </div>
           <Link
             to="/admin/stock"
-            className="px-3 py-1 bg-amber-600 text-white font-semibold rounded-lg text-xs hover:bg-amber-700 shrink-0"
+            className="px-3 py-1 bg-slate-600 text-white font-semibold rounded-lg text-xs hover:bg-slate-700 shrink-0"
           >
             Gestionar Stock
           </Link>
@@ -93,12 +70,7 @@ export default function AdminDashboard() {
         
         {/* Recaudación */}
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Ingresos del Día</span>
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center">
-              
-            </div>
-          </div>
+          <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Ingresos del Día</span>
           <div className="text-3xl font-black text-slate-900 mt-2">
             ${totalDailyRevenue.toLocaleString('es-AR')}
           </div>
@@ -106,12 +78,7 @@ export default function AdminDashboard() {
 
         {/* Canchas Activas */}
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Canchas Habilitadas</span>
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center">
-              
-            </div>
-          </div>
+          <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Canchas Habilitadas</span>
           <div className="text-2xl font-black text-slate-900 mt-2">
             {activeCourtsCount} <span className="text-sm font-semibold text-slate-400">/ {courts.length}</span>
           </div>
@@ -122,32 +89,19 @@ export default function AdminDashboard() {
 
         {/* Reservas Hoy */}
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Reservas Activas</span>
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center">
-              
-            </div>
-          </div>
+          <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Reservas Activas</span>
           <div className="text-2xl font-black text-slate-900 mt-2">
             {reservations.length}
-          </div>
-          <div className="text-[11px] text-tennis-700 font-semibold mt-1">
-            100% con seña del 50% validada
           </div>
         </div>
 
         {/* Torneos en curso */}
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Torneos y Fixtures</span>
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center">
-              
-            </div>
-          </div>
+          <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Torneos y Fixtures</span>
           <div className="text-2xl font-black text-slate-900 mt-2">
             {tournaments.length}
           </div>
-          <div className="text-[11px] text-amber-600 font-semibold mt-1">
+          <div className="text-[11px] text-slate-600 font-semibold mt-1">
             Abierto Primavera en Semifinales
           </div>
         </div>
@@ -159,10 +113,9 @@ export default function AdminDashboard() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-base font-extrabold text-slate-900">Estado de Canchas y Disponibilidad</h2>
-            <p className="text-xs text-slate-500">Ladrillo, Cemento y Pasto con control de mantenimiento</p>
           </div>
           <Link to="/admin/canchas" className="text-xs font-bold text-tennis-700 hover:underline flex items-center gap-1">
-            Administrar Canchas <ArrowRight className="w-3.5 h-3.5" />
+            Administrar Canchas
           </Link>
         </div>
 
@@ -175,7 +128,7 @@ export default function AdminDashboard() {
                 key={court.id} 
                 className={`p-4 rounded-2xl border flex flex-col justify-between space-y-3 ${
                   isMaint 
-                    ? 'bg-amber-50/60 border-amber-200' 
+                    ? 'bg-slate-50/60 border-slate-200' 
                     : 'bg-slate-50 border-slate-200 hover:border-tennis-300'
                 }`}
               >
@@ -185,7 +138,7 @@ export default function AdminDashboard() {
                       {court.surfaceType}
                     </span>
                     <span className={`text-[11px] font-medium ${
-                      isMaint ? 'text-amber-700' : 'text-slate-500'
+                      isMaint ? 'text-slate-700' : 'text-slate-500'
                     }`}>
                       {isMaint ? 'Mantenimiento' : 'Disponible'}
                     </span>
@@ -212,7 +165,6 @@ export default function AdminDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-base font-extrabold text-slate-900">Reservas Recientes y Liquidación</h2>
-              <p className="text-xs text-slate-500">Control de seña del 50% y cobro de saldo final</p>
             </div>
             <Link to="/admin/reservas" className="text-xs font-bold text-tennis-700 hover:underline">
               Ver todas
@@ -243,21 +195,21 @@ export default function AdminDashboard() {
                       <div className="text-[11px] text-slate-400">{res.playersType === 'dobles' ? '4 Jugadores (Dobles)' : '2 Jugadores (Singles)'}</div>
                     </td>
                     <td className="py-2.5 px-3">
-                      <span className="font-bold text-emerald-700">${res.depositPaid?.toLocaleString('es-AR')}</span>
+                      <span className="font-bold text-tennis-700">${res.depositPaid?.toLocaleString('es-AR')}</span>
                       <div className="text-[10px] text-slate-400">{res.depositPaymentMethod}</div>
                     </td>
                     <td className="py-2.5 px-3">
-                      <span className={`font-bold ${res.remainingPaid ? 'text-slate-400 line-through' : 'text-amber-600'}`}>
+                      <span className={`font-bold ${res.remainingPaid ? 'text-slate-400 line-through' : 'text-slate-600'}`}>
                         ${res.remainingBalance?.toLocaleString('es-AR')}
                       </span>
                     </td>
                     <td className="py-2.5 px-3 text-center">
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                      <span className={`text-[10px] font-bold ${
                         res.status === 'finalizada' 
-                          ? 'bg-slate-100 text-slate-700' 
+                          ? 'text-slate-700' 
                           : res.status === 'cancelada'
-                          ? 'bg-red-100 text-red-700'
-                          : 'bg-emerald-100 text-emerald-800'
+                          ? 'text-slate-700'
+                          : 'text-tennis-800'
                       }`}>
                         {res.status === 'finalizada' ? 'Finalizada' : res.status === 'cancelada' ? 'Cancelada' : 'Confirmada'}
                       </span>
@@ -281,7 +233,7 @@ export default function AdminDashboard() {
                         })}
                         className="px-2 py-1 rounded-lg bg-slate-100 hover:bg-tennis-50 text-slate-700 hover:text-tennis-700 text-[11px] font-bold inline-flex items-center gap-1"
                       >
-                        <Printer className="w-3 h-3" /> Ver
+                        Ver
                       </button>
                     </td>
                   </tr>
@@ -306,7 +258,7 @@ export default function AdminDashboard() {
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-bold text-slate-800">{item.name}</span>
                   <span className={`text-xs font-semibold ${
-                    item.status === 'alerta_baja' ? 'text-amber-700' : 'text-slate-600'
+                    item.status === 'alerta_baja' ? 'text-slate-700' : 'text-slate-600'
                   }`}>
                     {item.availableStock} Disp.
                   </span>
@@ -315,7 +267,7 @@ export default function AdminDashboard() {
                 {/* Progress bar */}
                 <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
                   <div 
-                    className={`h-full ${item.status === 'alerta_baja' ? 'bg-amber-500' : 'bg-tennis-600'}`}
+                    className={`h-full ${item.status === 'alerta_baja' ? 'bg-slate-500' : 'bg-tennis-600'}`}
                     style={{ width: `${Math.min(100, (item.availableStock / item.totalStock) * 100)}%` }}
                   />
                 </div>

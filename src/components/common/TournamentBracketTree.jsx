@@ -1,18 +1,5 @@
 import React, { useState } from 'react';
-import { 
-  Trophy, 
-  CheckCircle2, 
-  Swords, 
-  Edit3, 
-  RotateCcw, 
-  Zap, 
-  Printer, 
-  Award, 
-  Calendar,
-  ShieldCheck,
-  ChevronRight,
-  Sparkles
-} from 'lucide-react';
+import { CheckCircle2, Edit3 } from 'lucide-react';
 import Modal from './Modal';
 
 export default function TournamentBracketTree({ 
@@ -195,8 +182,8 @@ export default function TournamentBracketTree({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-slate-900 text-white rounded-2xl shadow-sm">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-tennis-500 text-slate-950 flex items-center gap-1">
-              <Swords className="w-3 h-3" /> Cuadro Eliminatorio Oficial
+            <span className="text-[10px] font-black uppercase tracking-wider text-tennis-300">
+              Cuadro Eliminatorio Oficial
             </span>
             <span className="text-slate-400 text-xs">
               Superficie: <strong className="text-white">{tournament.surfaceRequired}</strong> • {tournament.modality}
@@ -218,7 +205,6 @@ export default function TournamentBracketTree({
                 onClick={handleSimulateTournament}
                 className="px-3.5 py-2 rounded-xl bg-tennis-500 hover:bg-tennis-400 text-slate-950 font-black text-xs shadow-md transition-colors flex items-center gap-1.5"
               >
-                <Zap className="w-3.5 h-3.5 fill-current" />
                 Simular Resultados
               </button>
               <button
@@ -226,7 +212,6 @@ export default function TournamentBracketTree({
                 onClick={handleResetBracket}
                 className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/20 flex items-center gap-1.5 transition-colors"
               >
-                <RotateCcw className="w-3.5 h-3.5" />
                 Reiniciar
               </button>
             </>
@@ -236,22 +221,14 @@ export default function TournamentBracketTree({
 
       {/* Champion Podium Banner if crowned */}
       {champion && (
-        <div className="p-4 bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 text-slate-950 rounded-2xl shadow-md flex items-center justify-between border-2 border-amber-300 animate-fadeIn">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-white/90 text-amber-600 flex items-center justify-center shadow-md shrink-0">
-              <Trophy className="w-7 h-7 fill-amber-500" />
-            </div>
-            <div>
-              <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-slate-950 text-white">
-                Campeón Oficial del Torneo
-              </span>
-              <h4 className="text-lg font-black tracking-tight mt-0.5">{champion}</h4>
-              <p className="text-xs font-semibold text-slate-900/80">
-                Ganador de la Gran Final ({finalMatch?.score}) • Trofeo y Puntos de Ranking AAT
-              </p>
-            </div>
-          </div>
-          <Sparkles className="w-8 h-8 text-white shrink-0 hidden sm:block" />
+        <div className="p-4 bg-tennis-50 text-tennis-950 rounded-2xl border border-tennis-200">
+          <span className="text-[10px] font-black uppercase tracking-wider text-tennis-700">
+            Campeón Oficial del Torneo
+          </span>
+          <h4 className="text-lg font-black tracking-tight mt-0.5">{champion}</h4>
+          <p className="text-xs font-semibold text-tennis-800">
+            Ganador de la Gran Final ({finalMatch?.score}) • Trofeo y Puntos de Ranking AAT
+          </p>
         </div>
       )}
 
@@ -329,7 +306,7 @@ export default function TournamentBracketTree({
           {/* COLUMN 3: Gran Final & Campeón - 3 cols */}
           <div className="col-span-3 space-y-4 flex flex-col justify-center">
             <div className="text-center pb-2 border-b border-slate-200">
-              <span className="text-[10px] font-black uppercase tracking-wider text-amber-600 font-bold">Definición de Campeonato</span>
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-600 font-bold">Definición de Campeonato</span>
               <h4 className="text-xs font-black uppercase text-slate-900">Gran Final</h4>
             </div>
 
@@ -348,9 +325,8 @@ export default function TournamentBracketTree({
             </div>
 
             {/* Trophy Podium Box */}
-            <div className="p-4 bg-amber-50 rounded-2xl border-2 border-amber-300 text-center space-y-1">
-              <Trophy className="w-8 h-8 text-amber-500 mx-auto fill-amber-400" />
-              <div className="text-[10px] font-black uppercase text-amber-800">Copa Tenis Ahora</div>
+            <div className="p-4 bg-slate-50 rounded-2xl border-2 border-slate-300 text-center space-y-1">
+              <div className="text-[10px] font-black uppercase text-slate-800">Copa Tenis Ahora</div>
               <div className="text-xs font-black text-slate-900">
                 {champion || 'Por definirse'}
               </div>
@@ -447,7 +423,6 @@ export default function TournamentBracketTree({
               type="submit"
               className="px-4 py-2 bg-tennis-600 hover:bg-tennis-700 text-white font-bold rounded-xl text-xs shadow-sm flex items-center gap-1.5"
             >
-              <CheckCircle2 className="w-3.5 h-3.5" />
               Guardar y Avanzar en Cuadro
             </button>
           </div>
@@ -466,14 +441,14 @@ function MatchCard({ match, roundName, isAdmin, isFinal = false, onEdit }) {
   return (
     <div className={`p-3 bg-white rounded-2xl border transition-all shadow-sm ${
       isFinal 
-        ? 'border-amber-400 ring-2 ring-amber-400/20' 
+        ? 'border-slate-400 ring-2 ring-slate-400/20' 
         : 'border-slate-200 hover:border-tennis-400'
     }`}>
       {/* Header bar of the match */}
       <div className="flex items-center justify-between text-[10px] text-slate-400 font-bold pb-1.5 border-b border-slate-100">
         <span className="uppercase">Partido #{match.id}</span>
-        <span className={isFinished ? 'text-emerald-600 font-black' : 'text-amber-600'}>
-          {isFinished ? '✓ Finalizado' : match.date || 'Programado'}
+        <span className={isFinished ? 'text-tennis-600 font-black' : 'text-slate-600'}>
+          {isFinished ? 'Finalizado' : match.date || 'Programado'}
         </span>
       </div>
 
@@ -528,7 +503,7 @@ function MatchCard({ match, roundName, isAdmin, isFinal = false, onEdit }) {
           </button>
         ) : (
           isFinished && (
-            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
+            <span className="text-[10px] font-bold text-tennis-700">
               Oficial
             </span>
           )

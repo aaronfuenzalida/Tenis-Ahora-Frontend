@@ -3,18 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { mensajeDeError } from '../../services/api';
 import Logo from '../../components/common/Logo';
-import { 
-  User, 
-  Lock, 
-  Shield, 
-  ArrowRight, 
-  Sparkles, 
-  CheckCircle2, 
-  Activity, 
-  Layers, 
-  Trophy,
-  GraduationCap 
-} from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -71,8 +59,6 @@ export default function LoginPage() {
         
         {/* Left Side: Brand Showcase & Value Props (Verde y Blanco) */}
         <div className="lg:col-span-5 bg-gradient-to-br from-tennis-700 via-tennis-800 to-tennis-900 p-8 sm:p-10 text-white flex flex-col justify-between relative overflow-hidden">
-          {/* Subtle court pattern overlay */}
-          <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]" />
 
           <div className="relative z-10">
             {/* Logo Oficial */}
@@ -105,7 +91,7 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-50 text-red-700 text-xs rounded-xl border border-red-200 font-semibold">
+            <div className="mb-4 p-3 bg-slate-50 text-slate-700 text-xs rounded-xl border border-slate-200 font-semibold">
               {error}
             </div>
           )}
@@ -117,15 +103,12 @@ export default function LoginPage() {
                 Correo Electrónico
               </label>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                  <User className="w-4 h-4" />
-                </div>
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:border-tennis-600 focus:ring-2 focus:ring-tennis-500/20 text-sm outline-none transition-all"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-tennis-600 focus:ring-2 focus:ring-tennis-500/20 text-sm outline-none transition-all"
                   placeholder="ejemplo@tenisahora.com"
                 />
               </div>
@@ -138,15 +121,12 @@ export default function LoginPage() {
                 </label>
               </div>
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                  <Lock className="w-4 h-4" />
-                </div>
                 <input
                   type="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:border-tennis-600 focus:ring-2 focus:ring-tennis-500/20 text-sm outline-none transition-all"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-tennis-600 focus:ring-2 focus:ring-tennis-500/20 text-sm outline-none transition-all"
                   placeholder="••••••••"
                 />
               </div>
@@ -155,49 +135,40 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-4 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-bold text-sm shadow-md hover:shadow-glow-green flex items-center justify-center gap-2 transition-all disabled:opacity-50 mt-2"
+              className="w-full py-3 px-4 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-bold text-sm shadow-md flex items-center justify-center gap-2 transition-all disabled:opacity-50 mt-2"
             >
               {loading ? 'Validando credenciales...' : 'Ingresar al Sistema'}
-              <ArrowRight className="w-4 h-4" />
             </button>
           </form>
 
           {/* Quick Demo Access - Compact & Clean */}
           <div className="mt-5 pt-4 border-t border-slate-100">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                Acceso rápido demo
-              </span>
-              <span className="text-[11px] text-slate-500 font-medium">
-                Sin backend
-              </span>
+            <div className="mb-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+              Acceso rápido demo
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <button
                 type="button"
                 onClick={() => handleDemoLogin('client')}
-                className="py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-95"
+                className="py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm"
               >
-                <User className="w-3.5 h-3.5 text-slate-600" />
                 <span>Demo Socio</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => handleDemoLogin('coach')}
-                className="py-2.5 px-3 rounded-xl border border-tennis-200 bg-tennis-50/70 hover:bg-tennis-100 text-tennis-900 text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-95"
+                className="py-2.5 px-3 rounded-xl border border-tennis-200 bg-tennis-50/70 hover:bg-tennis-100 text-tennis-900 text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm"
               >
-                <GraduationCap className="w-3.5 h-3.5 text-tennis-600" />
                 <span>Demo Docente</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => handleDemoLogin('admin')}
-                className="py-2.5 px-3 rounded-xl border border-slate-800 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-95"
+                className="py-2.5 px-3 rounded-xl border border-slate-800 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm"
               >
-                <Shield className="w-3.5 h-3.5 text-tennis-400" />
                 <span>Demo Admin</span>
               </button>
             </div>

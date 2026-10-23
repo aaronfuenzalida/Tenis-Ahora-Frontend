@@ -1,14 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { stockService } from '../../services/api';
-import { 
-  Package, 
-  Plus, 
-  Edit3, 
-  Trash2, 
-  Printer, 
-  Search, 
-  SlidersHorizontal 
-} from 'lucide-react';
+import { Edit3, Trash2, Search } from 'lucide-react';
 import Modal from '../../components/common/Modal';
 
 export default function StockManagementPage() {
@@ -129,9 +121,6 @@ export default function StockManagementPage() {
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
             Gestión de Stock e Inventario
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Control de materiales deportivos, registro de equipamiento, disponibilidad y reposición.
-          </p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -140,7 +129,6 @@ export default function StockManagementPage() {
             onClick={() => window.print()}
             className="px-4 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs border border-slate-200 shadow-sm flex items-center gap-1.5 transition-colors"
           >
-            <Printer className="w-3.5 h-3.5 text-slate-500" />
             Imprimir Inventario
           </button>
           <button
@@ -148,7 +136,6 @@ export default function StockManagementPage() {
             onClick={() => setShowAddModal(true)}
             className="px-4 py-2 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-semibold text-xs shadow-sm flex items-center gap-1.5 transition-colors"
           >
-            <Plus className="w-3.5 h-3.5" />
             Nuevo Producto
           </button>
         </div>
@@ -242,7 +229,7 @@ export default function StockManagementPage() {
                       </td>
 
                       <td className="py-3 px-3 text-center font-bold text-slate-900">
-                        <span className={isLow ? 'text-amber-700' : 'text-slate-900'}>
+                        <span className={isLow ? 'text-slate-700' : 'text-slate-900'}>
                           {item.availableStock} {item.unit}
                         </span>
                       </td>
@@ -252,7 +239,7 @@ export default function StockManagementPage() {
                       </td>
 
                       <td className="py-3 px-3 text-center font-medium">
-                        <span className={isLow ? 'text-amber-700' : 'text-slate-600'}>
+                        <span className={isLow ? 'text-slate-700' : 'text-slate-600'}>
                           {isLow ? 'Stock Bajo' : 'Normal'}
                         </span>
                       </td>
@@ -278,7 +265,7 @@ export default function StockManagementPage() {
                           <button
                             type="button"
                             onClick={() => setItemToDelete(item)}
-                            className="p-1.5 rounded-lg bg-slate-100 hover:bg-red-50 text-slate-700 hover:text-red-700 text-xs transition-colors"
+                            className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-50 text-slate-700 hover:text-slate-700 text-xs transition-colors"
                             title="Eliminar producto"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -586,7 +573,7 @@ export default function StockManagementPage() {
             <button
               type="button"
               onClick={handleConfirmDelete}
-              className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold"
+              className="px-4 py-2 rounded-lg bg-slate-600 hover:bg-slate-700 text-white font-semibold"
             >
               Confirmar Eliminación
             </button>

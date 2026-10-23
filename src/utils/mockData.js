@@ -15,6 +15,14 @@ export const INITIAL_COURTS = [
     status: 'disponible', // disponible, ocupada, mantenimiento
     description: 'Polvo de ladrillo profesional con drenaje rápido.',
     maintenanceNotes: '',
+    availability: {
+      days: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
+      openTime: '08:00',
+      closeTime: '22:00',
+      slotMinutes: 60,
+      blockedRanges: [],
+      notes: 'Horario corrido. Iluminación artificial a partir de las 19:00.'
+    },
     photo: 'https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?auto=format&fit=crop&w=600&q=80',
     schedule: [
       { time: '08:00 - 09:00', status: 'libre' },
@@ -41,6 +49,14 @@ export const INITIAL_COURTS = [
     status: 'disponible',
     description: 'Polvo de ladrillo tradicional ideal para singles y dobles de alta competencia.',
     maintenanceNotes: '',
+    availability: {
+      days: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
+      openTime: '08:00',
+      closeTime: '22:00',
+      slotMinutes: 60,
+      blockedRanges: [],
+      notes: 'Horario corrido. Iluminación artificial a partir de las 19:00.'
+    },
     photo: 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&w=600&q=80',
     schedule: [
       { time: '08:00 - 09:00', status: 'libre' },
@@ -67,6 +83,14 @@ export const INITIAL_COURTS = [
     status: 'disponible',
     description: 'Superficie dura acrílica tipo US Open, bote rápido y uniforme.',
     maintenanceNotes: '',
+    availability: {
+      days: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
+      openTime: '08:00',
+      closeTime: '22:00',
+      slotMinutes: 60,
+      blockedRanges: [],
+      notes: 'Horario corrido. Iluminación artificial a partir de las 19:00.'
+    },
     photo: 'https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?auto=format&fit=crop&w=600&q=80',
     schedule: [
       { time: '08:00 - 09:00', status: 'libre' },
@@ -93,6 +117,14 @@ export const INITIAL_COURTS = [
     status: 'mantenimiento',
     description: 'Cancha rápida para singles. Actualmente en repintado de líneas reglamentarias.',
     maintenanceNotes: 'Repintado de superficie y nivelación de postes hasta 28/08.',
+    availability: {
+      days: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
+      openTime: '08:00',
+      closeTime: '22:00',
+      slotMinutes: 60,
+      blockedRanges: [],
+      notes: 'Horario corrido. Iluminación artificial a partir de las 19:00.'
+    },
     photo: 'https://images.unsplash.com/photo-1560012057-4372e14c5085?auto=format&fit=crop&w=600&q=80',
     schedule: [
       { time: '08:00 - 09:00', status: 'mantenimiento' },
@@ -119,6 +151,14 @@ export const INITIAL_COURTS = [
     status: 'disponible',
     description: 'Césped natural de competición, corte rasante y superficie premium.',
     maintenanceNotes: '',
+    availability: {
+      days: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
+      openTime: '08:00',
+      closeTime: '22:00',
+      slotMinutes: 60,
+      blockedRanges: [],
+      notes: 'Horario corrido. Iluminación artificial a partir de las 19:00.'
+    },
     photo: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=600&q=80',
     schedule: [
       { time: '08:00 - 09:00', status: 'libre' },
@@ -767,6 +807,7 @@ export const INITIAL_COACHES = [
 export const INITIAL_PRIVATE_CLASSES = [
   {
     id: 'prv-01',
+    kind: 'clase',
     coachId: 'coach-01',
     coachName: 'Prof. Santiago Álvarez',
     studentName: 'Federico Gómez',
@@ -781,6 +822,7 @@ export const INITIAL_PRIVATE_CLASSES = [
   },
   {
     id: 'prv-02',
+    kind: 'entrenamiento',
     coachId: 'coach-02',
     coachName: 'Entrenadora Valeria Morales',
     studentName: 'Romina Varela',
@@ -795,6 +837,7 @@ export const INITIAL_PRIVATE_CLASSES = [
   },
   {
     id: 'prv-03',
+    kind: 'clase',
     coachId: 'coach-01',
     coachName: 'Prof. Santiago Álvarez',
     studentName: 'Martín Lanata',
@@ -806,6 +849,21 @@ export const INITIAL_PRIVATE_CLASSES = [
     hourlyRate: 6500,
     status: 'programada',
     notes: 'Clínica táctica para torneo.'
+  },
+  {
+    id: 'prv-04',
+    kind: 'entrenamiento',
+    coachId: 'coach-03',
+    coachName: 'Entrenador Lucas Delgado',
+    studentName: 'Mariano Zabaleta',
+    studentDni: '35.123.890',
+    studentPhone: '11-4455-6677',
+    date: '2026-10-17',
+    time: '08:00 - 09:00',
+    courtAssigned: 'Cancha 4 (Cemento)',
+    hourlyRate: 6000,
+    status: 'programada',
+    notes: 'Entrenamiento particular de preparación física pre-torneo.'
   }
 ];
 
@@ -814,6 +872,7 @@ export const INITIAL_CLASSES = [
     id: 'cls-01',
     name: 'Escuela de Adultos - Nivel Intermedio',
     type: 'grupal',
+    kind: 'clase',
     coachId: 'coach-01',
     coachName: 'Prof. Santiago Álvarez',
     scheduleDays: 'Martes y Jueves',
@@ -837,6 +896,7 @@ export const INITIAL_CLASSES = [
     id: 'cls-02',
     name: 'Clínica de Iniciación y Fundamentos',
     type: 'grupal',
+    kind: 'clase',
     coachId: 'coach-02',
     coachName: 'Entrenadora Valeria Morales',
     scheduleDays: 'Lunes y Miércoles',
@@ -858,6 +918,7 @@ export const INITIAL_CLASSES = [
     id: 'cls-03',
     name: 'Escuela de Competición y Alto Rendimiento (Cupo Lleno)',
     type: 'grupal',
+    kind: 'clase',
     coachId: 'coach-01',
     coachName: 'Prof. Santiago Álvarez',
     scheduleDays: 'Viernes y Sábados',
@@ -874,6 +935,48 @@ export const INITIAL_CLASSES = [
       dni: `3${i + 5}.120.${100 + i}`,
       attendance: ['P', 'P', (i % 3 === 0 ? 'A' : 'P'), 'P', (i % 4 === 0 ? 'J' : 'P'), 'P', 'P', 'P']
     }))
+  },
+  {
+    id: 'cls-04',
+    name: 'Entrenamiento Físico-Técnico Competitivo',
+    type: 'grupal',
+    kind: 'entrenamiento',
+    coachId: 'coach-02',
+    coachName: 'Entrenadora Valeria Morales',
+    scheduleDays: 'Lunes y Miércoles',
+    scheduleTime: '07:00 - 08:30',
+    courtAssigned: 'Cancha 3 (Cemento)',
+    maxCapacity: 20,
+    currentEnrolled: 4,
+    monthlyFee: 18500,
+    monthName: 'Octubre 2026',
+    sessions: ['02/10', '07/10', '09/10', '14/10', '16/10', '21/10', '23/10', '28/10'],
+    students: [
+      { id: 'std-t1', name: 'Mariano Zabaleta', dni: '35.123.890', attendance: ['P', 'P', 'P', 'P', 'A', 'P', 'P', 'P'] },
+      { id: 'std-t2', name: 'Gastón Gaudio', dni: '33.987.654', attendance: ['P', 'A', 'P', 'P', 'P', 'J', 'P', 'P'] },
+      { id: 'std-t3', name: 'Lucía Benítez', dni: '40.112.334', attendance: ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'] },
+      { id: 'std-t4', name: 'Guillermo Coria', dni: '31.333.444', attendance: ['A', 'A', 'P', 'P', 'P', 'P', 'A', 'P'] }
+    ]
+  },
+  {
+    id: 'cls-05',
+    name: 'Entrenamiento de Resistencia y Velocidad en Cancha',
+    type: 'grupal',
+    kind: 'entrenamiento',
+    coachId: 'coach-03',
+    coachName: 'Entrenador Lucas Delgado',
+    scheduleDays: 'Martes y Jueves',
+    scheduleTime: '20:30 - 22:00',
+    courtAssigned: 'Cancha 4 (Cemento)',
+    maxCapacity: 16,
+    currentEnrolled: 2,
+    monthlyFee: 17000,
+    monthName: 'Octubre 2026',
+    sessions: ['01/10', '03/10', '08/10', '10/10', '15/10', '17/10', '22/10', '24/10'],
+    students: [
+      { id: 'std-t5', name: 'David Nalbandian', dni: '32.111.222', attendance: ['P', 'P', 'P', 'A', 'P', 'P', 'P', 'P'] },
+      { id: 'std-t6', name: 'Sofía Rossi', dni: '40.229.412', attendance: ['P', 'P', 'J', 'P', 'P', 'P', 'P', 'P'] }
+    ]
   }
 ];
 
@@ -1257,5 +1360,185 @@ export const INITIAL_USERS = [
     memberSince: '2025-01-20',
     activeDiscounts: ['PAQ10', 'LIGA20'],
     totalBookings: 15
+  }
+];
+
+// ============================================================
+// TIPOS DE CANCHA (RF011 - RF015)
+// ============================================================
+export const INITIAL_COURT_TYPES = [
+  {
+    id: 'ct-ladrillo',
+    name: 'Ladrillo',
+    label: 'Polvo de Ladrillo',
+    description: 'Superficie lenta de arcilla roja. Ideal para peloteo largo y juego de fondo.',
+    speed: 'Lenta',
+    basePricePerHour: 4800,
+    maintenanceFrequency: 'Diaria (riego y pasada de alfombra)',
+    maxStudentsPerClass: 30,
+    active: true
+  },
+  {
+    id: 'ct-cemento',
+    name: 'Cemento',
+    label: 'Cemento / Hard Court',
+    description: 'Superficie dura de pique medio-rápido. Bajo mantenimiento.',
+    speed: 'Media-Rápida',
+    basePricePerHour: 4200,
+    maintenanceFrequency: 'Semanal (barrido y revisión de fisuras)',
+    maxStudentsPerClass: 24,
+    active: true
+  },
+  {
+    id: 'ct-pasto',
+    name: 'Pasto',
+    label: 'Pasto / Césped Natural',
+    description: 'Superficie rápida de pique bajo. Uso restringido en días de lluvia.',
+    speed: 'Rápida',
+    basePricePerHour: 6500,
+    maintenanceFrequency: 'Diaria (corte, riego y marcado de líneas)',
+    maxStudentsPerClass: 16,
+    active: true
+  }
+];
+
+// ============================================================
+// TIPOS DE COMPETENCIA (RF061 - RF065)
+// ============================================================
+export const INITIAL_COMPETITION_TYPES = [
+  {
+    id: 'cmp-elim',
+    name: 'Torneo de Eliminación Directa',
+    format: 'Cuadro eliminatorio (Single Elimination)',
+    appliesTo: 'Torneo',
+    scoringSystem: 'Al mejor de 3 sets con tie-break a 7 puntos',
+    minParticipants: 8,
+    maxParticipants: 32,
+    description: 'El perdedor queda eliminado. Cuadro con cuartos, semifinales y final.',
+    active: true
+  },
+  {
+    id: 'cmp-liga',
+    name: 'Liga Todos contra Todos',
+    format: 'Round Robin por puntos',
+    appliesTo: 'Liga',
+    scoringSystem: '3 puntos por victoria, 0 por derrota. Desempate por diferencia de sets',
+    minParticipants: 4,
+    maxParticipants: 12,
+    description: 'Cada jugador enfrenta a todos los demás a lo largo de las jornadas.',
+    active: true
+  },
+  {
+    id: 'cmp-copa',
+    name: 'Copa por Equipos',
+    format: 'Fase de grupos + Playoffs',
+    appliesTo: 'Torneo',
+    scoringSystem: 'Series de 2 singles y 1 dobles por cruce',
+    minParticipants: 4,
+    maxParticipants: 16,
+    description: 'Modalidad por equipos del club con fase de grupos y eliminatorias finales.',
+    active: true
+  }
+];
+
+// ============================================================
+// FACTURAS (RF125 - RF127)
+// ============================================================
+export const INITIAL_INVOICES = [
+  {
+    id: 'FC-B-0001-00000412',
+    type: 'B',
+    clientName: 'Federico Gómez',
+    clientDni: '38.452.129',
+    clientAddress: 'Av. San Martín 1420, Quilmes',
+    concept: 'Alquiler Cancha 1 (2 hs) - Reserva RES-2026-001',
+    items: [
+      { description: 'Alquiler 2 Horas Cancha 1 (Polvo de Ladrillo)', quantity: 1, unitPrice: 9600 }
+    ],
+    subtotal: 9600,
+    taxRate: 21,
+    taxAmount: 2016,
+    total: 11616,
+    paymentMethod: 'Mercado Pago (QR)',
+    relatedReceiptId: 'REC-2026-1049',
+    status: 'emitida',
+    date: '2026-08-20 14:35',
+    issuedBy: 'Administración General'
+  },
+  {
+    id: 'FC-B-0001-00000413',
+    type: 'B',
+    clientName: 'Mariano Zabaleta',
+    clientDni: '35.123.890',
+    clientAddress: 'Av. Libertador 3200, CABA',
+    concept: 'Inscripción Gran Torneo Abierto de Primavera 2026',
+    items: [
+      { description: 'Inscripción Torneo Singles Masculino', quantity: 1, unitPrice: 7500 }
+    ],
+    subtotal: 7500,
+    taxRate: 21,
+    taxAmount: 1575,
+    total: 9075,
+    paymentMethod: 'Tarjeta de Crédito',
+    relatedReceiptId: 'REC-2026-1046',
+    status: 'emitida',
+    date: '2026-08-21 10:12',
+    issuedBy: 'Administración General'
+  },
+  {
+    id: 'FC-B-0001-00000414',
+    type: 'B',
+    clientName: 'Lucía Benítez',
+    clientDni: '40.112.334',
+    clientAddress: 'Calle Mitre 845, Florencio Varela',
+    concept: 'Cuota Mensual Escuela de Adultos - Octubre 2026',
+    items: [
+      { description: 'Cuota Clase Grupal Octubre', quantity: 1, unitPrice: 16000 }
+    ],
+    subtotal: 16000,
+    taxRate: 21,
+    taxAmount: 3360,
+    total: 19360,
+    paymentMethod: 'Tarjeta de Débito',
+    relatedReceiptId: null,
+    status: 'emitida',
+    date: '2026-10-02 09:40',
+    issuedBy: 'Recepción del Club'
+  }
+];
+
+// ============================================================
+// REEMBOLSOS (RF131 - RF133)
+// ============================================================
+export const INITIAL_REFUNDS = [
+  {
+    id: 'RMB-2026-0007',
+    clientName: 'Juan Ignacio Chela',
+    clientDni: '34.567.890',
+    relatedReservationId: 'RES-2026-008',
+    relatedReceiptId: 'REC-2026-1044',
+    reason: 'Cancelación de reserva con más de 6 hs de antelación (dentro del plazo reglamentario).',
+    refundType: 'total',
+    originalAmount: 4800,
+    refundAmount: 4800,
+    refundMethod: 'Devolución a Tarjeta de Débito',
+    status: 'procesado',
+    date: '2026-09-18 11:20',
+    processedBy: 'Administración General'
+  },
+  {
+    id: 'RMB-2026-0008',
+    clientName: 'Romina Varela',
+    clientDni: '36.992.100',
+    relatedReservationId: null,
+    relatedReceiptId: 'REC-2026-1041',
+    reason: 'Suspensión de clase particular por lluvia. Reintegro parcial según política del club.',
+    refundType: 'parcial',
+    originalAmount: 5800,
+    refundAmount: 2900,
+    refundMethod: 'Crédito en cuenta de socio',
+    status: 'pendiente',
+    date: '2026-10-10 17:05',
+    processedBy: 'Recepción del Club'
   }
 ];

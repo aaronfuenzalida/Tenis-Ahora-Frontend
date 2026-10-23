@@ -1,25 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { coachesAndClassesService } from '../../services/api';
-import { 
-  GraduationCap, 
-  Award, 
-  Users, 
-  CheckCircle2, 
-  Plus, 
-  Printer, 
-  Calendar, 
-  FileText, 
-  ShieldCheck, 
-  Edit, 
-  Trash2,
-  Clock,
-  UserCheck,
-  X
-} from 'lucide-react';
+import { Edit, Trash2 } from 'lucide-react';
 import CoachCredentialsModal from '../../components/common/CoachCredentialsModal';
 import AttendanceSheetModal from '../../components/common/AttendanceSheetModal';
 import AttendanceMatrixModal from '../../components/common/AttendanceMatrixModal';
 import Modal from '../../components/common/Modal';
+import CoachCertificationsReport from '../../components/admin/CoachCertificationsReport';
 
 export default function CoachesAndClassesPage() {
   // Main Tab: 'coaches' | 'group-classes' | 'private-classes'
@@ -30,6 +16,9 @@ export default function CoachesAndClassesPage() {
   // ==========================================
   const [coaches, setCoaches] = useState([]);
   const [coachRoleFilter, setCoachRoleFilter] = useState('ALL'); // ALL | Profesor | Entrenador
+  const [showCertReport, setShowCertReport] = useState(false);
+  const [classKindFilter, setClassKindFilter] = useState('clase'); // clase | entrenamiento (RF066-RF091)
+  const [privateKindFilter, setPrivateKindFilter] = useState('ALL'); // ALL | clase | entrenamiento
   const [selectedCoachForModal, setSelectedCoachForModal] = useState(null);
 
   // Modals for Coaches
@@ -82,6 +71,7 @@ export default function CoachesAndClassesPage() {
   const [newStudentForm, setNewStudentForm] = useState({ name: '', dni: '', phone: '' });
 
   const [newClassForm, setNewClassForm] = useState({
+    kind: 'clase',
     name: '',
     coachId: '',
     coachName: '',
@@ -101,6 +91,7 @@ export default function CoachesAndClassesPage() {
   const [privateToEdit, setPrivateToEdit] = useState(null);
 
   const [newPrivateForm, setNewPrivateForm] = useState({
+    kind: 'clase',
     coachId: '',
     coachName: '',
     studentName: '',
@@ -297,6 +288,7 @@ export default function CoachesAndClassesPage() {
   const handleOpenEditClass = (cls) => {
     setClassToEdit({
       id: cls.id,
+      kind: cls.kind || 'clase',
       name: cls.name,
       coachId: cls.coachId,
       coachName: cls.coachName,
@@ -394,6 +386,7 @@ export default function CoachesAndClassesPage() {
     });
     setShowAddPrivateModal(false);
     setNewPrivateForm({
+      kind: 'clase',
       coachId: coaches[0]?.id || '',
       coachName: coaches[0]?.name || '',
       studentName: '',
@@ -453,11 +446,8 @@ export default function CoachesAndClassesPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200 no-print">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-            Gestión de Profesores, Entrenadores y Clases
+            Gestión de Profesores, Entrenadores, Clases y Entrenamientos
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Administración de docentes habilitados con certificación deportiva oficial, clases grupales (máx 30 alumnos), asistencias y particulares.
-          </p>
         </div>
 
         {/* Switcher Tab */}
@@ -483,7 +473,7 @@ export default function CoachesAndClassesPage() {
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              Clases Grupales y Asistencia
+              Clases, Entrenamientos y Asistencia
             </button>
             <button
               type="button"
@@ -494,7 +484,7 @@ export default function CoachesAndClassesPage() {
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              Clases Particulares
+              Turnos Particulares
             </button>
           </div>
 
@@ -503,7 +493,6 @@ export default function CoachesAndClassesPage() {
             onClick={() => window.print()}
             className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs border border-slate-200 shadow-sm flex items-center gap-1.5"
           >
-            <Printer className="w-3.5 h-3.5 text-slate-500" />
             Imprimir
           </button>
         </div>
@@ -511,7 +500,6 @@ export default function CoachesAndClassesPage() {
 
       {/* Mandatory Official Certification Banner */}
       <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-700 flex items-start gap-3 no-print">
-        <ShieldCheck className="w-5 h-5 text-tennis-600 shrink-0 mt-0.5" />
         <div>
           <strong className="text-slate-900">Normativa Institucional Obligatoria:</strong> Todos los profesores y entrenadores registrados deben contar con su Título Habilitante y Certificación Deportiva oficial acreditada (AAT / ITF / Educación Física) vigente antes de impartir clases o entrenamientos en las instalaciones del club.
         </div>
@@ -545,18 +533,32 @@ export default function CoachesAndClassesPage() {
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setShowCreateCoachModal(true)}
-              className="px-3.5 py-2 bg-tennis-600 hover:bg-tennis-700 text-white font-semibold text-xs rounded-xl shadow-sm flex items-center gap-1.5 self-start sm:self-auto"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              Nuevo Profesional
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setShowCertReport(prev => !prev)}
+                className={`px-3.5 py-2 font-semibold text-xs rounded-xl shadow-sm flex items-center gap-1.5 border ${
+                  showCertReport ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                }`}
+              >
+                {showCertReport ? 'Ver Fichas de Docentes' : 'Reporte de Certificaciones'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowCreateCoachModal(true)}
+                className="px-3.5 py-2 bg-tennis-600 hover:bg-tennis-700 text-white font-semibold text-xs rounded-xl shadow-sm flex items-center gap-1.5"
+              >
+                Nuevo Profesional
+              </button>
+            </div>
           </div>
 
+          {showCertReport && (
+            <CoachCertificationsReport coaches={coaches} roleFilter={coachRoleFilter} />
+          )}
+
           {/* Coaches Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 ${showCertReport ? 'hidden' : ''}`}>
             {filteredCoaches.map(coach => (
               <div key={coach.id} className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between space-y-4">
                 
@@ -581,8 +583,7 @@ export default function CoachesAndClassesPage() {
                   <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5 text-xs">
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] uppercase font-bold text-slate-500">Título Habilitante</span>
-                      <span className="text-xs font-semibold text-emerald-700 flex items-center gap-1">
-                        <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                      <span className="text-xs font-semibold text-tennis-700 flex items-center gap-1">
                         Habilitado
                       </span>
                     </div>
@@ -629,7 +630,6 @@ export default function CoachesAndClassesPage() {
                       onClick={() => handleOpenEditCoach(coach)}
                       className="text-xs text-slate-600 hover:text-slate-900 font-semibold flex items-center gap-1"
                     >
-                      <Edit className="w-3.5 h-3.5 text-slate-400" />
                       Modificar
                     </button>
                     <button
@@ -638,9 +638,9 @@ export default function CoachesAndClassesPage() {
                         setCoachToDelete(coach);
                         setShowDeleteCoachModal(true);
                       }}
-                      className="text-xs text-red-600 hover:text-red-800 font-semibold flex items-center gap-1"
+                      className="text-xs text-slate-600 hover:text-slate-800 font-semibold flex items-center gap-1"
                     >
-                      <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                      <Trash2 className="w-3.5 h-3.5 text-slate-500" />
                       Dar de baja
                     </button>
                   </div>
@@ -660,27 +660,59 @@ export default function CoachesAndClassesPage() {
         <div className="space-y-4">
           
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-100 no-print">
-            <div>
-              <h2 className="text-base font-bold text-slate-900">Programación de Clases Grupales y Escuela</h2>
-              <p className="text-xs text-slate-500">Límite reglamentario obligatorio: hasta 30 alumnos como máximo por comisión.</p>
+            <div className="flex items-center gap-3 flex-wrap">
+              <div>
+                <h2 className="text-base font-bold text-slate-900">
+                  {classKindFilter === 'entrenamiento' ? 'Programación de Entrenamientos Grupales' : 'Programación de Clases Grupales y Escuela'}
+                </h2>
+                <p className="text-xs text-slate-500">Cupo máximo configurable por comisión; límite reglamentario de 30 alumnos (RD07 / RD10).</p>
+              </div>
+              <div className="bg-slate-100 p-1 rounded-xl flex items-center border border-slate-200">
+                {[['clase', 'Clases'], ['entrenamiento', 'Entrenamientos']].map(([k, label]) => (
+                  <button
+                    key={k}
+                    type="button"
+                    onClick={() => setClassKindFilter(k)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                      classKindFilter === k ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    {label} ({classes.filter(c => (c.kind || 'clase') === k).length})
+                  </button>
+                ))}
+              </div>
             </div>
 
             <button
               type="button"
-              onClick={() => setShowAddClassModal(true)}
+              onClick={() => {
+                setNewClassForm(prev => ({ ...prev, kind: classKindFilter }));
+                setShowAddClassModal(true);
+              }}
               className="px-3.5 py-2 bg-tennis-600 hover:bg-tennis-700 text-white font-semibold text-xs rounded-xl shadow-sm flex items-center gap-1.5 self-start sm:self-auto"
             >
-              <Plus className="w-3.5 h-3.5" />
-              Programar Nueva Clase
+              {classKindFilter === 'entrenamiento' ? 'Programar Nuevo Entrenamiento' : 'Programar Nueva Clase'}
             </button>
           </div>
 
           {/* Classes Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {classes.map(cls => {
+          <div id="printable-area" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="hidden print:block col-span-full text-center border-b pb-3">
+              <h2 className="text-lg font-bold text-slate-900">
+                TENIS AHORA — REPORTE DE {classKindFilter === 'entrenamiento' ? 'ENTRENAMIENTOS' : 'CLASES'} E INSCRIPCIONES
+              </h2>
+              <p className="text-xs text-slate-500">Emitido: {new Date().toLocaleString('es-AR')}</p>
+            </div>
+            {classes.filter(c => (c.kind || 'clase') === classKindFilter).length === 0 && (
+              <div className="col-span-full p-8 text-center bg-white rounded-2xl border border-slate-200 text-slate-400 text-xs">
+                No hay {classKindFilter === 'entrenamiento' ? 'entrenamientos' : 'clases'} programados.
+              </div>
+            )}
+            {classes.filter(c => (c.kind || 'clase') === classKindFilter).map(cls => {
               const studentsList = cls.students || [];
               const enrolledCount = studentsList.length;
-              const isFull = enrolledCount >= 30;
+              const capacity = Math.min(cls.maxCapacity || 30, 30);
+              const isFull = enrolledCount >= capacity;
 
               // Regularity count (presents >= 75%)
               const regularCount = studentsList.filter(st => {
@@ -698,7 +730,7 @@ export default function CoachesAndClassesPage() {
                   <div className="space-y-3">
                     <div className="flex items-center justify-between text-xs pb-1 border-b border-slate-100">
                       <span className="font-semibold text-slate-600 uppercase text-[10px]">
-                        Escuela Oficial
+                        {(cls.kind || 'clase') === 'entrenamiento' ? 'Entrenamiento Grupal' : 'Escuela Oficial'}
                       </span>
                       <span className="font-semibold text-slate-800">
                         {enrolledCount} / {cls.maxCapacity || 30} Alumnos
@@ -708,7 +740,7 @@ export default function CoachesAndClassesPage() {
                     <h3 className="font-bold text-base text-slate-900 leading-tight">{cls.name}</h3>
 
                     <div className="text-xs text-slate-600 space-y-1 bg-slate-50 p-3 rounded-xl border border-slate-200">
-                      <div>Profesor: <strong className="text-slate-800">{cls.coachName}</strong></div>
+                      <div>{(cls.kind || 'clase') === 'entrenamiento' ? 'Entrenador' : 'Profesor'}: <strong className="text-slate-800">{cls.coachName}</strong></div>
                       <div>Días y Horarios: <strong className="text-slate-800">{cls.scheduleDays} {cls.scheduleTime}</strong></div>
                       <div>Cancha: <strong className="text-slate-800">{cls.courtAssigned}</strong></div>
                       <div>Cuota Mensual: <strong className="text-slate-900">${cls.monthlyFee?.toLocaleString('es-AR')}</strong></div>
@@ -716,7 +748,7 @@ export default function CoachesAndClassesPage() {
 
                     {isFull ? (
                       <div className="p-2.5 bg-slate-100 border border-slate-300 rounded-xl text-slate-700 text-xs font-semibold text-center">
-                        Cupo completo (30/30 alumnos). Nuevas inscripciones inhabilitadas.
+                        Cupo completo ({enrolledCount}/{capacity} alumnos). Nuevas inscripciones inhabilitadas.
                       </div>
                     ) : (
                       <div className="p-2 bg-slate-50 rounded-xl text-[11px] text-slate-500 flex items-center justify-between border border-slate-100">
@@ -733,7 +765,6 @@ export default function CoachesAndClassesPage() {
                       onClick={() => setSelectedClassForAttendance(cls)}
                       className="w-full py-2 px-3 bg-tennis-600 hover:bg-tennis-700 text-white font-semibold text-xs rounded-xl shadow-sm flex items-center justify-center gap-1.5 transition-colors"
                     >
-                      <UserCheck className="w-3.5 h-3.5" />
                       Toma de Asistencia (Matriz)
                     </button>
 
@@ -743,7 +774,6 @@ export default function CoachesAndClassesPage() {
                         onClick={() => setSelectedClassForSheet(cls)}
                         className="py-1.5 px-2 bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold text-xs rounded-lg border border-slate-200 flex items-center justify-center gap-1"
                       >
-                        <Printer className="w-3 h-3 text-slate-500" />
                         Planilla A4
                       </button>
                       <button
@@ -751,7 +781,6 @@ export default function CoachesAndClassesPage() {
                         onClick={() => handleOpenStudentsModal(cls)}
                         className="py-1.5 px-2 bg-slate-50 hover:bg-slate-100 text-slate-700 font-semibold text-xs rounded-lg border border-slate-200 flex items-center justify-center gap-1"
                       >
-                        <Users className="w-3 h-3 text-slate-500" />
                         Nómina Alumnos
                       </button>
                     </div>
@@ -762,7 +791,6 @@ export default function CoachesAndClassesPage() {
                         onClick={() => handleOpenEditClass(cls)}
                         className="text-xs text-slate-600 hover:text-slate-900 font-semibold flex items-center gap-1"
                       >
-                        <Edit className="w-3.5 h-3.5 text-slate-400" />
                         Modificar
                       </button>
                       <button
@@ -771,9 +799,9 @@ export default function CoachesAndClassesPage() {
                           setClassToDelete(cls);
                           setShowDeleteClassModal(true);
                         }}
-                        className="text-xs text-red-600 hover:text-red-800 font-semibold flex items-center gap-1"
+                        className="text-xs text-slate-600 hover:text-slate-800 font-semibold flex items-center gap-1"
                       >
-                        <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                        <Trash2 className="w-3.5 h-3.5 text-slate-500" />
                         Eliminar
                       </button>
                     </div>
@@ -794,9 +822,24 @@ export default function CoachesAndClassesPage() {
         <div className="space-y-4">
           
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-100 no-print">
-            <div>
-              <h2 className="text-base font-bold text-slate-900">Turnos de Clases Particulares Asignadas</h2>
-              <p className="text-xs text-slate-500">Agenda individual coordinada con profesores y entrenadores certificados.</p>
+            <div className="flex items-center gap-3 flex-wrap">
+              <div>
+                <h2 className="text-base font-bold text-slate-900">Turnos de Clases y Entrenamientos Particulares</h2>
+              </div>
+              <div className="flex items-center gap-1">
+                {[['ALL', 'Todos'], ['clase', 'Clases'], ['entrenamiento', 'Entrenamientos']].map(([k, label]) => (
+                  <button
+                    key={k}
+                    type="button"
+                    onClick={() => setPrivateKindFilter(k)}
+                    className={`px-3 py-1 rounded-lg text-xs font-semibold ${
+                      privateKindFilter === k ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <button
@@ -804,19 +847,23 @@ export default function CoachesAndClassesPage() {
               onClick={() => setShowAddPrivateModal(true)}
               className="px-3.5 py-2 bg-tennis-600 hover:bg-tennis-700 text-white font-semibold text-xs rounded-xl shadow-sm flex items-center gap-1.5 self-start sm:self-auto"
             >
-              <Plus className="w-3.5 h-3.5" />
               Agendar Clase Particular
             </button>
           </div>
 
           {/* Private Classes Table */}
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div id="printable-area" className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="hidden print:block text-center border-b p-4">
+              <h2 className="text-lg font-bold text-slate-900">TENIS AHORA — REPORTE DE TURNOS PARTICULARES</h2>
+              <p className="text-xs text-slate-500">Clases y entrenamientos particulares • Emitido: {new Date().toLocaleString('es-AR')}</p>
+            </div>
             <table className="w-full text-left text-xs">
               <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-semibold">
                 <tr>
                   <th className="p-3">Fecha y Horario</th>
+                  <th className="p-3">Tipo</th>
                   <th className="p-3">Alumno / Socio</th>
-                  <th className="p-3">Profesor Asignado</th>
+                  <th className="p-3">Docente Asignado</th>
                   <th className="p-3">Cancha</th>
                   <th className="p-3">Arancel</th>
                   <th className="p-3">Estado</th>
@@ -825,20 +872,26 @@ export default function CoachesAndClassesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {privateClasses.length === 0 ? (
+                {privateClasses.filter(p => privateKindFilter === 'ALL' || (p.kind || 'clase') === privateKindFilter).length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="p-8 text-center text-slate-400">
-                      No se registran turnos de clases particulares agendados.
+                    <td colSpan={9} className="p-8 text-center text-slate-400">
+                      No se registran turnos particulares agendados.
                     </td>
                   </tr>
                 ) : (
-                  privateClasses.map(prv => {
+                  privateClasses.filter(p => privateKindFilter === 'ALL' || (p.kind || 'clase') === privateKindFilter).map(prv => {
                     const isCancelled = prv.status === 'cancelada';
+                    const isTraining = (prv.kind || 'clase') === 'entrenamiento';
                     return (
                       <tr key={prv.id} className="hover:bg-slate-50">
                         <td className="p-3 font-semibold text-slate-900">
                           <div>{prv.date}</div>
                           <div className="text-[11px] text-slate-500 font-normal">{prv.time}</div>
+                        </td>
+                        <td className="p-3">
+                          <span className={`text-[10px] font-bold ${isTraining ? 'text-slate-800' : 'text-tennis-800'}`}>
+                            {isTraining ? 'Entrenamiento' : 'Clase'}
+                          </span>
                         </td>
                         <td className="p-3">
                           <div className="font-semibold text-slate-800">{prv.studentName}</div>
@@ -849,7 +902,7 @@ export default function CoachesAndClassesPage() {
                         <td className="p-3 font-bold text-slate-900">${prv.hourlyRate?.toLocaleString('es-AR')}</td>
                         <td className="p-3">
                           <span className={`text-xs font-semibold ${
-                            isCancelled ? 'text-red-700' : 'text-slate-800'
+                            isCancelled ? 'text-slate-700' : 'text-slate-800'
                           }`}>
                             {prv.status === 'confirmada' ? 'Confirmada' : prv.status === 'cancelada' ? 'Cancelada' : 'Programada'}
                           </span>
@@ -875,7 +928,7 @@ export default function CoachesAndClassesPage() {
                           <button
                             type="button"
                             onClick={() => handleDeletePrivate(prv.id)}
-                            className="text-red-600 hover:text-red-800 font-semibold"
+                            className="text-slate-600 hover:text-slate-800 font-semibold"
                           >
                             Eliminar
                           </button>
@@ -1248,7 +1301,7 @@ export default function CoachesAndClassesPage() {
             <button
               type="button"
               onClick={handleDeleteCoach}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl shadow-sm"
+              className="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white font-semibold rounded-xl shadow-sm"
             >
               Confirmar Baja
             </button>
@@ -1301,12 +1354,23 @@ export default function CoachesAndClassesPage() {
       <Modal
         isOpen={showAddClassModal}
         onClose={() => setShowAddClassModal(false)}
-        title="Programar Nueva Clase Grupal"
+        title={newClassForm.kind === 'entrenamiento' ? 'Programar Nuevo Entrenamiento Grupal' : 'Programar Nueva Clase Grupal'}
         maxWidth="max-w-lg"
       >
         <form onSubmit={handleCreateClass} className="space-y-4 text-xs">
           <div>
-            <label className="font-semibold text-slate-700 uppercase block mb-1">Nombre de la Clase *</label>
+            <label className="font-semibold text-slate-700 uppercase block mb-1">Tipo de Actividad *</label>
+            <select
+              value={newClassForm.kind}
+              onChange={(e) => setNewClassForm({ ...newClassForm, kind: e.target.value })}
+              className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white"
+            >
+              <option value="clase">Clase (Escuela de Tenis)</option>
+              <option value="entrenamiento">Entrenamiento (Preparación física / competitiva)</option>
+            </select>
+          </div>
+          <div>
+            <label className="font-semibold text-slate-700 uppercase block mb-1">Nombre *</label>
             <input
               type="text"
               required
@@ -1429,7 +1493,18 @@ export default function CoachesAndClassesPage() {
         {classToEdit && (
           <form onSubmit={handleSaveEditClass} className="space-y-4 text-xs">
             <div>
-              <label className="font-semibold text-slate-700 uppercase block mb-1">Nombre de la Clase *</label>
+              <label className="font-semibold text-slate-700 uppercase block mb-1">Tipo de Actividad *</label>
+              <select
+                value={classToEdit.kind}
+                onChange={(e) => setClassToEdit({ ...classToEdit, kind: e.target.value })}
+                className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white"
+              >
+                <option value="clase">Clase (Escuela de Tenis)</option>
+                <option value="entrenamiento">Entrenamiento (Preparación física / competitiva)</option>
+              </select>
+            </div>
+            <div>
+              <label className="font-semibold text-slate-700 uppercase block mb-1">Nombre *</label>
               <input
                 type="text"
                 required
@@ -1556,7 +1631,7 @@ export default function CoachesAndClassesPage() {
             <button
               type="button"
               onClick={handleDeleteClass}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl shadow-sm"
+              className="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white font-semibold rounded-xl shadow-sm"
             >
               Eliminar Clase
             </button>
@@ -1641,7 +1716,7 @@ export default function CoachesAndClassesPage() {
                           <button
                             type="button"
                             onClick={() => handleRemoveStudentModal(st.id)}
-                            className="text-red-600 hover:text-red-800 font-semibold"
+                            className="text-slate-600 hover:text-slate-800 font-semibold"
                           >
                             Dar de baja
                           </button>
@@ -1674,10 +1749,21 @@ export default function CoachesAndClassesPage() {
       <Modal
         isOpen={showAddPrivateModal}
         onClose={() => setShowAddPrivateModal(false)}
-        title="Agendar Turno de Clase Particular"
+        title="Agendar Turno Particular"
         maxWidth="max-w-lg"
       >
         <form onSubmit={handleCreatePrivate} className="space-y-4 text-xs">
+          <div>
+            <label className="font-semibold text-slate-700 uppercase block mb-1">Tipo de Turno *</label>
+            <select
+              value={newPrivateForm.kind}
+              onChange={(e) => setNewPrivateForm({ ...newPrivateForm, kind: e.target.value })}
+              className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white"
+            >
+              <option value="clase">Clase Particular</option>
+              <option value="entrenamiento">Entrenamiento Particular</option>
+            </select>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="font-semibold text-slate-700 uppercase block mb-1">Profesor / Entrenador *</label>
@@ -1817,14 +1903,25 @@ export default function CoachesAndClassesPage() {
       <Modal
         isOpen={showEditPrivateModal}
         onClose={() => setShowEditPrivateModal(false)}
-        title="Modificar Turno de Clase Particular"
+        title="Modificar Turno Particular"
         maxWidth="max-w-lg"
       >
         {privateToEdit && (
           <form onSubmit={handleSaveEditPrivate} className="space-y-4 text-xs">
+            <div>
+              <label className="font-semibold text-slate-700 uppercase block mb-1">Tipo de Turno *</label>
+              <select
+                value={privateToEdit.kind || 'clase'}
+                onChange={(e) => setPrivateToEdit({ ...privateToEdit, kind: e.target.value })}
+                className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white"
+              >
+                <option value="clase">Clase Particular</option>
+                <option value="entrenamiento">Entrenamiento Particular</option>
+              </select>
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="font-semibold text-slate-700 uppercase block mb-1">Profesor Asignado *</label>
+                <label className="font-semibold text-slate-700 uppercase block mb-1">Docente Asignado *</label>
                 <select
                   value={privateToEdit.coachId}
                   onChange={(e) => setPrivateToEdit({ ...privateToEdit, coachId: e.target.value })}

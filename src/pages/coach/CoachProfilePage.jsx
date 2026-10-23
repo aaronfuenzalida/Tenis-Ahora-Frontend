@@ -1,17 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { coachesAndClassesService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
-import { 
-  Award, 
-  Calendar, 
-  Clock, 
-  ShieldCheck, 
-  CheckCircle2, 
-  Printer, 
-  Edit, 
-  FileText, 
-  Download 
-} from 'lucide-react';
 import CoachCredentialsModal from '../../components/common/CoachCredentialsModal';
 
 export default function CoachProfilePage() {
@@ -83,9 +72,6 @@ export default function CoachProfilePage() {
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
             Mi Perfil, Horarios y Título Habilitante
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Gestión de franjas horarias disponibles para alumnos, aranceles particulares y consulta de certificación oficial AAT.
-          </p>
         </div>
 
         <button
@@ -93,7 +79,6 @@ export default function CoachProfilePage() {
           onClick={() => window.print()}
           className="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs rounded-xl border border-slate-200 shadow-sm flex items-center gap-1.5 self-start sm:self-auto"
         >
-          <Printer className="w-3.5 h-3.5 text-slate-500" />
           Imprimir Ficha Oficial
         </button>
       </div>
@@ -106,11 +91,10 @@ export default function CoachProfilePage() {
           <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-tennis-600" />
                 <h2 className="text-base font-bold text-slate-900">Certificación Oficial y Título Habilitante</h2>
               </div>
-              <span className="text-xs font-semibold text-emerald-700 flex items-center gap-1">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Habilitado
+              <span className="text-xs font-semibold text-tennis-700 flex items-center gap-1">
+                Habilitado
               </span>
             </div>
 
@@ -147,7 +131,6 @@ export default function CoachProfilePage() {
               {/* Digital Attachment Preview */}
               <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-slate-600" />
                   <div>
                     <span className="font-semibold text-slate-800 block">{license?.digitalDocumentUrl}</span>
                     <span className="text-[11px] text-slate-500">Documento digital legalizado</span>

@@ -1,16 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { coachesAndClassesService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
-import { 
-  Calendar, 
-  Clock, 
-  Plus, 
-  Printer, 
-  Edit, 
-  Trash2, 
-  CheckCircle2, 
-  X 
-} from 'lucide-react';
+import { Edit } from 'lucide-react';
 import Modal from '../../components/common/Modal';
 
 export default function CoachPrivateLessonsPage() {
@@ -115,9 +106,6 @@ export default function CoachPrivateLessonsPage() {
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
             Agenda de Turnos Particulares
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Gestión y seguimiento de entrenamientos individuales agendados con socios del club.
-          </p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -126,7 +114,6 @@ export default function CoachPrivateLessonsPage() {
             onClick={() => window.print()}
             className="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs rounded-xl border border-slate-200 shadow-sm flex items-center gap-1.5"
           >
-            <Printer className="w-3.5 h-3.5 text-slate-500" />
             Imprimir Agenda
           </button>
           <button
@@ -134,7 +121,6 @@ export default function CoachPrivateLessonsPage() {
             onClick={() => setShowAddModal(true)}
             className="px-3.5 py-2 bg-tennis-600 hover:bg-tennis-700 text-white font-semibold text-xs rounded-xl shadow-sm flex items-center gap-1.5"
           >
-            <Plus className="w-3.5 h-3.5" />
             Agendar Turno
           </button>
         </div>
@@ -178,7 +164,7 @@ export default function CoachPrivateLessonsPage() {
                     <td className="p-3 font-bold text-slate-900">${lesson.hourlyRate?.toLocaleString('es-AR')}</td>
                     <td className="p-3">
                       <span className={`text-xs font-semibold ${
-                        isCancelled ? 'text-red-700' : 'text-slate-800'
+                        isCancelled ? 'text-slate-700' : 'text-slate-800'
                       }`}>
                         {lesson.status === 'confirmada' ? 'Confirmada' : isCancelled ? 'Cancelada' : 'Programada'}
                       </span>
@@ -204,7 +190,7 @@ export default function CoachPrivateLessonsPage() {
                       <button
                         type="button"
                         onClick={() => handleDeleteLesson(lesson.id)}
-                        className="text-red-600 hover:text-red-800 font-semibold"
+                        className="text-slate-600 hover:text-slate-800 font-semibold"
                       >
                         Eliminar
                       </button>

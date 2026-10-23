@@ -11,7 +11,11 @@ import {
   INITIAL_PRIVATE_CLASSES,
   INITIAL_DISCOUNTS,
   INITIAL_RECEIPTS,
-  INITIAL_USERS
+  INITIAL_USERS,
+  INITIAL_COURT_TYPES,
+  INITIAL_COMPETITION_TYPES,
+  INITIAL_INVOICES,
+  INITIAL_REFUNDS
 } from '../utils/mockData';
 
 // Create base Axios instance
@@ -93,6 +97,21 @@ let privateClassesStore = [...INITIAL_PRIVATE_CLASSES];
 let discountsStore = [...INITIAL_DISCOUNTS];
 let receiptsStore = [...INITIAL_RECEIPTS];
 let usersStore = [...INITIAL_USERS];
+let courtTypesStore = [...INITIAL_COURT_TYPES];
+let competitionTypesStore = [...INITIAL_COMPETITION_TYPES];
+let invoicesStore = [...INITIAL_INVOICES];
+let refundsStore = [...INITIAL_REFUNDS];
+
+const nowStamp = () => new Date().toISOString().replace('T', ' ').substring(0, 16);
+
+export const DEFAULT_COURT_AVAILABILITY = {
+  days: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
+  openTime: '08:00',
+  closeTime: '22:00',
+  slotMinutes: 60,
+  blockedRanges: [],
+  notes: ''
+};
 
 // Simulated delay helper
 const delay = (ms = 150) => new Promise(res => setTimeout(res, ms));
@@ -126,10 +145,73 @@ export const courtsService = {
     const newCourt = {
       ...courtData,
       id: `cancha-${Date.now()}`,
-      schedule: []
+      schedule: [],
+      availability: courtData.availability || { ...DEFAULT_COURT_AVAILABILITY, blockedRanges: [] }
     };
     courtsStore.push(newCourt);
     return { data: newCourt };
+  },
+  // RF016 / RF017: registrar y modificar horarios disponibles de una cancha
+  async updateAvailability(courtId, availability) {
+    await delay();
+    courtsStore = courtsStore.map(c =>
+      c.id === courtId
+        ? { ...c, availability: { ...DEFAULT_COURT_AVAILABILITY, ...(c.availability || {}), ...availability } }
+        : c
+    );
+    return { data: courtsStore.find(c => c.id === courtId) };
+  }
+};
+
+// ---- Tipos de Cancha (RF011 - RF015) ----
+export const courtTypesService = {
+  async getAll() {
+    await delay();
+    return { data: courtTypesStore };
+  },
+  async create(typeData) {
+    await delay();
+    const name = (typeData.name || '').trim();
+    if (!name) throw new Error('El nombre del tipo de cancha es obligatorio.');
+    if (courtTypesStore.some(t => t.name.toLowerCase() === name.toLowerCase())) {
+      throw new Error('Ya existe un tipo de cancha con ese nombre.');
+    }
+    const newType = {
+      id: `ct-${Date.now()}`,
+      name,
+      label: typeData.label || name,
+      description: typeData.description || '',
+      speed: typeData.speed || 'Media',
+      basePricePerHour: Number(typeData.basePricePerHour) || 0,
+      maintenanceFrequency: typeData.maintenanceFrequency || '',
+      maxStudentsPerClass: Math.min(Number(typeData.maxStudentsPerClass) || 30, 30),
+      active: typeData.active !== false
+    };
+    courtTypesStore.push(newType);
+    return { data: newType };
+  },
+  async update(typeId, updatedData) {
+    await delay();
+    courtTypesStore = courtTypesStore.map(t =>
+      t.id === typeId
+        ? {
+            ...t,
+            ...updatedData,
+            basePricePerHour: Number(updatedData.basePricePerHour ?? t.basePricePerHour) || 0,
+            maxStudentsPerClass: Math.min(Number(updatedData.maxStudentsPerClass ?? t.maxStudentsPerClass) || 30, 30)
+          }
+        : t
+    );
+    return { data: courtTypesStore.find(t => t.id === typeId) };
+  },
+  async delete(typeId) {
+    await delay();
+    const target = courtTypesStore.find(t => t.id === typeId);
+    if (target && courtsStore.some(c => c.surfaceType === target.name)) {
+      throw new Error(`No se puede eliminar: existen canchas registradas con superficie "${target.name}".`);
+    }
+    courtTypesStore = courtTypesStore.filter(t => t.id !== typeId);
+    return { success: true };
   }
 };
 
@@ -290,10 +372,43 @@ export const reservationsService = {
 
     return { data: target };
   },
+  // RF021: modificar reserva (fecha, horario, cancha, jugadores)
+  async update(reservationId, updatedData) {
+    await delay();
+    reservationsStore = reservationsStore.map(res => {
+      if (res.id !== reservationId) return res;
+      const next = { ...res, ...updatedData };
+      const dur = Number(next.durationHours) || 1;
+      if (updatedData.startTime || updatedData.durationHours) {
+        const [h, m] = String(next.startTime || '08:00').split(':').map(Number);
+        const totalMin = h * 60 + (m || 0) + Math.round(dur * 60);
+        next.endTime = `${String(Math.floor(totalMin / 60)).padStart(2, '0')}:${String(totalMin % 60).padStart(2, '0')}`;
+      }
+      const court = courtsStore.find(c => c.id === next.courtId);
+      if (court && (updatedData.courtId || updatedData.durationHours)) {
+        if (updatedData.courtId) {
+          next.courtName = `${court.name} (${court.surfaceType})`;
+          next.surfaceType = court.surfaceType;
+        }
+        next.courtCost = court.pricePerHour * dur;
+        next.totalCost = next.courtCost + (next.equipmentCost || 0);
+        next.remainingBalance = Math.max(0, next.totalCost - (next.depositPaid || 0));
+      }
+      next.updatedAt = new Date().toISOString();
+      return next;
+    });
+    return { data: reservationsStore.find(r => r.id === reservationId) };
+  },
+  // RF023: eliminar reserva del registro
+  async delete(reservationId) {
+    await delay();
+    reservationsStore = reservationsStore.filter(r => r.id !== reservationId);
+    return { success: true };
+  },
   async cancel(reservationId, hoursInAdvance) {
     await delay();
-    // Rule: Cancellations with min 6 hours advance receive refund/free cancellation.
-    // If less than 6 hours, charge/fee applied.
+    // RD02/RD03/RD04: con >= 6hs de antelación corresponde reembolso;
+    // fuera de plazo se aplica un cargo (retención del 50% de la seña).
     const isWithinFreeWindow = hoursInAdvance >= 6;
     let cancelledRes = null;
 
@@ -315,7 +430,68 @@ export const reservationsService = {
       return res;
     });
 
-    return { data: cancelledRes, isWithinFreeWindow };
+    let refund = null;
+    let penaltyReceipt = null;
+    if (cancelledRes) {
+      const lead = cancelledRes.participants?.[0] || {};
+      const deposit = Number(cancelledRes.depositPaid) || 0;
+      const refundId = `RMB-${new Date().getFullYear()}-${String(refundsStore.length + 9).padStart(4, '0')}`;
+      if (isWithinFreeWindow) {
+        refund = {
+          id: refundId,
+          clientName: lead.name || 'Socio Tenis Ahora',
+          clientDni: lead.dni || '00.000.000',
+          relatedReservationId: cancelledRes.id,
+          relatedReceiptId: cancelledRes.depositReceiptNumber || null,
+          reason: `Cancelación de reserva ${cancelledRes.id} con ${hoursInAdvance} hs de antelación (dentro del plazo reglamentario).`,
+          refundType: 'total',
+          originalAmount: deposit,
+          refundAmount: deposit,
+          refundMethod: `Devolución a ${cancelledRes.depositPaymentMethod || 'medio de pago original'}`,
+          status: 'pendiente',
+          date: nowStamp(),
+          processedBy: 'Sistema de Reservas'
+        };
+      } else {
+        const retained = Math.round(deposit * 0.5);
+        penaltyReceipt = {
+          id: `REC-CARGO-${Math.floor(1000 + Math.random() * 9000)}`,
+          reservationId: cancelledRes.id,
+          clientName: lead.name || 'Socio Tenis Ahora',
+          clientDni: lead.dni || '00.000.000',
+          concept: `Cargo por cancelación fuera de plazo - ${cancelledRes.courtName}`,
+          items: [
+            { description: `Seña abonada (${cancelledRes.id})`, amount: deposit },
+            { description: 'Retención 50% por cancelación con menos de 6 hs', amount: retained },
+            { description: 'Saldo reintegrado como crédito en cuenta', amount: deposit - retained }
+          ],
+          totalPaid: retained,
+          paymentMethod: 'Retención sobre seña',
+          status: 'completado',
+          date: nowStamp(),
+          cashierName: 'Sistema de Reservas'
+        };
+        receiptsStore.unshift(penaltyReceipt);
+        refund = {
+          id: refundId,
+          clientName: lead.name || 'Socio Tenis Ahora',
+          clientDni: lead.dni || '00.000.000',
+          relatedReservationId: cancelledRes.id,
+          relatedReceiptId: cancelledRes.depositReceiptNumber || null,
+          reason: `Cancelación fuera de plazo (${hoursInAdvance} hs). Se retiene el 50% de la seña y se reintegra el resto.`,
+          refundType: 'parcial',
+          originalAmount: deposit,
+          refundAmount: deposit - retained,
+          refundMethod: 'Crédito en cuenta de socio',
+          status: 'pendiente',
+          date: nowStamp(),
+          processedBy: 'Sistema de Reservas'
+        };
+      }
+      refundsStore.unshift(refund);
+    }
+
+    return { data: cancelledRes, isWithinFreeWindow, refund, penaltyReceipt };
   }
 };
 
@@ -394,6 +570,81 @@ export const tournamentsService = {
       }
       return t;
     });
+    return { success: true };
+  },
+  // RF057: registrar enfrentamiento en una ronda del torneo
+  async addMatch(trnId, roundName, matchData) {
+    await delay();
+    tournamentsStore = tournamentsStore.map(t => {
+      if (t.id !== trnId) return t;
+      const bracket = JSON.parse(JSON.stringify(t.bracket || []));
+      const newMatch = {
+        id: `tm-${Date.now()}`,
+        p1: matchData.p1,
+        p2: matchData.p2,
+        score: 'Pendiente',
+        winner: null,
+        status: 'programado',
+        court: matchData.court || 'Cancha 1',
+        date: matchData.date || new Date().toISOString().split('T')[0]
+      };
+      const target = bracket.find(r => r.round === roundName);
+      if (target) {
+        target.matches = [...(target.matches || []), newMatch];
+      } else {
+        bracket.push({ round: roundName || `Ronda ${bracket.length + 1}`, matches: [newMatch] });
+      }
+      return { ...t, bracket };
+    });
+    return { success: true };
+  },
+  // RF058: modificar datos o resultado de un enfrentamiento
+  async updateMatch(trnId, matchId, updatedData) {
+    await delay();
+    tournamentsStore = tournamentsStore.map(t => {
+      if (t.id !== trnId) return t;
+      const bracket = (t.bracket || []).map(r => ({
+        ...r,
+        matches: (r.matches || []).map(m => (m.id === matchId ? { ...m, ...updatedData } : m))
+      }));
+      return { ...t, bracket };
+    });
+    return { success: true };
+  }
+};
+
+// ---- Tipos de Competencia (RF061 - RF065) ----
+export const competitionTypesService = {
+  async getAll() {
+    await delay();
+    return { data: competitionTypesStore };
+  },
+  async create(typeData) {
+    await delay();
+    const newType = {
+      id: `cmp-${Date.now()}`,
+      name: typeData.name,
+      format: typeData.format || '',
+      appliesTo: typeData.appliesTo || 'Torneo',
+      scoringSystem: typeData.scoringSystem || '',
+      minParticipants: Number(typeData.minParticipants) || 2,
+      maxParticipants: Number(typeData.maxParticipants) || 32,
+      description: typeData.description || '',
+      active: typeData.active !== false
+    };
+    competitionTypesStore.push(newType);
+    return { data: newType };
+  },
+  async update(typeId, updatedData) {
+    await delay();
+    competitionTypesStore = competitionTypesStore.map(t =>
+      t.id === typeId ? { ...t, ...updatedData } : t
+    );
+    return { data: competitionTypesStore.find(t => t.id === typeId) };
+  },
+  async delete(typeId) {
+    await delay();
+    competitionTypesStore = competitionTypesStore.filter(t => t.id !== typeId);
     return { success: true };
   }
 };
@@ -550,6 +801,18 @@ export const leaguesService = {
     });
     return { success: true };
   },
+  async updateMatch(leagueId, matchId, updatedData) {
+    await delay();
+    leaguesStore = leaguesStore.map(l => {
+      if (l.id !== leagueId) return l;
+      const fixtures = (l.fixtures || []).map(f => ({
+        ...f,
+        matches: (f.matches || []).map(m => (m.id === matchId ? { ...m, ...updatedData } : m))
+      }));
+      return { ...l, fixtures };
+    });
+    return { success: true };
+  },
   async addMatch(leagueId, roundName, matchData) {
     await delay();
     leaguesStore = leaguesStore.map(l => {
@@ -647,6 +910,7 @@ export const coachesAndClassesService = {
     }
     const newClass = {
       ...classData,
+      kind: classData.kind || 'clase',
       id: `cls-${Date.now()}`,
       maxCapacity: Math.min(Number(classData.maxCapacity) || 30, 30),
       currentEnrolled: 0,
@@ -724,8 +988,9 @@ export const coachesAndClassesService = {
     await delay();
     const targetClass = classesStore.find(c => c.id === classId);
     if (!targetClass) throw new Error('Clase no encontrada.');
-    if ((targetClass.students?.length || 0) >= 30) {
-      throw new Error('No es posible agregar más alumnos: el cupo reglamentario de 30 está completo.');
+    const capacity = Math.min(Number(targetClass.maxCapacity) || 30, 30);
+    if ((targetClass.students?.length || 0) >= capacity) {
+      throw new Error(`No es posible agregar más alumnos: el cupo de ${capacity} está completo.`);
     }
     const newStudent = {
       id: `std-${Date.now()}`,
@@ -794,6 +1059,7 @@ export const coachesAndClassesService = {
     await delay();
     const newPrv = {
       ...data,
+      kind: data.kind || 'clase',
       id: `prv-${Date.now()}`,
       status: 'programada'
     };
@@ -837,14 +1103,182 @@ export const receiptsService = {
   }
 };
 
+// ---- Descuentos (RF138 - RF142) ----
+export const discountsService = {
+  async getAll() {
+    await delay();
+    return { data: discountsStore };
+  },
+  async create(discountData) {
+    await delay();
+    const code = (discountData.code || '').trim().toUpperCase();
+    if (!code) throw new Error('El código del descuento es obligatorio.');
+    if (discountsStore.some(d => d.code === code)) throw new Error('Ya existe un descuento con ese código.');
+    const newDiscount = {
+      id: `disc-${Date.now()}`,
+      name: discountData.name,
+      code,
+      discountPercent: Math.max(0, Math.min(100, Number(discountData.discountPercent) || 0)),
+      applicableTo: discountData.applicableTo || 'Alquiler de Canchas',
+      active: discountData.active !== false
+    };
+    discountsStore.push(newDiscount);
+    return { data: newDiscount };
+  },
+  async update(discountId, updatedData) {
+    await delay();
+    discountsStore = discountsStore.map(d =>
+      d.id === discountId
+        ? {
+            ...d,
+            ...updatedData,
+            code: (updatedData.code || d.code).toUpperCase(),
+            discountPercent: Math.max(0, Math.min(100, Number(updatedData.discountPercent ?? d.discountPercent) || 0))
+          }
+        : d
+    );
+    return { data: discountsStore.find(d => d.id === discountId) };
+  },
+  async delete(discountId) {
+    await delay();
+    const target = discountsStore.find(d => d.id === discountId);
+    discountsStore = discountsStore.filter(d => d.id !== discountId);
+    if (target) {
+      usersStore = usersStore.map(u => ({
+        ...u,
+        activeDiscounts: (u.activeDiscounts || []).filter(code => code !== target.code)
+      }));
+    }
+    return { success: true };
+  }
+};
+
+// ---- Facturas (RF125 - RF127) ----
+export const invoicesService = {
+  async getAll() {
+    await delay();
+    return { data: invoicesStore };
+  },
+  async create(invoiceData) {
+    await delay();
+    const items = (invoiceData.items || []).map(it => ({
+      description: it.description,
+      quantity: Number(it.quantity) || 1,
+      unitPrice: Number(it.unitPrice) || 0
+    }));
+    const subtotal = items.reduce((acc, it) => acc + it.quantity * it.unitPrice, 0);
+    const taxRate = Number(invoiceData.taxRate ?? 21);
+    const taxAmount = Math.round(subtotal * (taxRate / 100));
+    const seq = String(412 + invoicesStore.length + 1).padStart(8, '0');
+    const newInvoice = {
+      id: `FC-${invoiceData.type || 'B'}-0001-${seq}`,
+      type: invoiceData.type || 'B',
+      clientName: invoiceData.clientName,
+      clientDni: invoiceData.clientDni,
+      clientAddress: invoiceData.clientAddress || '',
+      concept: invoiceData.concept || items[0]?.description || 'Servicios del club',
+      items,
+      subtotal,
+      taxRate,
+      taxAmount,
+      total: subtotal + taxAmount,
+      paymentMethod: invoiceData.paymentMethod || 'Efectivo',
+      relatedReceiptId: invoiceData.relatedReceiptId || null,
+      status: 'emitida',
+      date: nowStamp(),
+      issuedBy: invoiceData.issuedBy || 'Administración General'
+    };
+    invoicesStore = [newInvoice, ...invoicesStore];
+    return { data: newInvoice };
+  },
+  async annul(invoiceId) {
+    await delay();
+    invoicesStore = invoicesStore.map(i => (i.id === invoiceId ? { ...i, status: 'anulada' } : i));
+    return { data: invoicesStore.find(i => i.id === invoiceId) };
+  }
+};
+
+// ---- Reembolsos (RF131 - RF133) ----
+export const refundsService = {
+  async getAll() {
+    await delay();
+    return { data: refundsStore };
+  },
+  async create(refundData) {
+    await delay();
+    const originalAmount = Number(refundData.originalAmount) || 0;
+    const refundAmount = Math.min(originalAmount, Number(refundData.refundAmount) || 0);
+    const newRefund = {
+      id: `RMB-${new Date().getFullYear()}-${String(refundsStore.length + 9).padStart(4, '0')}`,
+      clientName: refundData.clientName,
+      clientDni: refundData.clientDni,
+      relatedReservationId: refundData.relatedReservationId || null,
+      relatedReceiptId: refundData.relatedReceiptId || null,
+      reason: refundData.reason || '',
+      refundType: refundAmount >= originalAmount ? 'total' : 'parcial',
+      originalAmount,
+      refundAmount,
+      refundMethod: refundData.refundMethod || 'Crédito en cuenta de socio',
+      status: refundData.status || 'pendiente',
+      date: nowStamp(),
+      processedBy: refundData.processedBy || 'Administración General'
+    };
+    refundsStore = [newRefund, ...refundsStore];
+    return { data: newRefund };
+  },
+  async updateStatus(refundId, status) {
+    await delay();
+    refundsStore = refundsStore.map(r => (r.id === refundId ? { ...r, status } : r));
+    return { data: refundsStore.find(r => r.id === refundId) };
+  }
+};
+
 export const usersService = {
   async getAll() {
     await delay();
     return { data: usersStore };
   },
+  // RF001: registrar usuario desde administración
+  async create(userData) {
+    await delay();
+    const email = (userData.email || '').trim().toLowerCase();
+    if (usersStore.some(u => (u.email || '').toLowerCase() === email)) {
+      throw new Error('Ya existe un usuario registrado con ese email.');
+    }
+    const isAdmin = userData.role === 'admin';
+    const newUser = {
+      id: `usr-${Date.now()}`,
+      name: userData.name,
+      dni: userData.dni || '',
+      phone: userData.phone || '',
+      email,
+      address: userData.address || '',
+      role: userData.role || 'client',
+      memberNumber: isAdmin
+        ? `ADM-${String(usersStore.filter(u => u.role === 'admin').length + 1).padStart(3, '0')}`
+        : `TA-${Math.floor(1000 + Math.random() * 9000)}`,
+      memberSince: new Date().toISOString().split('T')[0],
+      activeDiscounts: userData.activeDiscounts || [],
+      totalBookings: 0
+    };
+    usersStore.push(newUser);
+    return { data: newUser };
+  },
   async update(userId, updatedData) {
     await delay();
     usersStore = usersStore.map(u => u.id === userId ? { ...u, ...updatedData } : u);
+    return { data: usersStore.find(u => u.id === userId) };
+  },
+  // RF004: eliminar usuario
+  async delete(userId) {
+    await delay();
+    usersStore = usersStore.filter(u => u.id !== userId);
+    return { success: true };
+  },
+  // RF138 - RF141: descuentos asignados a un usuario
+  async updateDiscounts(userId, activeDiscounts) {
+    await delay();
+    usersStore = usersStore.map(u => u.id === userId ? { ...u, activeDiscounts: [...activeDiscounts] } : u);
     return { data: usersStore.find(u => u.id === userId) };
   }
 };

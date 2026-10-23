@@ -1,26 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { tournamentsService, leaguesService } from '../../services/api';
-import { 
-  Trophy, 
-  Plus, 
-  Users, 
-  Calendar, 
-  Printer, 
-  Edit, 
-  Trash2, 
-  FileText, 
-  CheckCircle2, 
-  Swords, 
-  X,
-  Clock,
-  ShieldCheck
-} from 'lucide-react';
+import { tournamentsService, leaguesService, competitionTypesService } from '../../services/api';
+import { Edit, Trash2 } from 'lucide-react';
 import Modal from '../../components/common/Modal';
+import MatchesPanel from '../../components/admin/MatchesPanel';
+import CompetitionTypesPanel from '../../components/admin/CompetitionTypesPanel';
 import TournamentBracketTree from '../../components/common/TournamentBracketTree';
 
 export default function TournamentsManagementPage() {
   // Main Tab: 'tournaments' | 'leagues'
-  const [activeMainTab, setActiveMainTab] = useState('tournaments');
+  const [activeMainTab, setActiveMainTab] = useState('tournaments'); // tournaments | leagues | matches | competition-types
+  const [competitionTypes, setCompetitionTypes] = useState([]);
 
   // ==========================================
   // TOURNAMENTS STATE
@@ -38,6 +27,7 @@ export default function TournamentsManagementPage() {
 
   // Tournament Forms
   const [newTrnForm, setNewTrnForm] = useState({
+    competitionTypeId: '',
     name: '',
     category: 'Masculino',
     modality: 'Singles',
@@ -78,6 +68,7 @@ export default function TournamentsManagementPage() {
 
   // League Forms
   const [newLeagueForm, setNewLeagueForm] = useState({
+    competitionTypeId: '',
     name: '',
     category: 'Masculino',
     modality: 'Singles',
@@ -124,8 +115,16 @@ export default function TournamentsManagementPage() {
   }, []);
 
   const loadAllData = async () => {
-    await Promise.all([loadTournaments(), loadLeagues()]);
+    await Promise.all([loadTournaments(), loadLeagues(), loadCompetitionTypes()]);
   };
+
+  const loadCompetitionTypes = async () => {
+    const res = await competitionTypesService.getAll();
+    setCompetitionTypes(res.data || []);
+  };
+
+  const competitionTypeName = (id) => competitionTypes.find(t => t.id === id)?.name || 'Sin tipo asignado';
+  const typesFor = (scope) => competitionTypes.filter(t => t.active !== false && (t.appliesTo === scope || t.appliesTo === 'Ambos'));
 
   const loadTournaments = async () => {
     const res = await tournamentsService.getAll();
@@ -165,6 +164,7 @@ export default function TournamentsManagementPage() {
     const res = await tournamentsService.create(newTrnForm);
     setShowCreateTrnModal(false);
     setNewTrnForm({
+      competitionTypeId: '',
       name: '',
       category: 'Masculino',
       modality: 'Singles',
@@ -183,6 +183,7 @@ export default function TournamentsManagementPage() {
   const handleOpenEditTournament = () => {
     if (!selectedTournament) return;
     setEditTrnForm({
+      competitionTypeId: selectedTournament.competitionTypeId || '',
       name: selectedTournament.name,
       category: selectedTournament.category,
       modality: selectedTournament.modality,
@@ -263,6 +264,7 @@ export default function TournamentsManagementPage() {
     const res = await leaguesService.create(newLeagueForm);
     setShowCreateLeagueModal(false);
     setNewLeagueForm({
+      competitionTypeId: '',
       name: '',
       category: 'Masculino',
       modality: 'Singles',
@@ -281,6 +283,7 @@ export default function TournamentsManagementPage() {
   const handleOpenEditLeague = () => {
     if (!selectedLeague) return;
     setEditLeagueForm({
+      competitionTypeId: selectedLeague.competitionTypeId || '',
       name: selectedLeague.name,
       category: selectedLeague.category,
       modality: selectedLeague.modality,
@@ -406,11 +409,8 @@ export default function TournamentsManagementPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200 no-print">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-            Gestión de Torneos y Ligas Oficiales
+            Gestión de Torneos, Ligas y Competencias
           </h1>
-          <p className="text-xs text-slate-500 mt-1">
-            Administración completa de cuadros eliminatorios, fases regulares, fixtures por jornadas, cómputo de resultados y reglamentos internos.
-          </p>
         </div>
 
         {/* Main Tab Switcher */}
@@ -438,6 +438,28 @@ export default function TournamentsManagementPage() {
             >
               Ligas del Club
             </button>
+            <button
+              type="button"
+              onClick={() => setActiveMainTab('matches')}
+              className={`px-4 py-2 rounded-lg text-xs font-semibold transition-colors ${
+                activeMainTab === 'matches'
+                  ? 'bg-white text-slate-900 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Enfrentamientos
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveMainTab('competition-types')}
+              className={`px-4 py-2 rounded-lg text-xs font-semibold transition-colors ${
+                activeMainTab === 'competition-types'
+                  ? 'bg-white text-slate-900 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              Tipos de Competencia
+            </button>
           </div>
 
           <button
@@ -445,11 +467,24 @@ export default function TournamentsManagementPage() {
             onClick={() => window.print()}
             className="px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs border border-slate-200 shadow-sm flex items-center gap-1.5"
           >
-            <Printer className="w-3.5 h-3.5 text-slate-500" />
             Imprimir
           </button>
         </div>
       </div>
+
+      {/* ======================================================== */}
+      {/* MAIN SECTION: MATCHES (RF057 - RF060) */}
+      {/* ======================================================== */}
+      {activeMainTab === 'matches' && (
+        <MatchesPanel onChanged={loadAllData} />
+      )}
+
+      {/* ======================================================== */}
+      {/* MAIN SECTION: COMPETITION TYPES (RF061 - RF065) */}
+      {/* ======================================================== */}
+      {activeMainTab === 'competition-types' && (
+        <CompetitionTypesPanel tournaments={tournaments} leagues={leagues} onChange={loadCompetitionTypes} />
+      )}
 
       {/* ======================================================== */}
       {/* MAIN SECTION: TOURNAMENTS */}
@@ -468,7 +503,6 @@ export default function TournamentsManagementPage() {
                 onClick={() => setShowCreateTrnModal(true)}
                 className="px-3 py-1.5 rounded-lg bg-tennis-600 hover:bg-tennis-700 text-white font-semibold text-xs shadow-sm flex items-center gap-1"
               >
-                <Plus className="w-3.5 h-3.5" />
                 Nuevo Torneo
               </button>
             </div>
@@ -529,6 +563,7 @@ export default function TournamentsManagementPage() {
                       <span>Categoría: <strong className="text-slate-700">{selectedTournament.category}</strong></span>
                       <span>Modalidad: <strong className="text-slate-700">{selectedTournament.modality}</strong></span>
                       <span>Superficie: <strong className="text-slate-700">{selectedTournament.surfaceRequired}</strong></span>
+                      <span>Tipo: <strong className="text-slate-700">{competitionTypeName(selectedTournament.competitionTypeId)}</strong></span>
                       <span>Fechas: <strong className="text-slate-700">{selectedTournament.startDate} al {selectedTournament.endDate}</strong></span>
                     </div>
                   </div>
@@ -540,7 +575,6 @@ export default function TournamentsManagementPage() {
                       onClick={handleOpenEditTournament}
                       className="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center gap-1.5"
                     >
-                      <Edit className="w-3.5 h-3.5 text-slate-500" />
                       Modificar
                     </button>
                     <button
@@ -548,15 +582,14 @@ export default function TournamentsManagementPage() {
                       onClick={handleOpenRulesTournament}
                       className="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center gap-1.5"
                     >
-                      <FileText className="w-3.5 h-3.5 text-slate-500" />
                       Reglamento Interno
                     </button>
                     <button
                       type="button"
                       onClick={() => setShowDeleteTrnModal(true)}
-                      className="px-3 py-1.5 rounded-lg border border-red-200 hover:bg-red-50 text-red-700 font-semibold text-xs flex items-center gap-1.5"
+                      className="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center gap-1.5"
                     >
-                      <Trash2 className="w-3.5 h-3.5 text-red-600" />
+                      <Trash2 className="w-3.5 h-3.5 text-slate-600" />
                       Eliminar
                     </button>
                   </div>
@@ -622,7 +655,6 @@ export default function TournamentsManagementPage() {
                         onClick={() => setShowEnrollTrnModal(true)}
                         className="px-3 py-1.5 bg-tennis-600 hover:bg-tennis-700 text-white font-semibold rounded-lg text-xs flex items-center gap-1.5"
                       >
-                        <Plus className="w-3.5 h-3.5" />
                         Inscribir Participante
                       </button>
                     </div>
@@ -664,7 +696,7 @@ export default function TournamentsManagementPage() {
                                   <button
                                     type="button"
                                     onClick={() => handleRemoveParticipantTrn(p.id)}
-                                    className="text-red-600 hover:text-red-800 font-semibold"
+                                    className="text-slate-600 hover:text-slate-800 font-semibold"
                                   >
                                     Dar de baja
                                   </button>
@@ -690,7 +722,6 @@ export default function TournamentsManagementPage() {
                         onClick={handleOpenRulesTournament}
                         className="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center gap-1.5"
                       >
-                        <Edit className="w-3.5 h-3.5 text-slate-500" />
                         Editar Reglamento
                       </button>
                     </div>
@@ -729,7 +760,6 @@ export default function TournamentsManagementPage() {
                 onClick={() => setShowCreateLeagueModal(true)}
                 className="px-3 py-1.5 rounded-lg bg-tennis-600 hover:bg-tennis-700 text-white font-semibold text-xs shadow-sm flex items-center gap-1"
               >
-                <Plus className="w-3.5 h-3.5" />
                 Nueva Liga
               </button>
             </div>
@@ -790,6 +820,7 @@ export default function TournamentsManagementPage() {
                       <span>Categoría: <strong className="text-slate-700">{selectedLeague.category}</strong></span>
                       <span>Modalidad: <strong className="text-slate-700">{selectedLeague.modality}</strong></span>
                       <span>Superficie: <strong className="text-slate-700">{selectedLeague.surfaceRequired}</strong></span>
+                      <span>Tipo: <strong className="text-slate-700">{competitionTypeName(selectedLeague.competitionTypeId)}</strong></span>
                       <span>Período: <strong className="text-slate-700">{selectedLeague.startDate} al {selectedLeague.endDate}</strong></span>
                     </div>
                   </div>
@@ -801,7 +832,6 @@ export default function TournamentsManagementPage() {
                       onClick={handleOpenEditLeague}
                       className="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center gap-1.5"
                     >
-                      <Edit className="w-3.5 h-3.5 text-slate-500" />
                       Modificar
                     </button>
                     <button
@@ -809,15 +839,14 @@ export default function TournamentsManagementPage() {
                       onClick={handleOpenRulesLeague}
                       className="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center gap-1.5"
                     >
-                      <FileText className="w-3.5 h-3.5 text-slate-500" />
                       Reglamento Interno
                     </button>
                     <button
                       type="button"
                       onClick={() => setShowDeleteLeagueModal(true)}
-                      className="px-3 py-1.5 rounded-lg border border-red-200 hover:bg-red-50 text-red-700 font-semibold text-xs flex items-center gap-1.5"
+                      className="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center gap-1.5"
                     >
-                      <Trash2 className="w-3.5 h-3.5 text-red-600" />
+                      <Trash2 className="w-3.5 h-3.5 text-slate-600" />
                       Eliminar
                     </button>
                   </div>
@@ -946,7 +975,6 @@ export default function TournamentsManagementPage() {
                         onClick={() => setShowAddMatchModal(true)}
                         className="px-3 py-1.5 bg-tennis-600 hover:bg-tennis-700 text-white font-semibold rounded-lg text-xs flex items-center gap-1.5"
                       >
-                        <Plus className="w-3.5 h-3.5" />
                         Programar Partido
                       </button>
                     </div>
@@ -1003,7 +1031,6 @@ export default function TournamentsManagementPage() {
                                       onClick={() => handleOpenMatchScore(match)}
                                       className="no-print px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-white text-slate-700 font-semibold text-xs flex items-center gap-1 shadow-sm"
                                     >
-                                      <Edit className="w-3 h-3 text-slate-500" />
                                       {isFinished ? 'Modificar Resultado' : 'Cargar Resultado'}
                                     </button>
                                   </div>
@@ -1029,7 +1056,6 @@ export default function TournamentsManagementPage() {
                         onClick={() => setShowEnrollLeagueModal(true)}
                         className="px-3 py-1.5 bg-tennis-600 hover:bg-tennis-700 text-white font-semibold rounded-lg text-xs flex items-center gap-1.5"
                       >
-                        <Plus className="w-3.5 h-3.5" />
                         Inscribir Jugador
                       </button>
                     </div>
@@ -1071,7 +1097,7 @@ export default function TournamentsManagementPage() {
                                   <button
                                     type="button"
                                     onClick={() => handleRemoveParticipantLeague(p.id)}
-                                    className="text-red-600 hover:text-red-800 font-semibold"
+                                    className="text-slate-600 hover:text-slate-800 font-semibold"
                                   >
                                     Dar de baja
                                   </button>
@@ -1097,7 +1123,6 @@ export default function TournamentsManagementPage() {
                         onClick={handleOpenRulesLeague}
                         className="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-xs flex items-center gap-1.5"
                       >
-                        <Edit className="w-3.5 h-3.5 text-slate-500" />
                         Editar Reglamento
                       </button>
                     </div>
@@ -1141,6 +1166,20 @@ export default function TournamentsManagementPage() {
               onChange={(e) => setNewTrnForm({ ...newTrnForm, name: e.target.value })}
               className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
             />
+          </div>
+          <div>
+            <label className="font-semibold text-slate-700 uppercase block mb-1">Tipo de Competencia *</label>
+            <select
+              required
+              value={newTrnForm.competitionTypeId}
+              onChange={(e) => setNewTrnForm({ ...newTrnForm, competitionTypeId: e.target.value })}
+              className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white"
+            >
+              <option value="">Seleccione un tipo...</option>
+              {typesFor('Torneo').map(t => (
+                <option key={t.id} value={t.id}>{t.name} — {t.format}</option>
+              ))}
+            </select>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -1261,6 +1300,20 @@ export default function TournamentsManagementPage() {
                 onChange={(e) => setEditTrnForm({ ...editTrnForm, name: e.target.value })}
                 className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
               />
+            </div>
+            <div>
+              <label className="font-semibold text-slate-700 uppercase block mb-1">Tipo de Competencia *</label>
+              <select
+                required
+                value={editTrnForm.competitionTypeId}
+                onChange={(e) => setEditTrnForm({ ...editTrnForm, competitionTypeId: e.target.value })}
+                className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white"
+              >
+                <option value="">Seleccione un tipo...</option>
+                {typesFor('Torneo').map(t => (
+                  <option key={t.id} value={t.id}>{t.name} — {t.format}</option>
+                ))}
+              </select>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -1414,7 +1467,7 @@ export default function TournamentsManagementPage() {
             <button
               type="button"
               onClick={handleDeleteTournament}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl shadow-sm"
+              className="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white font-semibold rounded-xl shadow-sm"
             >
               Eliminar Torneo
             </button>
@@ -1576,6 +1629,20 @@ export default function TournamentsManagementPage() {
               className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
             />
           </div>
+          <div>
+            <label className="font-semibold text-slate-700 uppercase block mb-1">Tipo de Competencia *</label>
+            <select
+              required
+              value={newLeagueForm.competitionTypeId}
+              onChange={(e) => setNewLeagueForm({ ...newLeagueForm, competitionTypeId: e.target.value })}
+              className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white"
+            >
+              <option value="">Seleccione un tipo...</option>
+              {typesFor('Liga').map(t => (
+                <option key={t.id} value={t.id}>{t.name} — {t.format}</option>
+              ))}
+            </select>
+          </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -1696,6 +1763,20 @@ export default function TournamentsManagementPage() {
                 onChange={(e) => setEditLeagueForm({ ...editLeagueForm, name: e.target.value })}
                 className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
               />
+            </div>
+            <div>
+              <label className="font-semibold text-slate-700 uppercase block mb-1">Tipo de Competencia *</label>
+              <select
+                required
+                value={editLeagueForm.competitionTypeId}
+                onChange={(e) => setEditLeagueForm({ ...editLeagueForm, competitionTypeId: e.target.value })}
+                className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white"
+              >
+                <option value="">Seleccione un tipo...</option>
+                {typesFor('Liga').map(t => (
+                  <option key={t.id} value={t.id}>{t.name} — {t.format}</option>
+                ))}
+              </select>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
@@ -1850,7 +1931,7 @@ export default function TournamentsManagementPage() {
             <button
               type="button"
               onClick={handleDeleteLeague}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-xl shadow-sm"
+              className="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white font-semibold rounded-xl shadow-sm"
             >
               Eliminar Liga
             </button>

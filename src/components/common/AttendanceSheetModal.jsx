@@ -1,5 +1,4 @@
 import React from 'react';
-import { Printer, Users, Calendar, ShieldCheck, CheckCircle2, X } from 'lucide-react';
 import Modal from './Modal';
 import Logo from './Logo';
 
@@ -17,9 +16,8 @@ export default function AttendanceSheetModal({ isOpen, onClose, classItem }) {
       <div className="space-y-4">
         
         {/* Print Action Bar (Hidden when printing) */}
-        <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs text-emerald-900 no-print">
+        <div className="flex items-center justify-between p-3 bg-tennis-50 rounded-2xl border border-tennis-200 text-xs text-tennis-900 no-print">
           <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>Formato oficial A4 apaisado para toma manual de asistencia en cancha o archivo administrativo.</span>
           </div>
           <button
@@ -27,7 +25,6 @@ export default function AttendanceSheetModal({ isOpen, onClose, classItem }) {
             onClick={handlePrint}
             className="px-4 py-2 bg-tennis-600 hover:bg-tennis-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm transition-colors"
           >
-            <Printer className="w-4 h-4" />
             Imprimir Planilla A4
           </button>
         </div>
@@ -119,7 +116,7 @@ export default function AttendanceSheetModal({ isOpen, onClose, classItem }) {
                           <td key={sIdx} className="py-2 px-1 border-r border-slate-300 text-center font-bold">
                             {val ? (
                               <span className={`inline-block w-4 h-4 rounded text-[9px] leading-4 ${
-                                val === 'P' ? 'bg-emerald-100 text-emerald-800' : val === 'A' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'
+                                val === 'P' ? 'bg-tennis-100 text-tennis-800' : val === 'A' ? 'bg-slate-100 text-slate-800' : 'bg-slate-100 text-slate-800'
                               }`}>
                                 {val}
                               </span>
@@ -162,13 +159,13 @@ export default function AttendanceSheetModal({ isOpen, onClose, classItem }) {
               <span className="font-bold text-slate-700 block mb-1">Referencias de Asistencia:</span>
               <div className="flex items-center gap-3 text-[10px] text-slate-600">
                 <span className="flex items-center gap-1">
-                  <strong className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">P</strong> Presente
+                  <strong className="px-1.5 py-0.5 rounded bg-tennis-100 text-tennis-800">P</strong> Presente
                 </span>
                 <span className="flex items-center gap-1">
-                  <strong className="px-1.5 py-0.5 rounded bg-red-100 text-red-800">A</strong> Ausente
+                  <strong className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-800">A</strong> Ausente
                 </span>
                 <span className="flex items-center gap-1">
-                  <strong className="px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">J</strong> Justificado
+                  <strong className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-800">J</strong> Justificado
                 </span>
               </div>
             </div>
@@ -194,9 +191,8 @@ export default function AttendanceSheetModal({ isOpen, onClose, classItem }) {
           <button
             type="button"
             onClick={handlePrint}
-            className="px-4 py-2 bg-tennis-600 hover:bg-tennis-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-md hover:shadow-glow-green transition-all"
+            className="px-4 py-2 bg-tennis-600 hover:bg-tennis-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-md transition-all"
           >
-            <Printer className="w-3.5 h-3.5" />
             Imprimir Planilla A4
           </button>
         </div>

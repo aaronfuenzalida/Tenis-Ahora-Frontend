@@ -1,5 +1,4 @@
 import React from 'react';
-import { Printer, CheckCircle2, QrCode, ShieldCheck, Download, X, Building2 } from 'lucide-react';
 import Modal from './Modal';
 import Logo from './Logo';
 
@@ -28,8 +27,7 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
             <p className="text-[11px] text-slate-500">CUIT: 30-71889922-4 | IVA Exento / Entidad Deportiva Sin Fines de Lucro</p>
             <p className="text-[11px] text-slate-400">Sede Social: Av. San Martín 1420, Quilmes, Buenos Aires | Tel: +54 11 4892-1234</p>
             
-            <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-bold border border-emerald-300">
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+            <div className="mt-3 text-xs font-bold text-slate-800">
               Recibo Oficial de Pago N°: <span className="font-mono">{receipt.id}</span>
             </div>
           </div>
@@ -83,7 +81,7 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
                       </td>
                       <td className="py-2 px-3 text-right font-mono">
                         {isFree ? (
-                          <span className="text-emerald-700 font-bold">INCLUIDO ($0)</span>
+                          <span className="text-tennis-700 font-bold">INCLUIDO ($0)</span>
                         ) : (
                           `$${item.amount?.toLocaleString('es-AR')}`
                         )}
@@ -101,8 +99,8 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
               <span className="text-[10px] text-slate-300 print:text-slate-600 block uppercase tracking-wider font-bold">
                 Total Percibido en Esta Operación
               </span>
-              <span className="text-xs text-emerald-400 print:text-emerald-700 flex items-center gap-1 font-bold mt-0.5">
-                <ShieldCheck className="w-3.5 h-3.5" /> Pago Acreditado en Sistema
+              <span className="text-xs text-tennis-400 print:text-tennis-700 flex items-center gap-1 font-bold mt-0.5">
+                Pago Acreditado en Sistema
               </span>
             </div>
             <div className="text-2xl font-black text-white print:text-slate-900">
@@ -149,9 +147,8 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
           <button
             type="button"
             onClick={handlePrint}
-            className="px-5 py-2 text-xs font-bold text-white bg-tennis-600 hover:bg-tennis-700 rounded-xl shadow-md hover:shadow-glow-green inline-flex items-center gap-1.5 transition-all"
+            className="px-5 py-2 text-xs font-bold text-white bg-tennis-600 hover:bg-tennis-700 rounded-xl shadow-md inline-flex items-center gap-1.5 transition-all"
           >
-            <Printer className="w-3.5 h-3.5" />
             Imprimir Comprobante 
           </button>
         </div>
