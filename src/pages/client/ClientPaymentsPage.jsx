@@ -3,6 +3,7 @@ import { receiptsService, reservationsService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { Receipt, Search } from 'lucide-react';
 import ReceiptModal from '../../components/common/ReceiptModal';
+import { cleanDNI } from '../../utils/formatters';
 
 export default function ClientPaymentsPage() {
   const { user } = useAuth();
@@ -18,9 +19,13 @@ export default function ClientPaymentsPage() {
 
   const pendingReservation = reservations.find(r => r.status === 'confirmada' && !r.remainingPaid);
 
-  const filteredReceipts = receipts.filter(r => 
-    r.concept.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    r.id.toLowerCase().includes(searchTerm.toLowerCase())
+  // Solo los comprobantes del socio logueado (la API ya los filtra; en la demo lo hacemos acá).
+  const myDni = cleanDNI(user?.dni || '');
+  const ownReceipts = myDni ? receipts.filter(r => cleanDNI(r.clientDni || '') === myDni) : receipts;
+
+  const filteredReceipts = ownReceipts.filter(r =>
+    (r.concept || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (r.id || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -87,6 +92,11 @@ export default function ClientPaymentsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
+              {filteredReceipts.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-slate-400">Todavía no tenés comprobantes emitidos.</td>
+                </tr>
+              )}
               {filteredReceipts.map(rec => (
                 <tr key={rec.id} className="hover:bg-slate-50/80 transition-colors">
                   <td className="py-3 px-3 font-bold text-tennis-800">

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Edit3, Trash2 } from 'lucide-react';
 import Modal from '../common/Modal';
 import { courtTypesService } from '../../services/api';
+import { useFeedback } from '../../context/FeedbackContext';
 
 const EMPTY_FORM = {
   name: '',
@@ -18,6 +19,7 @@ const EMPTY_FORM = {
  * RF011 - RF015: ABM de tipos de cancha (superficies) con reporte imprimible.
  */
 export default function CourtTypesPanel({ courts = [], onChange }) {
+  const { notify: notifyUser } = useFeedback();
   const [types, setTypes] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -64,7 +66,7 @@ export default function CourtTypesPanel({ courts = [], onChange }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (Number(form.maxStudentsPerClass) > 30) {
-      setError('El cupo máximo por clase no puede superar los 30 alumnos (RD07).');
+      setError('El cupo máximo por clase no puede superar los 30 alumnos.');
       return;
     }
     try {
@@ -90,7 +92,7 @@ export default function CourtTypesPanel({ courts = [], onChange }) {
       await load();
       notify();
     } catch (err) {
-      alert(err.message || 'No se pudo eliminar el tipo de cancha.');
+      notifyUser({ variant: 'error', title: 'Error al eliminar', message: err.message || 'No se pudo eliminar el tipo de cancha.' });
       setToDelete(null);
     }
   };

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Edit3, Trash2 } from 'lucide-react';
 import Modal from '../common/Modal';
 import { competitionTypesService } from '../../services/api';
+import { useFeedback } from '../../context/FeedbackContext';
 
 const EMPTY_FORM = {
   name: '',
@@ -18,6 +19,7 @@ const EMPTY_FORM = {
  * RF061 - RF065: ABM de tipos de competencias organizadas por el club.
  */
 export default function CompetitionTypesPanel({ tournaments = [], leagues = [], onChange }) {
+  const { notify } = useFeedback();
   const [types, setTypes] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -61,7 +63,7 @@ export default function CompetitionTypesPanel({ tournaments = [], leagues = [], 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (Number(form.minParticipants) > Number(form.maxParticipants)) {
-      alert('El mínimo de participantes no puede superar al máximo.');
+      notify({ variant: 'warning', message: 'El mínimo de participantes no puede superar al máximo.' });
       return;
     }
     if (editing) {

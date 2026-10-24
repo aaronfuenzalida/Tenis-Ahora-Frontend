@@ -1,22 +1,27 @@
 import React, { useState } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
-import { Menu } from 'lucide-react';
+import { Menu, UserCog } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import usePortalPaths from '../../hooks/usePortalPaths';
+import Avatar from '../common/Avatar';
+import ProfileModal from '../common/ProfileModal';
 
 export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user, switchRole } = useAuth();
+  const [showProfile, setShowProfile] = useState(false);
+  const { user, isDemo, switchRole } = useAuth();
+  const paths = usePortalPaths();
   const navigate = useNavigate();
 
   const handleToggleRole = () => {
     switchRole('client');
-    navigate('/app/dashboard');
+    navigate(paths.appDashboard);
   };
 
   const handleGoToCoach = () => {
     switchRole('coach');
-    navigate('/coach');
+    navigate(paths.coach);
   };
 
   return (
@@ -26,7 +31,7 @@ export default function AdminLayout() {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col lg:pl-64 min-w-0">
-        
+
         {/* Top Header in Admin */}
         <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between shadow-sm">
           <div className="flex items-center gap-3">
@@ -40,12 +45,12 @@ export default function AdminLayout() {
           </div>
 
           <div className="flex items-center gap-3">
-            {user?.isDemo && (
-              <span className="text-xs text-slate-400">Modo demo</span>
+            {isDemo && (
+              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800 bg-amber-50 border border-amber-200 px-2 py-1 rounded-lg">Demo</span>
             )}
 
             {/* Quick Demo Switchers */}
-            {user?.isDemo && (
+            {isDemo && (
               <div className="flex items-center gap-1.5">
                 <button
                   type="button"
@@ -68,15 +73,19 @@ export default function AdminLayout() {
             )}
 
             {/* Admin User Info */}
-            <div className="flex items-center gap-2.5 pl-3 border-l border-slate-200">
-              <div className="w-8 h-8 rounded-full bg-slate-900 text-tennis-400 flex items-center justify-center font-bold text-xs shadow-sm">
-                AD
-              </div>
+            <button
+              type="button"
+              onClick={() => setShowProfile(true)}
+              title="Editar mi perfil"
+              className="flex items-center gap-2.5 pl-3 border-l border-slate-200 group"
+            >
+              <Avatar user={user} className={user?.photo ? '' : '!bg-slate-900 !text-tennis-400'} />
               <div className="hidden md:block text-left">
-                <div className="text-xs font-bold text-slate-900">{user?.name || 'Administración'}</div>
+                <div className="text-xs font-bold text-slate-900 group-hover:text-tennis-700">{user?.name || 'Administración'}</div>
                 <div className="text-[10px] text-slate-500">Mando Central</div>
               </div>
-            </div>
+              <UserCog className="w-4 h-4 text-slate-400 group-hover:text-tennis-700 hidden md:block" />
+            </button>
           </div>
         </header>
 
@@ -85,6 +94,8 @@ export default function AdminLayout() {
           <Outlet />
         </main>
       </div>
+
+      <ProfileModal isOpen={showProfile} onClose={() => setShowProfile(false)} />
     </div>
   );
 }

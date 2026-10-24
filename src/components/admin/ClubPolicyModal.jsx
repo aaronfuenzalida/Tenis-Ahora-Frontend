@@ -50,7 +50,7 @@ export default function ClubPolicyModal({ isOpen, config, onClose, onSaved }) {
             onChange={(e) => setForm({ ...form, freeCancellationHours: e.target.value })}
             className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
           />
-          <span className="text-[10px] text-slate-400 block mt-1">Con esta antelación o más se reembolsa la seña completa (RD02, RD04).</span>
+          <span className="text-[10px] text-slate-400 block mt-1">Con esta antelación o más se reembolsa la seña completa.</span>
         </div>
 
         <div>
@@ -64,7 +64,7 @@ export default function ClubPolicyModal({ isOpen, config, onClose, onSaved }) {
             onChange={(e) => setForm({ ...form, lateCancellationRetentionPercent: e.target.value })}
             className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
           />
-          <span className="text-[10px] text-slate-400 block mt-1">Porcentaje de la seña que se cobra como cargo; el resto vuelve como crédito (RD03).</span>
+          <span className="text-[10px] text-slate-400 block mt-1">Porcentaje de la seña que se cobra como cargo; el resto vuelve como crédito.</span>
         </div>
 
         <div>
@@ -78,7 +78,7 @@ export default function ClubPolicyModal({ isOpen, config, onClose, onSaved }) {
             onChange={(e) => setForm({ ...form, maxAdvanceBookingDays: e.target.value })}
             className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
           />
-          <span className="text-[10px] text-slate-400 block mt-1">Hasta cuántos días hacia adelante se puede reservar una cancha (RD05).</span>
+          <span className="text-[10px] text-slate-400 block mt-1">Hasta cuántos días hacia adelante se puede reservar una cancha.</span>
         </div>
 
         <div className="flex justify-end gap-2 pt-2">

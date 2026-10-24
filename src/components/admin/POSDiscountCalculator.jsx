@@ -1,4 +1,6 @@
 import React, { useState, useMemo } from 'react';
+import { useFeedback } from '../../context/FeedbackContext';
+import QRCode, { qrPayloads } from '../common/QRCode';
 
 const CONCEPT_PRESETS = [
   { id: 'court_rental_2h', label: 'Alquiler de Cancha (Turno 2 hs)', defaultAmount: 9600, category: 'Alquiler' },
@@ -41,6 +43,7 @@ const TP_DISCOUNTS = [
 ];
 
 export default function POSDiscountCalculator({ onChargeComplete }) {
+  const { notify } = useFeedback();
   const [selectedConceptPreset, setSelectedConceptPreset] = useState('court_rental_2h');
   const [customConceptTitle, setCustomConceptTitle] = useState('');
   const [baseAmount, setBaseAmount] = useState(9600);
@@ -85,11 +88,11 @@ export default function POSDiscountCalculator({ onChargeComplete }) {
   const handleProcessCharge = async (e) => {
     e.preventDefault();
     if (!clientName.trim() || !clientDni.trim()) {
-      alert('Por favor complete el nombre y DNI del socio o cliente.');
+      notify({ variant: 'warning', message: 'Por favor complete el nombre y DNI del socio o cliente.' });
       return;
     }
     if (baseAmount <= 0) {
-      alert('El monto a cobrar debe ser mayor a $0.');
+      notify({ variant: 'warning', message: 'El monto a cobrar debe ser mayor a $0.' });
       return;
     }
 
@@ -367,6 +370,9 @@ export default function POSDiscountCalculator({ onChargeComplete }) {
           <div className="md:col-span-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-center">
             {paymentMethod === 'Mercado Pago (QR)' ? (
               <div className="flex items-center gap-3 text-xs">
+                <div className="w-32 h-32 bg-white p-1.5 rounded-lg border border-slate-200 shrink-0">
+                  <QRCode value={qrPayloads.payment({ concept: activeConceptName, amount: finalAmountToCharge, reference: 'POS' })} />
+                </div>
                 <div>
                   <span className="font-extrabold text-slate-900 block text-xs">QR Dinámico MP</span>
                   <span className="text-[10px] text-slate-400">Acreditación automática e instantánea al escanear.</span>

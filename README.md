@@ -57,7 +57,24 @@ recargar la página vuelven al estado inicial.
 4. El interceptor de axios manda el token en `Authorization: Bearer <token>` en cada request.
 5. Si el token venció, `getStoredToken()` lo descarta y la app vuelve al login.
 
-## Primer uso y Modo Demo
+## Primer uso y demo
 
-- **Modo Demo (sin backend)**: Podés explorar toda la aplicación inmediatamente desde la pantalla de login haciendo clic en **Demo Socio** o **Demo Admin**. No requiere tener el backend levantado ni crear usuarios previamente. Dentro de la app, podés alternar en cualquier momento entre la vista de Socio y el Panel de Administración.
-- **Con Backend (.NET en `http://localhost:5090`)**: Registrá un usuario desde `/register` o iniciá sesión con tus credenciales. Los nuevos usuarios se crean con rol `Socio`; para probar el panel de administración podés asignarle rol `Empleado` en la base de datos o usar el alternador de rol en la cabecera.
+- **App real** (`/login`, `/register`, `/app`, `/coach`, `/admin`): requiere el backend levantado. Registrá un
+  usuario desde `/register` o iniciá sesión con tus credenciales; el rol lo define el backend.
+- **Demo** (`/demo`): entorno separado de la app real, sin backend y con datos de ejemplo en memoria.
+  Desde `/demo` se elige el rol, o se entra directo a `/demo/app` (socio), `/demo/coach` (docente) o
+  `/demo/admin` (administración). La sesión demo vive en `sessionStorage` de la pestaña y nunca pisa la
+  sesión real; dentro de la demo se puede alternar entre los tres roles.
+
+## Otras notas de la interfaz
+
+- **Mi Perfil**: socios, docentes y empleados editan nombre, teléfono y foto desde el avatar de la cabecera
+  (o la tarjeta de la barra lateral). La foto se recorta en cuadrado y se guarda como data URL.
+- **Códigos QR**: carnet de socio, recibos y cobros con billetera virtual muestran QR reales
+  (`qrcode.react`), con el texto codificado en `src/components/common/QRCode.jsx`.
+- **Reserva por pasos**: cronograma → jugadores → pago de la seña, cada uno en su pantalla.
+- **Inscripciones**: anotarse a un torneo, liga, clase grupal o turno particular lleva al pago
+  (`PaymentFlowModal`), que al acreditarse registra la inscripción y emite el recibo visible en
+  *Mis Pagos y Recibos*.
+- **Avisos**: no se usan `alert`/`confirm` del navegador; los mensajes salen como modales
+  (`useFeedback()` en `src/context/FeedbackContext.jsx`).

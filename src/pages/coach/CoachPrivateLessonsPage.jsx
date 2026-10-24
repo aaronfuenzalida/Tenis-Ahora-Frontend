@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { coachesAndClassesService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { useFeedback } from '../../context/FeedbackContext';
 import { Edit } from 'lucide-react';
 import Modal from '../../components/common/Modal';
 
 export default function CoachPrivateLessonsPage() {
   const { user } = useAuth();
+  const { notify, confirm } = useFeedback();
   const [lessons, setLessons] = useState([]);
   const [coachProfile, setCoachProfile] = useState(null);
 
@@ -59,7 +61,7 @@ export default function CoachPrivateLessonsPage() {
         kind: coachProfile?.type === 'Entrenador' ? 'entrenamiento' : 'clase'
       });
     } catch (err) {
-      alert(err.message || 'No se pudo registrar el turno.');
+      notify({ variant: 'error', title: 'Error al registrar', message: err.message || 'No se pudo registrar el turno.' });
       return;
     }
     setShowAddModal(false);
@@ -91,14 +93,14 @@ export default function CoachPrivateLessonsPage() {
   };
 
   const handleCancelLesson = async (id) => {
-    if (window.confirm('Confirma la cancelación de esta clase particular?')) {
+    if (await confirm({ title: 'Cancelar clase particular', message: 'Confirma la cancelación de esta clase particular?', confirmLabel: 'Cancelar clase', danger: true })) {
       await coachesAndClassesService.cancelPrivateClass(id);
       await loadLessons();
     }
   };
 
   const handleDeleteLesson = async (id) => {
-    if (window.confirm('Confirma la eliminación del registro de este turno?')) {
+    if (await confirm({ title: 'Eliminar turno', message: 'Confirma la eliminación del registro de este turno?', confirmLabel: 'Eliminar', danger: true })) {
       await coachesAndClassesService.deletePrivateClass(id);
       await loadLessons();
     }

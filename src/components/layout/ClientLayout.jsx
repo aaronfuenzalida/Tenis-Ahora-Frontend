@@ -1,37 +1,42 @@
 import React, { useState } from 'react';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
 import ClientSidebar from './ClientSidebar';
-import { Menu } from 'lucide-react';
+import { Menu, UserCog } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import usePortalPaths from '../../hooks/usePortalPaths';
 import Logo from '../common/Logo';
+import Avatar from '../common/Avatar';
+import ProfileModal from '../common/ProfileModal';
 
 export default function ClientLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user, switchRole } = useAuth();
+  const [showProfile, setShowProfile] = useState(false);
+  const { user, isDemo, switchRole } = useAuth();
+  const paths = usePortalPaths();
   const navigate = useNavigate();
 
   const handleToggleRole = () => {
     switchRole('admin');
-    navigate('/admin');
+    navigate(paths.admin);
   };
 
   const handleGoToCoach = () => {
     switchRole('coach');
-    navigate('/coach');
+    navigate(paths.coach);
   };
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
-      
+
       {/* Lateral Sidebar (Navbar al costado) */}
-      <ClientSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <ClientSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} onEditProfile={() => setShowProfile(true)} />
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col lg:pl-64 min-w-0">
-        
+
         {/* Top Minimal Bar */}
         <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between shadow-sm">
-          
+
           {/* Mobile hamburger & brand */}
           <div className="flex items-center gap-3">
             <button
@@ -55,18 +60,18 @@ export default function ClientLayout() {
 
           {/* Right Header Actions */}
           <div className="flex items-center gap-3">
-            {user?.isDemo && (
-              <span className="text-xs text-slate-400">Modo demo</span>
+            {isDemo && (
+              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800 bg-amber-50 border border-amber-200 px-2 py-1 rounded-lg">Demo</span>
             )}
 
             <Link
-              to="/app/reservas"
+              to={paths.appReservas}
               className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white text-xs font-extrabold shadow-sm transition-all"
             >
               Reservar Cancha
             </Link>
 
-            {user?.isDemo && (
+            {isDemo && (
               <>
                 <button
                   type="button"
@@ -88,15 +93,19 @@ export default function ClientLayout() {
               </>
             )}
 
-            <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
-              <div className="w-8 h-8 rounded-full bg-tennis-600 text-white flex items-center justify-center font-bold text-xs shadow-sm">
-                {user?.name ? user.name.charAt(0) : 'S'}
-              </div>
+            <button
+              type="button"
+              onClick={() => setShowProfile(true)}
+              title="Editar mi perfil"
+              className="flex items-center gap-2 pl-2 border-l border-slate-200 group"
+            >
+              <Avatar user={user} />
               <div className="hidden md:block text-left">
-                <div className="text-xs font-bold text-slate-900 leading-tight">{user?.name}</div>
-                <div className="text-[10px] text-tennis-700 font-semibold">Socio N° {user?.memberNumber || 'TA-8821'}</div>
+                <div className="text-xs font-bold text-slate-900 leading-tight group-hover:text-tennis-700">{user?.name}</div>
+                <div className="text-[10px] text-tennis-700 font-semibold">Socio N° {user?.memberNumber || '—'}</div>
               </div>
-            </div>
+              <UserCog className="w-4 h-4 text-slate-400 group-hover:text-tennis-700 hidden md:block" />
+            </button>
           </div>
 
         </header>
@@ -120,6 +129,8 @@ export default function ClientLayout() {
         </footer>
 
       </div>
+
+      <ProfileModal isOpen={showProfile} onClose={() => setShowProfile(false)} />
     </div>
   );
 }

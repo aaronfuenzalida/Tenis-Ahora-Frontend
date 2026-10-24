@@ -6,8 +6,10 @@ import AttendanceSheetModal from '../../components/common/AttendanceSheetModal';
 import AttendanceMatrixModal from '../../components/common/AttendanceMatrixModal';
 import Modal from '../../components/common/Modal';
 import CoachCertificationsReport from '../../components/admin/CoachCertificationsReport';
+import { useFeedback } from '../../context/FeedbackContext';
 
 export default function CoachesAndClassesPage() {
+  const { notify, confirm } = useFeedback();
   // Main Tab: 'coaches' | 'group-classes' | 'private-classes'
   const [activeMainTab, setActiveMainTab] = useState('coaches');
 
@@ -152,11 +154,11 @@ export default function CoachesAndClassesPage() {
   const handleCreateCoach = async (e) => {
     e.preventDefault();
     if (!newCoachForm.licenseNumber.trim()) {
-      alert('Debe ingresar el número de matrícula o licencia deportiva oficial.');
+      notify({ message: 'Debe ingresar el número de matrícula o licencia deportiva oficial.', variant: 'warning' });
       return;
     }
     if (!newCoachFile) {
-      alert('Debe adjuntar el documento del título habilitante (RD08).');
+      notify({ message: 'Debe adjuntar el documento del título habilitante.', variant: 'warning' });
       return;
     }
     try {
@@ -183,7 +185,7 @@ export default function CoachesAndClassesPage() {
         }
       });
     } catch (err) {
-      alert(err.message || 'No se pudo registrar al docente.');
+      notify({ title: 'Error al registrar docente', message: err.message || 'No se pudo registrar al docente.', variant: 'error' });
       return;
     }
 
@@ -261,7 +263,7 @@ export default function CoachesAndClassesPage() {
         }
       });
     } catch (err) {
-      alert(err.message || 'No se pudo modificar al docente.');
+      notify({ title: 'Error al modificar docente', message: err.message || 'No se pudo modificar al docente.', variant: 'error' });
       return;
     }
     setShowEditCoachModal(false);
@@ -307,7 +309,7 @@ export default function CoachesAndClassesPage() {
     e.preventDefault();
     const limit = capacityLimitFor(newClassForm.courtAssigned);
     if (newClassForm.maxCapacity > limit) {
-      alert(`El cupo máximo para ${newClassForm.courtAssigned} es de ${limit} alumnos.`);
+      notify({ message: `El cupo máximo para ${newClassForm.courtAssigned} es de ${limit} alumnos.`, variant: 'warning' });
       return;
     }
     const coachObj = coaches.find(c => c.id === newClassForm.coachId);
@@ -317,7 +319,7 @@ export default function CoachesAndClassesPage() {
         coachName: coachObj ? coachObj.name : 'Profesor Asignado'
       });
     } catch (err) {
-      alert(err.message || 'No se pudo registrar la clase.');
+      notify({ title: 'Error al registrar clase', message: err.message || 'No se pudo registrar la clase.', variant: 'error' });
       return;
     }
     setShowAddClassModal(false);
@@ -345,7 +347,7 @@ export default function CoachesAndClassesPage() {
     if (!classToEdit) return;
     const limit = capacityLimitFor(classToEdit.courtAssigned);
     if (classToEdit.maxCapacity > limit) {
-      alert(`El cupo máximo para ${classToEdit.courtAssigned} es de ${limit} alumnos.`);
+      notify({ message: `El cupo máximo para ${classToEdit.courtAssigned} es de ${limit} alumnos.`, variant: 'warning' });
       return;
     }
     const coachObj = coaches.find(c => c.id === classToEdit.coachId);
@@ -355,7 +357,7 @@ export default function CoachesAndClassesPage() {
         coachName: coachObj ? coachObj.name : classToEdit.coachName
       });
     } catch (err) {
-      alert(err.message || 'No se pudo modificar la clase.');
+      notify({ title: 'Error al modificar clase', message: err.message || 'No se pudo modificar la clase.', variant: 'error' });
       return;
     }
     setShowEditClassModal(false);
@@ -388,13 +390,13 @@ export default function CoachesAndClassesPage() {
       const updated = clRes.data.find(c => c.id === classToStudents.id);
       if (updated) setClassToStudents(updated);
     } catch (err) {
-      alert(err.message || 'Error al inscribir alumno.');
+      notify({ title: 'Error al inscribir alumno', message: err.message || 'Error al inscribir alumno.', variant: 'error' });
     }
   };
 
   const handleRemoveStudentModal = async (studentId) => {
     if (!classToStudents) return;
-    if (window.confirm('Confirma la baja del alumno en esta clase?')) {
+    if (await confirm({ title: 'Baja de alumno', message: 'Confirma la baja del alumno en esta clase?', confirmLabel: 'Dar de baja', danger: true })) {
       await coachesAndClassesService.removeStudent(classToStudents.id, studentId);
       const clRes = await coachesAndClassesService.getClasses();
       setClasses(clRes.data);
@@ -431,7 +433,7 @@ export default function CoachesAndClassesPage() {
         coachName: coachObj ? coachObj.name : 'Profesor Asignado'
       });
     } catch (err) {
-      alert(err.message || 'No se pudo registrar el turno particular.');
+      notify({ title: 'Error al registrar turno', message: err.message || 'No se pudo registrar el turno particular.', variant: 'error' });
       return;
     }
     setShowAddPrivateModal(false);
@@ -466,7 +468,7 @@ export default function CoachesAndClassesPage() {
         coachName: coachObj ? coachObj.name : privateToEdit.coachName
       });
     } catch (err) {
-      alert(err.message || 'No se pudo modificar el turno particular.');
+      notify({ title: 'Error al modificar turno', message: err.message || 'No se pudo modificar el turno particular.', variant: 'error' });
       return;
     }
     setShowEditPrivateModal(false);
@@ -475,14 +477,14 @@ export default function CoachesAndClassesPage() {
   };
 
   const handleCancelPrivate = async (id) => {
-    if (window.confirm('Confirma la cancelación de esta clase particular?')) {
+    if (await confirm({ title: 'Cancelar clase particular', message: 'Confirma la cancelación de esta clase particular?', confirmLabel: 'Cancelar clase', danger: true })) {
       await coachesAndClassesService.cancelPrivateClass(id);
       await loadAllData();
     }
   };
 
   const handleDeletePrivate = async (id) => {
-    if (window.confirm('Confirma la eliminación del registro de esta clase particular?')) {
+    if (await confirm({ title: 'Eliminar clase particular', message: 'Confirma la eliminación del registro de esta clase particular?', confirmLabel: 'Eliminar', danger: true })) {
       await coachesAndClassesService.deletePrivateClass(id);
       await loadAllData();
     }
@@ -720,7 +722,7 @@ export default function CoachesAndClassesPage() {
                 <h2 className="text-base font-bold text-slate-900">
                   {classKindFilter === 'entrenamiento' ? 'Programación de Entrenamientos Grupales' : 'Programación de Clases Grupales y Escuela'}
                 </h2>
-                <p className="text-xs text-slate-500">Cupo máximo configurable por comisión; límite reglamentario de 30 alumnos (RD07 / RD10).</p>
+                <p className="text-xs text-slate-500">Cupo máximo configurable por comisión; límite reglamentario de 30 alumnos.</p>
               </div>
               <div className="bg-slate-100 p-1 rounded-xl flex items-center border border-slate-200">
                 {[['clase', 'Clases'], ['entrenamiento', 'Entrenamientos']].map(([k, label]) => (

@@ -2,10 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { coachesAndClassesService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import CoachCredentialsModal from '../../components/common/CoachCredentialsModal';
+import ProfileModal from '../../components/common/ProfileModal';
+import Avatar from '../../components/common/Avatar';
+import { useFeedback } from '../../context/FeedbackContext';
 
 export default function CoachProfilePage() {
   const { user } = useAuth();
+  const { notify } = useFeedback();
   const [coachProfile, setCoachProfile] = useState(null);
+  const [showProfileModal, setShowProfileModal] = useState(false);
   const [showCredentialsModal, setShowCredentialsModal] = useState(false);
   const [savingAvail, setSavingAvail] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
@@ -19,7 +24,7 @@ export default function CoachProfilePage() {
 
   useEffect(() => {
     loadProfile();
-  }, [user]);
+  }, [user, showProfileModal]);
 
   const loadProfile = async () => {
     const cRes = await coachesAndClassesService.getCoaches();
@@ -43,7 +48,7 @@ export default function CoachProfilePage() {
       hourlyRatePrivate: Number(hourlyRateInput)
     });
     setSavingAvail(false);
-    alert('Disponibilidad horaria y tarifa particular actualizadas con éxito.');
+    notify({ variant: 'success', title: 'Datos guardados', message: 'Disponibilidad horaria y tarifa particular actualizadas con éxito.' });
     await loadProfile();
   };
 
@@ -57,7 +62,7 @@ export default function CoachProfilePage() {
       bio: bioInput
     });
     setSavingProfile(false);
-    alert('Información de contacto y reseña profesional actualizadas con éxito.');
+    notify({ variant: 'success', title: 'Datos guardados', message: 'Información de contacto y reseña profesional actualizadas con éxito.' });
     await loadProfile();
   };
 
@@ -80,6 +85,25 @@ export default function CoachProfilePage() {
           className="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs rounded-xl border border-slate-200 shadow-sm flex items-center gap-1.5 self-start sm:self-auto"
         >
           Imprimir Ficha Oficial
+        </button>
+      </div>
+
+      {/* Identidad: nombre, teléfono y foto (editables desde Mi Perfil) */}
+      <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 no-print">
+        <div className="flex items-center gap-4">
+          <Avatar user={{ ...user, photo: user?.photo || coachProfile?.photo }} size="w-16 h-16" rounded="rounded-2xl" textClass="text-xl" />
+          <div>
+            <h2 className="text-base font-bold text-slate-900">{user?.name}</h2>
+            <p className="text-xs text-slate-500">{user?.rolBackend || 'Profesor'} • N° {user?.memberNumber || '—'}</p>
+            <p className="text-xs text-slate-500 mt-0.5">Tel.: {user?.phone || 'sin cargar'} • {user?.email}</p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowProfileModal(true)}
+          className="px-3.5 py-2 bg-tennis-600 hover:bg-tennis-700 text-white font-semibold text-xs rounded-xl shadow-sm self-start sm:self-auto"
+        >
+          Editar nombre, teléfono y foto
         </button>
       </div>
 
@@ -255,6 +279,8 @@ export default function CoachProfilePage() {
         </div>
 
       </div>
+
+      <ProfileModal isOpen={showProfileModal} onClose={() => setShowProfileModal(false)} />
 
       {/* Credentials Modal */}
       <CoachCredentialsModal

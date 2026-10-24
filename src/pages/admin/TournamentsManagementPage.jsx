@@ -12,8 +12,10 @@ const rulesDocumentFor = async (file, remove) => {
 import MatchesPanel from '../../components/admin/MatchesPanel';
 import CompetitionTypesPanel from '../../components/admin/CompetitionTypesPanel';
 import TournamentBracketTree from '../../components/common/TournamentBracketTree';
+import { useFeedback } from '../../context/FeedbackContext';
 
 export default function TournamentsManagementPage() {
+  const { notify, confirm } = useFeedback();
   // Main Tab: 'tournaments' | 'leagues'
   const [activeMainTab, setActiveMainTab] = useState('tournaments'); // tournaments | leagues | matches | competition-types
   const [competitionTypes, setCompetitionTypes] = useState([]);
@@ -181,7 +183,7 @@ export default function TournamentsManagementPage() {
       res = await tournamentsService.create(newTrnForm);
       if (rulesDocument) res = await tournamentsService.updateInternalRules(res.data.id, undefined, rulesDocument);
     } catch (err) {
-      alert(err.message || 'No se pudo registrar el torneo.');
+      notify({ title: 'Error al registrar torneo', message: err.message || 'No se pudo registrar el torneo.', variant: 'error' });
       return;
     }
     setShowCreateTrnModal(false);
@@ -252,7 +254,7 @@ export default function TournamentsManagementPage() {
       const rulesDocument = await rulesDocumentFor(rulesTrnFile, rulesTrnRemove);
       await tournamentsService.updateInternalRules(selectedTournament.id, rulesTrnText, rulesDocument);
     } catch (err) {
-      alert(err.message || 'No se pudo guardar el reglamento.');
+      notify({ title: 'Error al guardar reglamento', message: err.message || 'No se pudo guardar el reglamento.', variant: 'error' });
       return;
     }
     setShowRulesTrnModal(false);
@@ -276,7 +278,7 @@ export default function TournamentsManagementPage() {
 
   const handleRemoveParticipantTrn = async (participantId) => {
     if (!selectedTournament) return;
-    if (window.confirm('Confirma la baja del participante en este torneo?')) {
+    if (await confirm({ title: 'Baja de participante', message: 'Confirma la baja del participante en este torneo?', confirmLabel: 'Dar de baja', danger: true })) {
       await tournamentsService.removeParticipant(selectedTournament.id, participantId);
       await loadTournaments();
     }
@@ -299,7 +301,7 @@ export default function TournamentsManagementPage() {
       res = await leaguesService.create(newLeagueForm);
       if (rulesDocument) res = await leaguesService.updateInternalRules(res.data.id, undefined, rulesDocument);
     } catch (err) {
-      alert(err.message || 'No se pudo registrar la liga.');
+      notify({ title: 'Error al registrar liga', message: err.message || 'No se pudo registrar la liga.', variant: 'error' });
       return;
     }
     setShowCreateLeagueModal(false);
@@ -370,7 +372,7 @@ export default function TournamentsManagementPage() {
       const rulesDocument = await rulesDocumentFor(rulesLeagueFile, rulesLeagueRemove);
       await leaguesService.updateInternalRules(selectedLeague.id, rulesLeagueText, rulesDocument);
     } catch (err) {
-      alert(err.message || 'No se pudo guardar el reglamento.');
+      notify({ title: 'Error al guardar reglamento', message: err.message || 'No se pudo guardar el reglamento.', variant: 'error' });
       return;
     }
     setShowRulesLeagueModal(false);
@@ -394,7 +396,7 @@ export default function TournamentsManagementPage() {
 
   const handleRemoveParticipantLeague = async (participantId) => {
     if (!selectedLeague) return;
-    if (window.confirm('Confirma la baja del participante en esta liga?')) {
+    if (await confirm({ title: 'Baja de participante', message: 'Confirma la baja del participante en esta liga?', confirmLabel: 'Dar de baja', danger: true })) {
       await leaguesService.removeParticipant(selectedLeague.id, participantId);
       await loadLeagues();
     }

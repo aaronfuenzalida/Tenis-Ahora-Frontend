@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useFeedback } from '../../context/FeedbackContext';
+import usePortalPaths from '../../hooks/usePortalPaths';
 import { reservationsService, courtsService, tournamentsService, clubConfigService, DEFAULT_CLUB_CONFIG } from '../../services/api';
 import ReceiptModal from '../../components/common/ReceiptModal';
 import MemberCardModal from '../../components/common/MemberCardModal';
@@ -9,6 +11,8 @@ import { calculateHoursUntil, formatHoursMinutes } from '../../utils/formatters'
 
 export default function ClientDashboard() {
   const { user } = useAuth();
+  const { notify } = useFeedback();
+  const paths = usePortalPaths();
   const [reservations, setReservations] = useState([]);
   const [courts, setCourts] = useState([]);
   const [tournaments, setTournaments] = useState([]);
@@ -36,9 +40,9 @@ export default function ClientDashboard() {
     setShowCancelModal(false);
     loadData();
     if (result.isWithinFreeWindow) {
-      alert(`Reserva cancelada con ${clubConfig.freeCancellationHours} horas o más de antelación. Se ha gestionado el reintegro de la seña.`);
+      notify({ variant: 'success', title: 'Reserva cancelada', message: `Cancelaste con ${clubConfig.freeCancellationHours} horas o más de antelación. Se gestionó el reintegro de la seña.` });
     } else {
-      alert(`Reserva cancelada con menos de ${clubConfig.freeCancellationHours} horas de antelación. Se ha aplicado la retención del ${clubConfig.lateCancellationRetentionPercent}% de la seña.`);
+      notify({ variant: 'warning', title: 'Reserva cancelada', message: `Cancelaste con menos de ${clubConfig.freeCancellationHours} horas de antelación. Se aplicó la retención del ${clubConfig.lateCancellationRetentionPercent}% de la seña.` });
     }
   };
 
@@ -50,7 +54,7 @@ export default function ClientDashboard() {
         <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div className="space-y-2">
             <div className="text-xs font-semibold text-tennis-200">
-              Socio N° {user?.memberNumber || 'TA-8821'}
+              Socio N° {user?.memberNumber || '—'}
             </div>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
               ¡Hola, {user?.name?.split(' ')[0] || 'Socio'}!
@@ -66,7 +70,7 @@ export default function ClientDashboard() {
               Mi Carnet de Socio 
             </button>
             <Link
-              to="/app/reservas"
+              to={paths.appReservas}
               className="px-5 py-3 rounded-2xl bg-white text-tennis-800 hover:bg-tennis-50 font-extrabold text-sm shadow-md transition-all flex items-center gap-2"
             >
               Reservar cancha ahora
@@ -181,8 +185,8 @@ export default function ClientDashboard() {
                       type="button"
                       onClick={() => setSelectedReceipt({
                         id: upcomingBooking.depositReceiptNumber,
-                        clientName: user?.name || 'Federico Gómez',
-                        clientDni: user?.dni || '38.452.129',
+                        clientName: user?.name,
+                        clientDni: user?.dni,
                         concept: `Seña 50% Alquiler - ${upcomingBooking.courtName}`,
                         items: [
                           { description: `Alquiler Cancha (${upcomingBooking.durationHours} hs)`, amount: upcomingBooking.courtCost },
@@ -205,7 +209,7 @@ export default function ClientDashboard() {
               <div className="text-center py-8">
                 <p className="text-sm text-slate-500 mb-3">No tenés reservas pendientes para hoy.</p>
                 <Link
-                  to="/app/reservas"
+                  to={paths.appReservas}
                   className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-tennis-600 text-white font-bold text-xs hover:bg-tennis-700"
                 >
                   Buscar Canchas Disponibles
@@ -229,7 +233,7 @@ export default function ClientDashboard() {
           <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <h2 className="text-base font-extrabold text-slate-900">Nuestras Canchas</h2>
-              <Link to="/app/reservas" className="text-xs font-bold text-tennis-600 hover:underline">
+              <Link to={paths.appReservas} className="text-xs font-bold text-tennis-600 hover:underline">
                 Ver todas
               </Link>
             </div>
@@ -266,7 +270,7 @@ export default function ClientDashboard() {
 
             <div className="mt-4 pt-3 border-t border-slate-100 text-center">
               <Link
-                to="/app/reservas"
+                to={paths.appReservas}
                 className="w-full py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-tennis-50 text-slate-700 hover:text-tennis-700 font-bold text-xs transition-colors flex items-center justify-center gap-1"
               >
                 Consultar Grilla de Horarios
@@ -362,14 +366,7 @@ export default function ClientDashboard() {
       <MemberCardModal
         isOpen={showCardModal}
         onClose={() => setShowCardModal(false)}
-        member={user || {
-          name: 'Federico Gómez',
-          dni: '38.452.129',
-          phone: '+54 11 4892-1234',
-          email: 'socio@tenisahora.com',
-          role: 'client',
-          memberNumber: 'TA-8821'
-        }}
+        member={user}
       />
 
     </div>

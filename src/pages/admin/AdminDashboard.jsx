@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import usePortalPaths from '../../hooks/usePortalPaths';
 import { courtsService, reservationsService, stockService, tournamentsService } from '../../services/api';
 import ReceiptModal from '../../components/common/ReceiptModal';
 
 export default function AdminDashboard() {
+  const paths = usePortalPaths();
   const [courts, setCourts] = useState([]);
   const [reservations, setReservations] = useState([]);
   const [stock, setStock] = useState([]);
@@ -34,13 +36,13 @@ export default function AdminDashboard() {
 
         <div className="flex items-center gap-2">
           <Link
-            to="/admin/reservas"
+            to={`${paths.admin}/reservas`}
             className="px-4 py-2.5 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-bold text-xs shadow-md transition-all flex items-center gap-1.5"
           >
             Gestionar Reservas
           </Link>
           <Link
-            to="/admin/reportes"
+            to={`${paths.admin}/reportes`}
             className="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs border border-slate-200 shadow-sm transition-colors flex items-center gap-1.5"
           >
             Imprimir Reportes
@@ -57,7 +59,7 @@ export default function AdminDashboard() {
             </span>
           </div>
           <Link
-            to="/admin/stock"
+            to={`${paths.admin}/stock`}
             className="px-3 py-1 bg-slate-600 text-white font-semibold rounded-lg text-xs hover:bg-slate-700 shrink-0"
           >
             Gestionar Stock
@@ -114,7 +116,7 @@ export default function AdminDashboard() {
           <div>
             <h2 className="text-base font-extrabold text-slate-900">Estado de Canchas y Disponibilidad</h2>
           </div>
-          <Link to="/admin/canchas" className="text-xs font-bold text-tennis-700 hover:underline flex items-center gap-1">
+          <Link to={`${paths.admin}/canchas`} className="text-xs font-bold text-tennis-700 hover:underline flex items-center gap-1">
             Administrar Canchas
           </Link>
         </div>
@@ -166,7 +168,7 @@ export default function AdminDashboard() {
             <div>
               <h2 className="text-base font-extrabold text-slate-900">Reservas Recientes y Liquidación</h2>
             </div>
-            <Link to="/admin/reservas" className="text-xs font-bold text-tennis-700 hover:underline">
+            <Link to={`${paths.admin}/reservas`} className="text-xs font-bold text-tennis-700 hover:underline">
               Ver todas
             </Link>
           </div>
@@ -247,7 +249,7 @@ export default function AdminDashboard() {
         <div className="lg:col-span-4 bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-extrabold text-slate-900">Stock de Equipamiento</h2>
-            <Link to="/admin/stock" className="text-xs font-bold text-tennis-700 hover:underline">
+            <Link to={`${paths.admin}/stock`} className="text-xs font-bold text-tennis-700 hover:underline">
               Gestionar Stock
             </Link>
           </div>

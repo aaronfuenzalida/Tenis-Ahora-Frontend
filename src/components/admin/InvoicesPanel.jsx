@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Search, Trash2, Ban } from 'lucide-react';
 import Modal from '../common/Modal';
 import { invoicesService, receiptsService } from '../../services/api';
+import { useFeedback } from '../../context/FeedbackContext';
 
 const PAYMENT_METHODS = ['Tarjeta de Débito', 'Tarjeta de Crédito', 'Billetera Virtual (Mercado Pago / MODO / Cuenta DNI)'];
 
@@ -23,6 +24,7 @@ const money = (n) => `$${Number(n || 0).toLocaleString('es-AR')}`;
  * RF125 - RF127: registro, consulta e impresión de facturas.
  */
 export default function InvoicesPanel() {
+  const { notify, confirm } = useFeedback();
   const [invoices, setInvoices] = useState([]);
   const [receipts, setReceipts] = useState([]);
   const [search, setSearch] = useState('');
@@ -70,11 +72,11 @@ export default function InvoicesPanel() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (form.items.length === 0 || form.items.some(it => !it.description.trim())) {
-      alert('Cada ítem de la factura debe tener una descripción.');
+      notify({ variant: 'warning', message: 'Cada ítem de la factura debe tener una descripción.' });
       return;
     }
     if (subtotal <= 0) {
-      alert('El importe de la factura debe ser mayor a cero.');
+      notify({ variant: 'warning', message: 'El importe de la factura debe ser mayor a cero.' });
       return;
     }
     const res = await invoicesService.create({ ...form, relatedReceiptId: form.relatedReceiptId || null });
@@ -85,7 +87,7 @@ export default function InvoicesPanel() {
   };
 
   const handleAnnul = async (inv) => {
-    if (window.confirm(`¿Anular la factura ${inv.id}? La operación queda registrada como anulada.`)) {
+    if (await confirm({ title: 'Anular factura', message: `¿Anular la factura ${inv.id}? La operación queda registrada como anulada.`, confirmLabel: 'Anular', danger: true })) {
       await invoicesService.annul(inv.id);
       await load();
     }

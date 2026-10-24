@@ -1,6 +1,7 @@
 import React from 'react';
 import Modal from './Modal';
 import Logo from './Logo';
+import QRCode, { qrPayloads } from './QRCode';
 
 export default function ReceiptModal({ isOpen, onClose, receipt }) {
   if (!receipt) return null;
@@ -112,14 +113,12 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
           <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs">
             <div className="flex items-center gap-3">
               {/* QR Code */}
-              <div className="w-14 h-14 bg-white p-1 rounded-lg border border-slate-300 shadow-sm flex items-center justify-center shrink-0">
-                <svg viewBox="0 0 100 100" className="w-full h-full text-slate-900 fill-current">
-                  <path d="M0 0h30v30H0zM10 10h10v10H10zM70 0h30v30H70zM80 10h10v10H80zM0 70h30v30H0zM10 80h10v10H10zM40 10h10v10H40zM55 10h10v15H55zM40 40h20v20H40zM70 40h10v20H70zM85 45h15v15H85zM40 70h15v15H40zM60 70h15v30H60zM80 80h20v20H80z" />
-                </svg>
+              <div className="w-16 h-16 bg-white p-1 rounded-lg border border-slate-300 shadow-sm flex items-center justify-center shrink-0">
+                <QRCode value={qrPayloads.receipt(receipt)} size={64} level="L" />
               </div>
               <div className="text-[11px] text-slate-500">
                 <p className="font-bold text-slate-800">Comprobante Fiscal Digital Oficial</p>
-                <p>Verificación en línea por Mercado Pago QR y AFIP</p>
+                <p>Escaneá el código para verificar el comprobante en línea</p>
                 <p className="text-[10px] text-slate-400 mt-0.5">
                   Operador / Cajero: <strong>{receipt.cashierName || 'Recepción General'}</strong>
                 </p>

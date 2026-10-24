@@ -7,8 +7,10 @@ import UserDiscountsModal from '../../components/admin/UserDiscountsModal';
 import TablePaginationBar, { TableSortHeader } from '../../components/common/TablePaginationBar';
 import { useTablePagination } from '../../hooks/useTablePagination';
 import { formatDNI, formatPhone, isValidDNI, isValidEmail } from '../../utils/formatters';
+import { useFeedback } from '../../context/FeedbackContext';
 
 export default function UsersManagementPage() {
+  const { notify } = useFeedback();
   const [users, setUsers] = useState([]);
   const [coaches, setCoaches] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -61,27 +63,27 @@ export default function UsersManagementPage() {
   const handleSaveUser = async (e) => {
     e.preventDefault();
     if (!isValidDNI(formData.dni)) {
-      alert('Por favor ingrese un DNI válido (entre 7 y 8 dígitos).');
+      notify({ variant: 'warning', message: 'Por favor ingrese un DNI válido (entre 7 y 8 dígitos).' });
       return;
     }
     if (!isValidEmail(formData.email)) {
-      alert('Por favor ingrese un correo electrónico válido.');
+      notify({ variant: 'warning', message: 'Por favor ingrese un correo electrónico válido.' });
       return;
     }
     await usersService.update(selectedUser.id, formData);
     setShowEditModal(false);
     loadUsers();
-    alert('¡Datos de usuario actualizados correctamente!');
+    notify({ variant: 'success', title: 'Usuario actualizado', message: '¡Datos de usuario actualizados correctamente!' });
   };
 
   const handleCreateUser = async (e) => {
     e.preventDefault();
     if (!isValidDNI(createData.dni)) {
-      alert('Por favor ingrese un DNI válido (entre 7 y 8 dígitos).');
+      notify({ variant: 'warning', message: 'Por favor ingrese un DNI válido (entre 7 y 8 dígitos).' });
       return;
     }
     if (!isValidEmail(createData.email)) {
-      alert('Por favor ingrese un correo electrónico válido.');
+      notify({ variant: 'warning', message: 'Por favor ingrese un correo electrónico válido.' });
       return;
     }
     try {
@@ -89,9 +91,9 @@ export default function UsersManagementPage() {
       setShowCreateModal(false);
       setCreateData({ name: '', dni: '', email: '', phone: '', address: '', role: 'client' });
       loadUsers();
-      alert('¡Usuario registrado correctamente!');
+      notify({ variant: 'success', title: 'Usuario registrado', message: '¡Usuario registrado correctamente!' });
     } catch (err) {
-      alert(err.message || 'No se pudo registrar el usuario.');
+      notify({ variant: 'error', title: 'Error al registrar', message: err.message || 'No se pudo registrar el usuario.' });
     }
   };
 

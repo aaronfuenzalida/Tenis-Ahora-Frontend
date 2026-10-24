@@ -1,8 +1,10 @@
 import React from 'react';
 import Modal from './Modal';
 import { documentsService } from '../../services/api';
+import { useFeedback } from '../../context/FeedbackContext';
 
 export default function CoachCredentialsModal({ isOpen, onClose, coach }) {
+  const { notify } = useFeedback();
   if (!coach) return null;
 
   const license = coach.licenseDetails;
@@ -81,7 +83,7 @@ export default function CoachCredentialsModal({ isOpen, onClose, coach }) {
             <button
               type="button"
               disabled={!license?.document}
-              onClick={() => documentsService.download(license.document).catch(err => alert(err.message || 'No se pudo descargar el documento.'))}
+              onClick={() => documentsService.download(license.document).catch(err => notify({ variant: 'error', message: err.message || 'No se pudo descargar el documento.' }))}
               className="px-3 py-1.5 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-lg inline-flex items-center gap-1 transition-colors disabled:opacity-40 disabled:cursor-not-allowed no-print"
             >
               Descargar

@@ -7,8 +7,10 @@ import ClubPolicyModal from '../../components/admin/ClubPolicyModal';
 import TablePaginationBar, { TableSortHeader } from '../../components/common/TablePaginationBar';
 import { useTablePagination } from '../../hooks/useTablePagination';
 import { calculateHoursUntil, formatHoursMinutes } from '../../utils/formatters';
+import { useFeedback } from '../../context/FeedbackContext';
 
 export default function ReservationsManagementPage() {
+  const { notify } = useFeedback();
   const [reservations, setReservations] = useState([]);
   const [courts, setCourts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -62,7 +64,7 @@ export default function ReservationsManagementPage() {
     if (!resToEdit || !editForm) return;
     const court = courts.find(c => c.id === editForm.courtId);
     if (court && court.status === 'mantenimiento') {
-      alert('La cancha seleccionada está bloqueada por mantenimiento y no admite reservas (RD06).');
+      notify({ variant: 'warning', message: 'La cancha seleccionada está bloqueada por mantenimiento y no admite reservas.' });
       return;
     }
     const participants = [...(resToEdit.participants || [])];
@@ -81,7 +83,7 @@ export default function ReservationsManagementPage() {
     setResToEdit(null);
     setEditForm(null);
     loadReservations();
-    alert('Reserva modificada correctamente.');
+    notify({ variant: 'success', title: 'Reserva modificada', message: 'Reserva modificada correctamente.' });
   };
 
   const handleConfirmDelete = async () => {
@@ -96,7 +98,7 @@ export default function ReservationsManagementPage() {
     await reservationsService.payRemainingBalance(selectedResForPayment.id, remainingPaymentMethod);
     setSelectedResForPayment(null);
     loadReservations();
-    alert('¡Cobro del 50% restante liquidado y registrado en caja!');
+    notify({ variant: 'success', title: 'Cobro registrado', message: '¡Cobro del 50% restante liquidado y registrado en caja!' });
   };
 
   const handleCancelReservation = async (e) => {
@@ -106,9 +108,9 @@ export default function ReservationsManagementPage() {
     loadReservations();
     
     if (result.isWithinFreeWindow) {
-      alert(`Cancelación procesada (>= ${clubConfig.freeCancellationHours} hs de antelación). Se generó el reembolso ${result.refund?.id || ''} por $${(result.refund?.refundAmount || 0).toLocaleString('es-AR')} (pendiente de proceso en Caja > Reembolsos).`);
+      notify({ variant: 'success', title: 'Cancelación procesada', message: `Cancelación procesada (>= ${clubConfig.freeCancellationHours} hs de antelación). Se generó el reembolso ${result.refund?.id || ''} por ${(result.refund?.refundAmount || 0).toLocaleString('es-AR')} (pendiente de proceso en Caja > Reembolsos).` });
     } else {
-      alert(`Cancelación procesada (< ${clubConfig.freeCancellationHours} hs de antelación): fuera de plazo reglamentario. Se aplicó el cargo ${result.penaltyReceipt?.id || ''} por $${(result.penaltyReceipt?.totalPaid || 0).toLocaleString('es-AR')} y se reintegra el resto como crédito (${result.refund?.id || ''}).`);
+      notify({ variant: 'warning', title: 'Cancelación procesada', message: `Cancelación procesada (< ${clubConfig.freeCancellationHours} hs de antelación): fuera de plazo reglamentario. Se aplicó el cargo ${result.penaltyReceipt?.id || ''} por ${(result.penaltyReceipt?.totalPaid || 0).toLocaleString('es-AR')} y se reintegra el resto como crédito (${result.refund?.id || ''}).` });
     }
   };
 

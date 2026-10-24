@@ -1,15 +1,17 @@
 import React from 'react';
 import { documentsService } from '../../services/api';
+import { useFeedback } from '../../context/FeedbackContext';
 
 /**
  * RF041 / RF048: documento del reglamento interno de cada torneo o liga.
  */
 export function RulesDocumentLink({ document }) {
+  const { notify } = useFeedback();
   if (!document) return null;
   return (
     <button
       type="button"
-      onClick={() => documentsService.download(document).catch(err => alert(err.message || 'No se pudo descargar el documento.'))}
+      onClick={() => documentsService.download(document).catch(err => notify({ variant: 'error', message: err.message || 'No se pudo descargar el documento.' }))}
       className="text-xs font-semibold text-tennis-800 hover:underline text-left"
     >
       Descargar reglamento: {document.name}

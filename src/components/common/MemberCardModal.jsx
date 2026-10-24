@@ -1,6 +1,6 @@
 import React from 'react';
 import Modal from './Modal';
-import Logo from './Logo';
+import QRCode, { qrPayloads } from './QRCode';
 
 export default function MemberCardModal({ isOpen, onClose, member }) {
   if (!member) return null;
@@ -11,7 +11,7 @@ export default function MemberCardModal({ isOpen, onClose, member }) {
 
   const memberNumber = member.memberNumber || `TA-${String(member.id).replace(/\D/g, '').padStart(4, '0') || '8840'}`;
   const memberSince = member.memberSince || '2024-03-01';
-  const roleLabel = member.role === 'admin' ? 'Comisión Directiva / Admin' : 'Socio Pleno';
+  const roleLabel = member.role === 'admin' ? 'Comisión Directiva / Admin' : member.role === 'coach' ? 'Cuerpo Docente' : 'Socio Pleno';
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Carnet Oficial de Socio" maxWidth="max-w-2xl">
@@ -70,11 +70,11 @@ export default function MemberCardModal({ isOpen, onClose, member }) {
               <div className="flex items-center gap-3.5 my-auto z-10 pt-1">
                 {/* Photo / Avatar */}
                 <div className="w-16 h-16 rounded-xl border-2 border-tennis-400/60 overflow-hidden shadow-md shrink-0 bg-slate-800 flex items-center justify-center">
-                  <img
-                    src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(member.name)}&backgroundColor=0f291e&textColor=ffffff`}
-                    alt={member.name}
-                    className="w-full h-full object-cover"
-                  />
+                  {member.photo ? (
+                    <img src={member.photo} alt={member.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-2xl font-black text-tennis-300">{(member.name || '?').charAt(0).toUpperCase()}</span>
+                  )}
                 </div>
 
                 {/* Details */}
@@ -86,17 +86,15 @@ export default function MemberCardModal({ isOpen, onClose, member }) {
                 </div>
 
                 {/* QR Code */}
-                <div className="w-12 h-12 bg-white p-1 rounded-lg shrink-0 shadow-md flex items-center justify-center">
-                  <svg viewBox="0 0 100 100" className="w-full h-full text-slate-900 fill-current">
-                    <path d="M0 0h30v30H0zM10 10h10v10H10zM70 0h30v30H70zM80 10h10v10H80zM0 70h30v30H0zM10 80h10v10H10zM40 10h10v10H40zM55 10h10v15H55zM40 40h20v20H40zM70 40h10v20H70zM85 45h15v15H85zM40 70h15v15H40zM60 70h15v30H60zM80 80h20v20H80z" />
-                  </svg>
+                <div className="w-14 h-14 bg-white p-1 rounded-lg shrink-0 shadow-md flex items-center justify-center">
+                  <QRCode value={qrPayloads.member({ ...member, memberNumber })} size={56} level="L" />
                 </div>
               </div>
 
               {/* Card Footer */}
               <div className="flex items-center justify-between text-[8px] text-tennis-300/80 pt-1 border-t border-white/10 z-10">
                 <span>Válido para reservas y torneos oficiales</span>
-                <span className="font-mono">AFIP/AAT OK</span>
+                <span className="font-mono">{memberNumber}</span>
               </div>
             </div>
 

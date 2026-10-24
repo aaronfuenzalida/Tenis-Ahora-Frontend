@@ -1,5 +1,6 @@
 import React from 'react';
 import { documentsService } from '../../services/api';
+import { useFeedback } from '../../context/FeedbackContext';
 
 const isExpired = (dateStr) => {
   if (!dateStr) return false;
@@ -11,6 +12,7 @@ const isExpired = (dateStr) => {
  * RF119 / RF124: reporte imprimible de certificaciones deportivas de profesores y entrenadores.
  */
 export default function CoachCertificationsReport({ coaches = [], roleFilter = 'ALL' }) {
+  const { notify } = useFeedback();
   const list = coaches.filter(c => roleFilter === 'ALL' || c.type === roleFilter);
   const valid = list.filter(c => c.licenseDetails?.status === 'habilitado' && !isExpired(c.licenseDetails?.expiryDate)).length;
 
@@ -20,7 +22,7 @@ export default function CoachCertificationsReport({ coaches = [], roleFilter = '
         <div>
           <h2 className="text-base font-bold text-slate-900">Reporte de Certificaciones Deportivas y Títulos Habilitantes</h2>
           <p className="text-xs text-slate-500">
-            {roleFilter === 'ALL' ? 'Profesores y entrenadores' : `${roleFilter}es`} • Todos los docentes deben acreditar título habilitante y certificación vigente (RD08 / RD09).
+            {roleFilter === 'ALL' ? 'Profesores y entrenadores' : `${roleFilter}es`} • Todos los docentes deben acreditar título habilitante y certificación vigente.
           </p>
         </div>
         <div className="text-xs text-slate-600">
@@ -80,7 +82,7 @@ export default function CoachCertificationsReport({ coaches = [], roleFilter = '
                     {lic.document ? (
                       <button
                         type="button"
-                        onClick={() => documentsService.download(lic.document).catch(err => alert(err.message || 'No se pudo descargar el documento.'))}
+                        onClick={() => documentsService.download(lic.document).catch(err => notify({ variant: 'error', message: err.message || 'No se pudo descargar el documento.' }))}
                         className="text-[11px] text-tennis-800 hover:underline text-left"
                       >
                         {lic.document.name}

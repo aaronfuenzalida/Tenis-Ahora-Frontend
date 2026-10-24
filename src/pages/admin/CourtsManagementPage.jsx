@@ -5,8 +5,10 @@ import Modal from '../../components/common/Modal';
 import CourtTimelineGrid from '../../components/common/CourtTimelineGrid';
 import CourtTypesPanel from '../../components/admin/CourtTypesPanel';
 import CourtAvailabilityPanel from '../../components/admin/CourtAvailabilityPanel';
+import { useFeedback } from '../../context/FeedbackContext';
 
 export default function CourtsManagementPage() {
+  const { notify } = useFeedback();
   const [courts, setCourts] = useState([]);
   const [reservations, setReservations] = useState([]);
   const [courtTypes, setCourtTypes] = useState([]);
@@ -214,7 +216,7 @@ export default function CourtsManagementPage() {
             selectedDate={selectedDate}
             onSelectSlot={(court, slot, date) => {
               setSelectedCourt(court);
-              alert(`Turno en Cancha ${court.name} (${court.surfaceType}): ${slot} para el día ${date}.\nTarifa: $${court.pricePerHour?.toLocaleString('es-AR')}/h.`);
+              notify({ variant: 'info', title: 'Detalle del turno', message: `Turno en Cancha ${court.name} (${court.surfaceType}): ${slot} para el día ${date}.\nTarifa: ${court.pricePerHour?.toLocaleString('es-AR')}/h.` });
             }}
             onDateChange={(d) => setSelectedDate(d)}
             maxAdvanceBookingDays={maxAdvanceBookingDays}

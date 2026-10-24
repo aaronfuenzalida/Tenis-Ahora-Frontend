@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Edit3, Plus, Trash2 } from 'lucide-react';
 import Modal from '../common/Modal';
 import { courtsService, DEFAULT_COURT_AVAILABILITY } from '../../services/api';
+import { useFeedback } from '../../context/FeedbackContext';
 
 const ALL_DAYS = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'];
 
@@ -56,6 +57,7 @@ export function slotsPerDay(av) {
  * RF016 - RF019: horarios disponibles de las canchas (registro, modificación, consulta e impresión).
  */
 export default function CourtAvailabilityPanel({ courts = [], onUpdated }) {
+  const { notify } = useFeedback();
   const [editingCourt, setEditingCourt] = useState(null);
   const [form, setForm] = useState(null);
   const [newBlock, setNewBlock] = useState({ day: 'Lunes', from: '12:00', to: '14:00', reason: '' });
@@ -83,7 +85,7 @@ export default function CourtAvailabilityPanel({ courts = [], onUpdated }) {
 
   const addBlock = () => {
     if (toMinutes(newBlock.to) <= toMinutes(newBlock.from)) {
-      alert('El horario de fin del bloqueo debe ser posterior al de inicio.');
+      notify({ variant: 'warning', message: 'El horario de fin del bloqueo debe ser posterior al de inicio.' });
       return;
     }
     setForm(prev => ({
@@ -101,11 +103,11 @@ export default function CourtAvailabilityPanel({ courts = [], onUpdated }) {
     e.preventDefault();
     if (!editingCourt || !form) return;
     if (form.days.length === 0) {
-      alert('Seleccione al menos un día de atención.');
+      notify({ variant: 'warning', message: 'Seleccione al menos un día de atención.' });
       return;
     }
     if (toMinutes(form.closeTime) <= toMinutes(form.openTime)) {
-      alert('El horario de cierre debe ser posterior al de apertura.');
+      notify({ variant: 'warning', message: 'El horario de cierre debe ser posterior al de apertura.' });
       return;
     }
     await courtsService.updateAvailability(editingCourt.id, form);
@@ -122,7 +124,7 @@ export default function CourtAvailabilityPanel({ courts = [], onUpdated }) {
         <div>
           <h2 className="text-base font-bold text-slate-900">Horarios Disponibles de las Canchas</h2>
           <p className="text-xs text-slate-500">
-            Días y franjas de atención por cancha, duración del turno y bloqueos programados. Las canchas en mantenimiento no admiten reservas (RD06).
+            Días y franjas de atención por cancha, duración del turno y bloqueos programados. Las canchas en mantenimiento no admiten reservas.
           </p>
         </div>
       </div>

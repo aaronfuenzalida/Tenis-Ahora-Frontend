@@ -2,60 +2,62 @@ import React from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Logo from '../common/Logo';
+import usePortalPaths from '../../hooks/usePortalPaths';
 import { LayoutDashboard, Layers, Calendar, Package, Trophy, GraduationCap, DollarSign, Users, BarChart3 } from 'lucide-react';
 
 export default function Sidebar({ isOpen, onClose }) {
   const { switchRole, isDemo, logout } = useAuth();
+  const paths = usePortalPaths();
   const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate(paths.login);
   };
 
   const handleReturnToClient = () => {
     switchRole('client');
-    navigate('/app/dashboard');
+    navigate(paths.appDashboard);
   };
 
   const handleGoToCoach = () => {
     switchRole('coach');
-    navigate('/coach');
+    navigate(paths.coach);
   };
 
   const navSections = [
     {
       group: 'Principal',
       items: [
-        { name: 'Dashboard General', to: '/admin', icon: LayoutDashboard, exact: true }
+        { name: 'Dashboard General', to: paths.admin, icon: LayoutDashboard, exact: true }
       ]
     },
     {
       group: 'Canchas y Reservas',
       items: [
-        { name: 'Canchas, Tipos y Horarios', to: '/admin/canchas', icon: Layers },
-        { name: 'Control de Reservas', to: '/admin/reservas', icon: Calendar }
+        { name: 'Canchas, Tipos y Horarios', to: `${paths.admin}/canchas`, icon: Layers },
+        { name: 'Control de Reservas', to: `${paths.admin}/reservas`, icon: Calendar }
       ]
     },
     {
       group: 'Inventario y Equipamiento',
       items: [
-        { name: 'Gestión de Stock', to: '/admin/stock', icon: Package }
+        { name: 'Gestión de Stock', to: `${paths.admin}/stock`, icon: Package }
       ]
     },
     {
       group: 'Competición y Enseñanza',
       items: [
-        { name: 'Torneos, Ligas y Competencias', to: '/admin/torneos', icon: Trophy },
-        { name: 'Docentes, Clases y Entrenamientos', to: '/admin/profesores-clases', icon: GraduationCap}
+        { name: 'Torneos, Ligas y Competencias', to: `${paths.admin}/torneos`, icon: Trophy },
+        { name: 'Docentes, Clases y Entrenamientos', to: `${paths.admin}/profesores-clases`, icon: GraduationCap}
       ]
     },
     {
       group: 'Caja y Administración',
       items: [
-        { name: 'Caja, Facturas y Reembolsos', to: '/admin/caja', icon: DollarSign },
-        { name: 'Padrón de Usuarios', to: '/admin/usuarios', icon: Users },
-        { name: 'Reportes y Estadísticas', to: '/admin/reportes', icon: BarChart3 }
+        { name: 'Caja, Facturas y Reembolsos', to: `${paths.admin}/caja`, icon: DollarSign },
+        { name: 'Padrón de Usuarios', to: `${paths.admin}/usuarios`, icon: Users },
+        { name: 'Reportes y Estadísticas', to: `${paths.admin}/reportes`, icon: BarChart3 }
       ]
     }
   ];
@@ -76,7 +78,7 @@ export default function Sidebar({ isOpen, onClose }) {
         
         {/* Sidebar Header */}
         <div className="h-16 flex items-center justify-between px-5 border-b border-slate-800/80 bg-slate-950/40">
-          <Link to="/admin" className="flex items-center">
+          <Link to={paths.admin} className="flex items-center">
             <Logo variant="horizontal" theme="dark" size="sm" showSubtitle={true} />
           </Link>
         </div>

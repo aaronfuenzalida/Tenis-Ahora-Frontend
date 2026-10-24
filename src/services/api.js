@@ -1,5 +1,6 @@
 import axios from 'axios';
-import { getStoredToken, getStoredUser } from '../utils/jwt';
+import { getStoredToken } from '../utils/jwt';
+import { isDemoPath } from '../hooks/usePortalPaths';
 import { calculateHoursUntil } from '../utils/formatters';
 import {
   INITIAL_COURTS,
@@ -156,9 +157,9 @@ function normalizeLicense(lic = {}) {
     ['expiryDate', 'la fecha de vencimiento']
   ];
   for (const [key, label] of required) {
-    if (!String(lic[key] || '').trim()) throw new Error(`Falta ${label} del título habilitante (RD08).`);
+    if (!String(lic[key] || '').trim()) throw new Error(`Falta ${label} del título habilitante.`);
   }
-  if (!lic.document?.id) throw new Error('Falta adjuntar el documento del título habilitante (RD08).');
+  if (!lic.document?.id) throw new Error('Falta adjuntar el documento del título habilitante.');
   const stored = documentsStore.find(d => d.id === lic.document.id);
   if (!stored) throw new Error(`El documento ${lic.document.id} no existe.`);
   const { digitalDocumentUrl, ...rest } = lic;
@@ -171,9 +172,9 @@ function checkCoachQualified(coachId) {
   if (!coach) return;
   const lic = coach.licenseDetails || {};
   const today = maxBookingDate(0);
-  if (!lic.document?.id) throw new Error(`${coach.name} no tiene cargado el documento del título habilitante (RD08).`);
-  if (lic.status !== 'habilitado') throw new Error(`El título habilitante de ${coach.name} no está habilitado (RD09).`);
-  if ((lic.expiryDate || '') < today) throw new Error(`El título habilitante de ${coach.name} venció el ${lic.expiryDate} (RD09).`);
+  if (!lic.document?.id) throw new Error(`${coach.name} no tiene cargado el documento del título habilitante.`);
+  if (lic.status !== 'habilitado') throw new Error(`El título habilitante de ${coach.name} no está habilitado.`);
+  if ((lic.expiryDate || '') < today) throw new Error(`El título habilitante de ${coach.name} venció el ${lic.expiryDate}.`);
 }
 
 // internalRulesDocument: undefined no lo cambia, null lo quita.
@@ -201,7 +202,7 @@ function checkBookingWindow(date) {
   const { maxAdvanceBookingDays } = clubConfigStore;
   const limit = maxBookingDate(maxAdvanceBookingDays);
   if (date && date > limit) {
-    throw new Error(`Las reservas se pueden hacer con hasta ${maxAdvanceBookingDays} días de antelación (hasta el ${limit}) (RD05).`);
+    throw new Error(`Las reservas se pueden hacer con hasta ${maxAdvanceBookingDays} días de antelación (hasta el ${limit}).`);
   }
 }
 
@@ -1593,13 +1594,13 @@ const usersHttp = {
   updateDiscounts: (userId, activeDiscounts) => api.put(`/usuarios/${userId}/descuentos`, { activeDiscounts })
 };
 
-// El Modo Demo usa un token que el backend no acepta, así que esas sesiones siguen con los mocks.
-// Se decide en cada llamada porque la sesión puede cambiar sin recargar la página.
+// La demo (URL/demo/...) no tiene backend: trabaja con los datos en memoria. La app real usa la API.
+// Se decide en cada llamada porque se puede pasar de una a otra sin recargar la página.
 function withBackend(mock, http) {
   return Object.fromEntries(
     Object.keys(mock).map(name => [
       name,
-      (...args) => (getStoredUser()?.isDemo ? mock : http)[name](...args)
+      (...args) => (isDemoPath() ? mock : http)[name](...args)
     ])
   );
 }

@@ -4,9 +4,14 @@ import { useAuth } from '../../context/AuthContext';
 import Modal from '../../components/common/Modal';
 import { RulesDocumentLink } from '../../components/common/RulesDocument';
 import TournamentBracketTree from '../../components/common/TournamentBracketTree';
+import PaymentFlowModal from '../../components/common/PaymentFlowModal';
+import { useFeedback } from '../../context/FeedbackContext';
 
 export default function ClientTournamentsPage() {
   const { user } = useAuth();
+  const { notify } = useFeedback();
+  // Pago de la inscripción: { kind: 'torneo' | 'liga', target, participantData }
+  const [payment, setPayment] = useState(null);
   const [activeTab, setActiveTab] = useState('tournaments'); // 'tournaments' | 'leagues'
 
   // Tournaments
@@ -48,40 +53,62 @@ export default function ClientTournamentsPage() {
     if (leagueRes.data.length > 0) setSelectedLeague(leagueRes.data[0]);
   };
 
-  const handleEnrollTournament = async (e) => {
+  // La inscripción se concreta al acreditarse el pago del arancel.
+  const handleEnrollTournament = (e) => {
     e.preventDefault();
-    setEnrollingTrn(true);
-    await tournamentsService.enroll(selectedTournament.id, {
-      name: user?.name,
-      dni: user?.dni,
-      partnerName: partnerNameTrn,
-      partnerDni: partnerDniTrn
-    });
-    setEnrollingTrn(false);
     setShowEnrollTrnModal(false);
-    setPartnerNameTrn('');
-    setPartnerDniTrn('');
-    alert('Inscripción al torneo completada exitosamente. Se ha registrado en la nómina oficial.');
-    const res = await tournamentsService.getAll();
-    setTournaments(res.data);
-    if (selectedTournament) {
-      const found = res.data.find(t => t.id === selectedTournament.id);
-      setSelectedTournament(found || res.data[0]);
-    }
+    setPayment({
+      kind: 'torneo',
+      target: selectedTournament,
+      participantData: {
+        name: user?.name,
+        dni: user?.dni,
+        phone: user?.phone,
+        partnerName: partnerNameTrn,
+        partnerDni: partnerDniTrn
+      }
+    });
   };
 
-  const handleEnrollLeague = async (e) => {
+  const handleEnrollLeague = (e) => {
     e.preventDefault();
-    setEnrollingLeague(true);
-    await leaguesService.enroll(selectedLeague.id, leagueEnrollForm);
-    setEnrollingLeague(false);
     setShowEnrollLeagueModal(false);
-    alert('Inscripción a la liga completada exitosamente. Se ha sumado a la nómina de participantes.');
-    const res = await leaguesService.getAll();
-    setLeagues(res.data);
-    if (selectedLeague) {
-      const found = res.data.find(l => l.id === selectedLeague.id);
-      setSelectedLeague(found || res.data[0]);
+    setPayment({
+      kind: 'liga',
+      target: selectedLeague,
+      participantData: { ...leagueEnrollForm }
+    });
+  };
+
+  // Se ejecuta cuando el pago queda acreditado (antes de emitir el recibo).
+  const enrollAfterPayment = async () => {
+    if (!payment) return null;
+    if (payment.kind === 'torneo') {
+      await tournamentsService.enroll(payment.target.id, payment.participantData);
+    } else {
+      await leaguesService.enroll(payment.target.id, payment.participantData);
+    }
+    return { relatedId: payment.target.id };
+  };
+
+  const handlePaymentClosed = async (receipt) => {
+    const paid = payment;
+    setPayment(null);
+    if (!receipt || !paid) return;
+    setEnrollingTrn(false);
+    setEnrollingLeague(false);
+    if (paid.kind === 'torneo') {
+      setPartnerNameTrn('');
+      setPartnerDniTrn('');
+      const res = await tournamentsService.getAll();
+      setTournaments(res.data);
+      setSelectedTournament(res.data.find(t => t.id === paid.target.id) || res.data[0]);
+      notify({ variant: 'success', title: 'Inscripción confirmada', message: `Quedaste inscripto en "${paid.target.name}". El recibo ${receipt.id} ya figura en Mis Pagos y Recibos.` });
+    } else {
+      const res = await leaguesService.getAll();
+      setLeagues(res.data);
+      setSelectedLeague(res.data.find(l => l.id === paid.target.id) || res.data[0]);
+      notify({ variant: 'success', title: 'Inscripción confirmada', message: `Quedaste inscripto en "${paid.target.name}". El recibo ${receipt.id} ya figura en Mis Pagos y Recibos.` });
     }
   };
 
@@ -487,6 +514,21 @@ export default function ClientTournamentsPage() {
         </div>
       )}
 
+      {/* Pago del arancel: la inscripción se registra al acreditarse */}
+      <PaymentFlowModal
+        isOpen={!!payment}
+        onClose={handlePaymentClosed}
+        title={payment?.kind === 'liga' ? 'Pago de inscripción a la liga' : 'Pago de inscripción al torneo'}
+        concept={`Inscripción ${payment?.kind === 'liga' ? 'Liga' : 'Torneo'} - ${payment?.target?.name || ''}`}
+        summary={payment ? `${payment.target.category} • ${payment.target.modality}${payment.participantData?.partnerName ? ` • Pareja: ${payment.participantData.partnerName}` : ''}` : ''}
+        amount={Number(payment?.target?.registrationFee) || 0}
+        items={payment ? [{ description: `Arancel de inscripción - ${payment.target.name}`, amount: Number(payment.target.registrationFee) || 0 }] : []}
+        client={{ name: user?.name, dni: user?.dni }}
+        relatedId={payment?.target?.id}
+        kind={payment?.kind === 'liga' ? 'inscripcion-liga' : 'inscripcion-torneo'}
+        onPaid={enrollAfterPayment}
+      />
+
       {/* Modal Enroll Tournament */}
       <Modal
         isOpen={showEnrollTrnModal}
@@ -527,15 +569,15 @@ export default function ClientTournamentsPage() {
           )}
 
           <div className="p-3 bg-slate-50 text-slate-600 rounded-xl border border-slate-200">
-            Al confirmar la inscripción quedará registrado en el padrón de participantes para el sorteo del fixture oficial.
+            Al continuar vas a abonar el arancel de inscripción. Con el pago acreditado quedás en el padrón de participantes para el sorteo del fixture oficial y se emite tu recibo.
           </div>
 
           <button
             type="submit"
-            disabled={enrollingTrn}
+            disabled={!!payment}
             className="w-full py-2.5 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-semibold text-xs shadow-sm"
           >
-            {enrollingTrn ? 'Procesando...' : 'Confirmar Inscripción'}
+            Continuar al pago del arancel
           </button>
         </form>
       </Modal>
@@ -603,10 +645,10 @@ export default function ClientTournamentsPage() {
 
           <button
             type="submit"
-            disabled={enrollingLeague}
+            disabled={!!payment}
             className="w-full py-2.5 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-semibold text-xs shadow-sm"
           >
-            {enrollingLeague ? 'Procesando...' : 'Confirmar Inscripción a Liga'}
+            Continuar al pago del arancel
           </button>
         </form>
       </Modal>

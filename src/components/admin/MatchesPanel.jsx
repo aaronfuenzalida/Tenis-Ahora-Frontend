@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Edit3, Search } from 'lucide-react';
 import Modal from '../common/Modal';
 import { tournamentsService, leaguesService } from '../../services/api';
+import { useFeedback } from '../../context/FeedbackContext';
 
 const STATUS_LABEL = {
   programado: 'Programado',
@@ -14,6 +15,7 @@ const STATUS_LABEL = {
  * RF057 - RF060: enfrentamientos de torneos y ligas (registro, modificación, consulta e impresión).
  */
 export default function MatchesPanel({ onChanged }) {
+  const { notify } = useFeedback();
   const [tournaments, setTournaments] = useState([]);
   const [leagues, setLeagues] = useState([]);
   const [sourceFilter, setSourceFilter] = useState('ALL');
@@ -92,7 +94,7 @@ export default function MatchesPanel({ onChanged }) {
     e.preventDefault();
     if (!selectedCompetition) return;
     if (createForm.p1.trim() === createForm.p2.trim()) {
-      alert('Los dos jugadores del enfrentamiento deben ser distintos.');
+      notify({ variant: 'warning', message: 'Los dos jugadores del enfrentamiento deben ser distintos.' });
       return;
     }
     const payload = {
@@ -133,7 +135,7 @@ export default function MatchesPanel({ onChanged }) {
     const score = [editForm.set1, editForm.set2, editForm.set3].filter(Boolean).join(', ');
     const finishing = editForm.status === 'finalizado';
     if (finishing && !editForm.winner) {
-      alert('Para finalizar el enfrentamiento debe indicar el ganador.');
+      notify({ variant: 'warning', message: 'Para finalizar el enfrentamiento debe indicar el ganador.' });
       return;
     }
     const base = {

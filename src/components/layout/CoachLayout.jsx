@@ -1,37 +1,37 @@
 import React, { useState } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import CoachSidebar from './CoachSidebar';
-import { Menu } from 'lucide-react';
+import { Menu, UserCog } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import usePortalPaths from '../../hooks/usePortalPaths';
 import Logo from '../common/Logo';
+import Avatar from '../common/Avatar';
+import ProfileModal from '../common/ProfileModal';
 
 export default function CoachLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user, switchRole } = useAuth();
+  const [showProfile, setShowProfile] = useState(false);
+  const { user, isDemo, switchRole } = useAuth();
+  const paths = usePortalPaths();
   const navigate = useNavigate();
 
   const handleToggleToClient = () => {
     switchRole('client');
-    navigate('/app/dashboard');
-  };
-
-  const handleToggleToAdmin = () => {
-    switchRole('admin');
-    navigate('/admin');
+    navigate(paths.appDashboard);
   };
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
-      
+
       {/* Coach Lateral Sidebar */}
-      <CoachSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <CoachSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} onEditProfile={() => setShowProfile(true)} />
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col lg:pl-64 min-w-0">
-        
+
         {/* Top Minimal Bar */}
         <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-200 px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between shadow-sm">
-          
+
           {/* Mobile hamburger & brand */}
           <div className="flex items-center gap-3">
             <button
@@ -55,8 +55,11 @@ export default function CoachLayout() {
 
           {/* Right Header Actions */}
           <div className="flex items-center gap-3">
+            {isDemo && (
+              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800 bg-amber-50 border border-amber-200 px-2 py-1 rounded-lg">Demo</span>
+            )}
 
-            {user?.isDemo && (
+            {isDemo && (
               <button
                 type="button"
                 onClick={handleToggleToClient}
@@ -67,15 +70,19 @@ export default function CoachLayout() {
               </button>
             )}
 
-            <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
-              <div className="w-8 h-8 rounded-lg bg-tennis-700 text-white flex items-center justify-center font-bold text-xs shadow-sm">
-                {user?.name ? user.name.charAt(0) : 'P'}
-              </div>
+            <button
+              type="button"
+              onClick={() => setShowProfile(true)}
+              title="Editar mi perfil"
+              className="flex items-center gap-2 pl-2 border-l border-slate-200 group"
+            >
+              <Avatar user={user} rounded="rounded-lg" className={user?.photo ? '' : '!bg-tennis-700'} />
               <div className="hidden md:block text-left">
-                <div className="text-xs font-bold text-slate-900 leading-tight">{user?.name || 'Prof. Santiago Álvarez'}</div>
-                <div className="text-[11px] text-slate-500 font-medium">Matrícula AAT-LIC-77492</div>
+                <div className="text-xs font-bold text-slate-900 leading-tight group-hover:text-tennis-700">{user?.name || 'Docente'}</div>
+                <div className="text-[11px] text-slate-500 font-medium">{user?.rolBackend || 'Profesor'} • N° {user?.memberNumber || '—'}</div>
               </div>
-            </div>
+              <UserCog className="w-4 h-4 text-slate-400 group-hover:text-tennis-700 hidden md:block" />
+            </button>
           </div>
 
         </header>
@@ -95,6 +102,7 @@ export default function CoachLayout() {
 
       </div>
 
+      <ProfileModal isOpen={showProfile} onClose={() => setShowProfile(false)} />
     </div>
   );
 }

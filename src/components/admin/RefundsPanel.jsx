@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Search } from 'lucide-react';
 import Modal from '../common/Modal';
 import { refundsService, reservationsService, receiptsService, clubConfigService, DEFAULT_CLUB_CONFIG } from '../../services/api';
+import { useFeedback } from '../../context/FeedbackContext';
 
 const REFUND_METHODS = [
   'Devolución a Tarjeta de Débito',
@@ -27,6 +28,7 @@ const money = (n) => `$${Number(n || 0).toLocaleString('es-AR')}`;
  * RF131 - RF133: registro, consulta e impresión de reembolsos (RD03 / RD04).
  */
 export default function RefundsPanel() {
+  const { notify } = useFeedback();
   const [refunds, setRefunds] = useState([]);
   const [reservations, setReservations] = useState([]);
   const [receipts, setReceipts] = useState([]);
@@ -91,11 +93,11 @@ export default function RefundsPanel() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (Number(form.refundAmount) <= 0) {
-      alert('El importe a reembolsar debe ser mayor a cero.');
+      notify({ variant: 'warning', message: 'El importe a reembolsar debe ser mayor a cero.' });
       return;
     }
     if (Number(form.refundAmount) > Number(form.originalAmount)) {
-      alert('El reembolso no puede superar el importe original abonado.');
+      notify({ variant: 'warning', message: 'El reembolso no puede superar el importe original abonado.' });
       return;
     }
     await refundsService.create(form);
@@ -130,7 +132,7 @@ export default function RefundsPanel() {
         <div>
           <h2 className="text-base font-bold text-slate-900">Reembolsos y Devoluciones</h2>
           <p className="text-xs text-slate-500">
-            Cancelaciones dentro del plazo (≥ {clubConfig.freeCancellationHours} hs) generan reembolso total de la seña; fuera de plazo se retiene el {clubConfig.lateCancellationRetentionPercent}% como cargo y el resto vuelve como crédito (RD02 - RD04).
+            Cancelaciones dentro del plazo (≥ {clubConfig.freeCancellationHours} hs) generan reembolso total de la seña; fuera de plazo se retiene el {clubConfig.lateCancellationRetentionPercent}% como cargo y el resto vuelve como crédito.
           </p>
         </div>
         <button

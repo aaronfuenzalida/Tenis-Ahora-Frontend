@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import usePortalPaths from '../../hooks/usePortalPaths';
 import { coachesAndClassesService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import AttendanceMatrixModal from '../../components/common/AttendanceMatrixModal';
@@ -7,6 +8,7 @@ import AttendanceSheetModal from '../../components/common/AttendanceSheetModal';
 import CoachCredentialsModal from '../../components/common/CoachCredentialsModal';
 
 export default function CoachDashboard() {
+  const paths = usePortalPaths();
   const { user } = useAuth();
   const [classes, setClasses] = useState([]);
   const [privateLessons, setPrivateLessons] = useState([]);
@@ -125,7 +127,7 @@ export default function CoachDashboard() {
               <h2 className="text-base font-bold text-slate-900">Mis Clases Grupales y Escuela</h2>
             </div>
             <Link
-              to="/coach/clases"
+              to={`${paths.coach}/clases`}
               className="text-xs font-semibold text-tennis-700 hover:text-tennis-800 flex items-center gap-1"
             >
               Ver todas
@@ -194,7 +196,7 @@ export default function CoachDashboard() {
                 <h2 className="text-base font-bold text-slate-900">Turnos Particulares</h2>
               </div>
               <Link
-                to="/coach/particulares"
+                to={`${paths.coach}/particulares`}
                 className="text-xs font-semibold text-tennis-700 hover:text-tennis-800 flex items-center gap-1"
               >
                 Agenda
@@ -239,7 +241,7 @@ export default function CoachDashboard() {
                 Disponibilidad Horaria Semanal
               </span>
               <Link
-                to="/coach/perfil"
+                to={`${paths.coach}/perfil`}
                 className="text-xs font-semibold text-tennis-700 hover:underline"
               >
                 Modificar

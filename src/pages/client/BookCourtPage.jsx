@@ -1,17 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useFeedback } from '../../context/FeedbackContext';
 import { courtsService, stockService, reservationsService, clubConfigService, usersService, DEFAULT_CLUB_CONFIG, maxBookingDate } from '../../services/api';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, ChevronLeft } from 'lucide-react';
 import QRModal from '../../components/common/QRModal';
 import ReceiptModal from '../../components/common/ReceiptModal';
 import CourtTimelineGrid from '../../components/common/CourtTimelineGrid';
+import Stepper from '../../components/common/Stepper';
 import { getSlotBlock } from '../../components/admin/CourtAvailabilityPanel';
 import { cleanDNI } from '../../utils/formatters';
 
+const STEPS = [
+  { id: 'schedule', label: 'Cronograma', description: 'Fecha, cancha y horario' },
+  { id: 'players', label: 'Jugadores', description: 'Singles o dobles' },
+  { id: 'payment', label: 'Pago de seña', description: '50% para confirmar' }
+];
+
+const CARD_SLOTS = ['08:00 - 10:00', '10:00 - 12:00', '14:00 - 16:00', '16:00 - 18:00', '18:00 - 20:00', '20:00 - 22:00'];
+
+/**
+ * Reserva de cancha en pasos: 1) cronograma  2) jugadores  3) pago de la seña.
+ * Cada paso es una pantalla; "Continuar" valida y avanza, "Volver" retrocede sin perder lo cargado.
+ */
 export default function BookCourtPage() {
   const { user } = useAuth();
+  const { notify } = useFeedback();
 
-  // State
+  // Datos
   const [courts, setCourts] = useState([]);
   const [stock, setStock] = useState([]);
   const [reservations, setReservations] = useState([]);
@@ -19,36 +34,31 @@ export default function BookCourtPage() {
   const [clubConfig, setClubConfig] = useState(DEFAULT_CLUB_CONFIG);
   const [members, setMembers] = useState([]);
 
-  // View Mode: 'timeline' (Cronograma Horario) vs 'cards' (Vista Tradicional)
-  const [viewMode, setViewMode] = useState('timeline');
+  // Paso actual (0: cronograma, 1: jugadores, 2: pago)
+  const [step, setStep] = useState(0);
 
-  // Filters
-  const [selectedSurface, setSelectedSurface] = useState('ALL'); // ALL, Ladrillo, Cemento, Pasto
-  const [selectedDate, setSelectedDate] = useState(() => {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
-  });
-  
-  // Selection
+  // Paso 1: cronograma
+  const [viewMode, setViewMode] = useState('timeline'); // 'timeline' | 'cards'
+  const [selectedSurface, setSelectedSurface] = useState('ALL');
+  const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [selectedCourt, setSelectedCourt] = useState(null);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState('');
-  const [durationHours, setDurationHours] = useState(2); // 1 or 2 hours max
-  const [playersType, setPlayersType] = useState('singles'); // singles (2) or dobles (4)
-  
-  // Players registration list (2 or 4 players)
+  const [durationHours, setDurationHours] = useState(2);
+
+  // Paso 2: jugadores
+  const [playersType, setPlayersType] = useState('singles');
   const [players, setPlayers] = useState([
-    { name: user?.name || 'Federico Gómez', dni: user?.dni || '38.452.129', phone: user?.phone || '+54 11 4892-1234', isLead: true },
+    { name: user?.name || '', dni: user?.dni || '', phone: user?.phone || '', isLead: true },
     { name: '', dni: '', phone: '' }
   ]);
 
-  // Equipment assigned automatically without extra charge
-
-  // Payment & Modals
+  // Paso 3: pago
   const [paymentMethod, setPaymentMethod] = useState('Mercado Pago (QR)');
   const [showQRModal, setShowQRModal] = useState(false);
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [generatedReceipt, setGeneratedReceipt] = useState(null);
   const [bookingSuccess, setBookingSuccess] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -57,7 +67,7 @@ export default function BookCourtPage() {
   const loadData = async () => {
     setLoading(true);
     const [cRes, sRes, rRes, cfgRes, mRes] = await Promise.all([
-      courtsService.getAll(), 
+      courtsService.getAll(),
       stockService.getAll(),
       reservationsService.getOccupancy(),
       clubConfigService.get(),
@@ -68,38 +78,27 @@ export default function BookCourtPage() {
     setCourts(cRes.data);
     setStock(sRes.data);
     setReservations(rRes.data || []);
-    if (cRes.data.length > 0) {
-      setSelectedCourt(cRes.data[0]);
-    }
+    if (cRes.data.length > 0) setSelectedCourt(cRes.data[0]);
     setLoading(false);
   };
 
+  // ---- Paso 1 ----
   const handleSelectTimelineSlot = (court, slot, date) => {
     setSelectedCourt(court);
     setSelectedTimeSlot(slot);
     if (date) setSelectedDate(date);
-    const duration = slot.includes(' - ') ? 2 : 1;
-    setDurationHours(duration);
-    
-    // Smooth scroll down to player entry
-    setTimeout(() => {
-      const el = document.getElementById('booking-players-form');
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-    }, 50);
+    setDurationHours(slot.includes(' - ') && slotHours(slot) === 1 ? 1 : 2);
   };
 
-  // Adjust player inputs when switching singles vs dobles
+  // ---- Paso 2 ----
   const handlePlayerTypeChange = (type) => {
     setPlayersType(type);
     if (type === 'singles') {
       setPlayers(prev => prev.slice(0, 2).concat(prev.length < 2 ? [{ name: '', dni: '', phone: '' }] : []));
     } else {
-      // 4 players for doubles
       setPlayers(prev => {
         const copy = [...prev];
-        while (copy.length < 4) {
-          copy.push({ name: '', dni: '', phone: '' });
-        }
+        while (copy.length < 4) copy.push({ name: '', dni: '', phone: '' });
         return copy.slice(0, 4);
       });
     }
@@ -117,61 +116,63 @@ export default function BookCourtPage() {
   const takenDnisFor = (index) =>
     players.filter((_, i) => i !== index).map(p => cleanDNI(p.dni)).filter(Boolean);
 
-  // Pricing calculations
-  const courtPricePerHour = selectedCourt ? selectedCourt.pricePerHour : 4800;
+  // ---- Precios ----
+  const courtPricePerHour = selectedCourt ? selectedCourt.pricePerHour : 0;
   const courtTotal = courtPricePerHour * durationHours;
-  const equipmentTotal = 0; // Los ítems de stock no tienen costo extra para la reserva
   const totalReservation = courtTotal;
-  const deposit50 = totalReservation * 0.5; // 50% de seña para confirmar
-  const remaining50 = totalReservation * 0.5; // 50% al finalizar el tiempo de alquiler
+  const deposit50 = totalReservation * 0.5;
+  const remaining50 = totalReservation * 0.5;
 
-  // Stock items helpers
+  // ---- Stock ----
   const ballStock = stock.find(s => s.category === 'Pelotas');
   const racketStock = stock.find(s => s.category === 'Raquetas');
   const netStock = stock.find(s => s.category === 'Redes');
-
   const requiredRackets = playersType === 'singles' ? 2 : 4;
   const requiredBalls = 1;
   const requiredNets = 1;
-
   const hasNetStock = netStock ? netStock.availableStock >= requiredNets : false;
   const hasBallStock = ballStock ? ballStock.availableStock >= requiredBalls : false;
   const hasRacketStock = racketStock ? racketStock.availableStock >= requiredRackets : false;
   const canBookWithStock = hasNetStock && hasBallStock && hasRacketStock;
 
-  // RD05: antelación máxima que fija el club
+  // Antelación máxima que fija el club
   const maxDays = clubConfig.maxAdvanceBookingDays;
   const maxDateStr = maxBookingDate(maxDays);
   const minDateStr = new Date().toISOString().split('T')[0];
 
-  const handleProceedPayment = (e) => {
-    e.preventDefault();
+  // ---- Navegación entre pasos ----
+  const goToPlayers = () => {
     if (selectedDate < minDateStr || selectedDate > maxDateStr) {
-      alert(`Por regla de negocio, las reservas solo pueden realizarse con un máximo de ${maxDays} días de anticipación (hasta ${maxDateStr}).`);
+      notify({ variant: 'warning', message: `Las reservas se pueden hacer con hasta ${maxDays} días de anticipación (hasta el ${maxDateStr}).` });
       return;
     }
-    if (!selectedTimeSlot) {
-      alert('Por favor seleccione un horario disponible.');
+    if (!selectedCourt || !selectedTimeSlot) {
+      notify({ variant: 'warning', message: 'Elegí una cancha y un horario disponible para continuar.' });
       return;
     }
-
-    // La fecha puede cambiar después de elegir el turno, así que se revalida contra los bloqueos.
     const blockReason = getSlotBlock(selectedCourt, selectedDate, selectedTimeSlot);
     if (blockReason) {
-      alert(`El turno elegido no está disponible: ${blockReason}.`);
+      notify({ variant: 'warning', message: `El turno elegido no está disponible: ${blockReason}.` });
       return;
     }
+    setStep(1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
+  const goToPayment = () => {
     if (players.some(p => !p.dni)) {
-      alert('Por favor seleccioná a todos los participantes del partido.');
+      notify({ variant: 'warning', message: 'Seleccioná a todos los participantes del partido para continuar.' });
       return;
     }
+    setStep(2);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
+  const handleProceedPayment = () => {
     if (!canBookWithStock) {
-      alert('No se puede reservar la cancha: no hay disponibilidad de red, pelotas o raquetas en stock.');
+      notify({ variant: 'warning', message: 'No se puede reservar la cancha: no hay disponibilidad de red, pelotas o raquetas en stock.' });
       return;
     }
-
     if (paymentMethod === 'Mercado Pago (QR)') {
       setShowQRModal(true);
     } else {
@@ -180,6 +181,8 @@ export default function BookCourtPage() {
   };
 
   const executeReservation = async () => {
+    if (saving) return;
+    setSaving(true);
     const bookingPayload = {
       courtId: selectedCourt.id,
       courtName: selectedCourt.name,
@@ -190,11 +193,7 @@ export default function BookCourtPage() {
       durationHours,
       playersType,
       participants: players,
-      equipmentAssigned: {
-        nets: requiredNets,
-        ballTubes: requiredBalls,
-        rackets: requiredRackets
-      },
+      equipmentAssigned: { nets: requiredNets, ballTubes: requiredBalls, rackets: requiredRackets },
       courtCost: courtTotal,
       equipmentCost: 0,
       totalCost: totalReservation,
@@ -203,777 +202,483 @@ export default function BookCourtPage() {
       remainingBalance: remaining50
     };
 
-    const res = await reservationsService.create(bookingPayload);
-    setGeneratedReceipt(res.receipt);
-    setBookingSuccess(true);
+    try {
+      const res = await reservationsService.create(bookingPayload);
+      setGeneratedReceipt(res.receipt);
+      setBookingSuccess(true);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err) {
+      notify({ variant: 'error', title: 'No se pudo confirmar la reserva', message: err?.response?.data?.error || err.message || 'Intentá nuevamente.' });
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const filteredCourts = courts.filter(c => {
-    if (selectedSurface === 'ALL') return true;
-    return c.surfaceType.toLowerCase() === selectedSurface.toLowerCase();
-  });
+  const resetFlow = () => {
+    setBookingSuccess(false);
+    setGeneratedReceipt(null);
+    setSelectedTimeSlot('');
+    setStep(0);
+    loadData();
+  };
 
-  return (
-    <div className="space-y-6">
-      
-      {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pb-4 border-b border-slate-200">
-        <div>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-            Reserva de Canchas de Tenis
-          </h1>
-        </div>
+  const filteredCourts = courts.filter(c => selectedSurface === 'ALL' || c.surfaceType.toLowerCase() === selectedSurface.toLowerCase());
 
-        {/* Date Selector (hasta la antelación máxima del club) */}
-        <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-2xl border border-slate-200 shadow-sm">
-          <div className="text-xs">
-            <div className="flex items-center gap-1.5">
-              <span className="text-slate-400 font-medium">Fecha de Turno:</span>
-              <span className="text-[10px] font-bold text-tennis-700 bg-tennis-50 px-1.5 py-0.2 rounded border border-tennis-200">
-                Máx. {maxDays} días
-              </span>
-            </div>
-            <input
-              type="date"
-              min={minDateStr}
-              max={maxDateStr}
-              value={selectedDate}
-              onChange={(e) => {
-                const val = e.target.value;
-                if (val < minDateStr || val > maxDateStr) {
-                  alert(`Por reglamento, las reservas solo pueden realizarse con un máximo de ${maxDays} días de anticipación (hasta ${maxDateStr}).`);
-                  return;
-                }
-                setSelectedDate(val);
-              }}
-              className="font-bold text-slate-800 bg-transparent outline-none cursor-pointer text-xs mt-0.5"
-            />
-          </div>
-        </div>
-      </div>
+  if (loading) {
+    return <div className="p-12 text-center text-sm text-slate-400">Cargando disponibilidad de canchas...</div>;
+  }
 
-      {/* View Switcher: Cronograma Grilla Horaria vs Vista por Canchas */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200 shadow-xs">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-bold text-slate-500 uppercase">Modo de Visualización:</span>
-          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
-            <button
-              type="button"
-              onClick={() => setViewMode('timeline')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all flex items-center gap-1.5 ${
-                viewMode === 'timeline'
-                  ? 'bg-tennis-600 text-white shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Cronograma Grilla Horaria (Recomendado)
-            </button>
-            <button
-              type="button"
-              onClick={() => setViewMode('cards')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all flex items-center gap-1.5 ${
-                viewMode === 'cards'
-                  ? 'bg-tennis-600 text-white shadow-sm'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              Vista por Canchas
-            </button>
-          </div>
-        </div>
-
-        <div className="text-[11px] text-slate-400">
-          Disponibilidad en tiempo real de <strong>08:00 a 22:00 hs</strong>
-        </div>
-      </div>
-
-      {bookingSuccess ? (
-        /* Success Screen */
+  // ======================= Pantalla de éxito =======================
+  if (bookingSuccess) {
+    return (
+      <div className="space-y-6">
+        <PageHeader />
         <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm text-center max-w-2xl mx-auto space-y-4">
-          
-          <h2 className="text-2xl font-extrabold text-slate-900">¡Reserva Confirmada Exitosamente!</h2>
+          <h2 className="text-2xl font-extrabold text-slate-900">¡Reserva confirmada!</h2>
           <p className="text-sm text-slate-600">
-            Se ha registrado el pago de la seña del <strong>50% (${deposit50.toLocaleString('es-AR')})</strong>. Recordá que el 50% restante (${remaining50.toLocaleString('es-AR')}) se abona en administración al terminar el partido.
+            Se registró el pago de la seña del <strong>50% (${deposit50.toLocaleString('es-AR')})</strong>. El 50% restante (${remaining50.toLocaleString('es-AR')}) se abona en administración al terminar el partido.
           </p>
 
           <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-left text-xs space-y-2">
-            <div className="flex justify-between font-bold text-slate-800">
-              <span>Cancha:</span> <span>{selectedCourt?.name}</span>
-            </div>
-            <div className="flex justify-between text-slate-600">
-              <span>Fecha y Horario:</span> <span>{selectedDate} • {selectedTimeSlot} ({durationHours} hs)</span>
-            </div>
-            <div className="flex justify-between text-slate-600">
-              <span>Jugadores registrados:</span> <span>{players.map(p => p.name).join(', ')}</span>
-            </div>
-            <div className="flex justify-between font-bold text-tennis-700 pt-2 border-t border-slate-200">
-              <span>Comprobante Oficial:</span> <span>{generatedReceipt?.id}</span>
-            </div>
+            <div className="flex justify-between font-bold text-slate-800"><span>Cancha:</span> <span>{selectedCourt?.name}</span></div>
+            <div className="flex justify-between text-slate-600"><span>Fecha y horario:</span> <span>{selectedDate} • {selectedTimeSlot} ({durationHours} hs)</span></div>
+            <div className="flex justify-between text-slate-600"><span>Jugadores:</span> <span className="text-right">{players.map(p => p.name).join(', ')}</span></div>
+            <div className="flex justify-between font-bold text-tennis-700 pt-2 border-t border-slate-200"><span>Comprobante:</span> <span>{generatedReceipt?.id}</span></div>
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
             <button
               type="button"
               onClick={() => setShowReceiptModal(true)}
-              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-md"
+              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-bold text-sm shadow-md"
             >
-              Imprimir Comprobante con QR
+              Ver comprobante con QR
             </button>
             <button
               type="button"
-              onClick={() => {
-                setBookingSuccess(false);
-                setSelectedTimeSlot('');
-              }}
+              onClick={resetFlow}
               className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm"
             >
-              Hacer Otra Reserva
+              Hacer otra reserva
             </button>
           </div>
         </div>
-      ) : viewMode === 'timeline' ? (
-        /* TIMELINE GRID VIEW (Point 5 Requirement: 08:00 to 22:00 vertical, courts horizontal, Verde/Gris/Amarillo) */
+
+        <ReceiptModal isOpen={showReceiptModal} onClose={() => setShowReceiptModal(false)} receipt={generatedReceipt} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <PageHeader />
+
+      {/* Indicador de pasos */}
+      <Stepper steps={STEPS} current={step} onStepClick={(idx) => setStep(idx)} />
+
+      {/* ======================= PASO 1: CRONOGRAMA ======================= */}
+      {step === 0 && (
         <div className="space-y-6">
-          <CourtTimelineGrid
-            courts={courts}
-            selectedCourt={selectedCourt}
-            selectedTimeSlot={selectedTimeSlot}
-            selectedDate={selectedDate}
-            onSelectSlot={handleSelectTimelineSlot}
-            onDateChange={(d) => setSelectedDate(d)}
-            reservations={reservations}
-            maxAdvanceBookingDays={maxDays}
-          />
-
-          {/* Form Section below the timeline */}
-          <div id="booking-players-form" className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-4 border-t border-slate-200">
-            {/* Left: Selected Slot Banner + Players Registration (7 Cols) */}
-            <div className="lg:col-span-7 space-y-6">
-              
-              {/* Selected Slot summary bar */}
-              <div className="p-4 bg-slate-900 text-white rounded-3xl flex items-center justify-between shadow-sm">
-                <div>
-                  <span className="text-[10px] font-black uppercase text-tennis-400">Turno Activo para Reserva</span>
-                  <div className="text-base font-extrabold text-white mt-0.5">
-                    {selectedCourt ? selectedCourt.name : 'Seleccioná una cancha'} • {selectedTimeSlot || 'Seleccioná horario en la grilla'}
-                  </div>
-                  <div className="text-xs text-slate-300">
-                    Fecha: {selectedDate} • {selectedCourt?.surfaceType} • Duración: {durationHours} hs
-                  </div>
-                </div>
-
-                <div className="text-right">
-                  <span className="text-[10px] text-slate-400 block">Total Cancha</span>
-                  <span className="text-base font-black text-tennis-400">${courtTotal.toLocaleString('es-AR')}</span>
-                </div>
-              </div>
-
-              {/* Players Registration Form (Singles: 2 / Doubles: 4) */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-xs font-bold uppercase text-slate-700">
-                      Registro Obligatorio de Jugadores
-                    </h3>
-                    <p className="text-[11px] text-slate-400">
-                      Requerimiento: deben quedar registrados los datos de los 2 o 4 participantes que intervienen en el juego.
-                    </p>
-                  </div>
-
-                  {/* Modality selector */}
-                  <div className="flex bg-slate-100 p-1 rounded-xl">
-                    <button
-                      type="button"
-                      onClick={() => handlePlayerTypeChange('singles')}
-                      className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
-                        playersType === 'singles' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'
-                      }`}
-                    >
-                      Singles (2)
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handlePlayerTypeChange('dobles')}
-                      className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
-                        playersType === 'dobles' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'
-                      }`}
-                    >
-                      Dobles (4)
-                    </button>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {players.map((p, idx) => (
-                    <div key={idx} className="p-3 rounded-xl border bg-slate-50 border-slate-200 space-y-2">
-                      <span className="text-[11px] font-bold text-tennis-800 uppercase block">
-                        Jugador {idx + 1} {idx === 0 && '(Titular / Socio)'}
-                      </span>
-
-                      {idx === 0 ? (
-                        <div>
-                          <div className="text-xs font-bold text-slate-900">{p.name}</div>
-                          <div className="text-[11px] text-slate-500">DNI {p.dni}</div>
-                        </div>
-                      ) : (
-                        <PlayerSelect
-                          members={members}
-                          value={p}
-                          takenDnis={takenDnisFor(idx)}
-                          onSelect={(member) => handleSelectPlayer(idx, member)}
-                        />
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-            </div>
-
-            {/* Right: Equipment Assignment & Checkout (5 Cols) */}
-            <div className="lg:col-span-5 space-y-6">
-              
-              {/* Equipment Stock assignment */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-xs font-bold uppercase text-slate-700">
-                      Asignación de Equipamiento
-                    </h3>
-                    <p className="text-[11px] text-slate-400">
-                      Incluye Red, Pelotas y Raquetas sin costo extra.
-                    </p>
-                  </div>
-                  <span className="text-[10px] font-bold text-tennis-800">
-                    Sin costo ($0)
-                  </span>
-                </div>
-
-                {!canBookWithStock && (
-                  <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-start gap-2 text-xs text-slate-800">
-                    <div>
-                      <strong>Bloqueo por falta de stock:</strong>
-                      <p className="text-[11px] mt-0.5">
-                        No hay stock suficiente de red, pelotas o raquetas ({requiredRackets} requeridas).
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
-                  <div>
-                    <div className="font-bold text-slate-800">1 Red Reglamentaria de Tenis</div>
-                    <div className="text-[11px] text-slate-400">Stock: {netStock?.availableStock ?? 0} u.</div>
-                  </div>
-                  <span className={`text-xs font-bold ${
-                    hasNetStock 
-                      ? 'text-tennis-700' 
-                      : 'text-slate-700'
-                  }`}>
-                    {hasNetStock ? 'Asignada ($0)' : 'Sin Stock'}
-                  </span>
-                </div>
-
-                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
-                  <div>
-                    <div className="font-bold text-slate-800">Pelotas Reglamentarias de Tenis</div>
-                    <div className="text-[11px] text-slate-400">Stock: {ballStock?.availableStock ?? 0} pelotas</div>
-                  </div>
-                  <span className={`text-xs font-bold ${
-                    hasBallStock 
-                      ? 'text-tennis-700' 
-                      : 'text-slate-700'
-                  }`}>
-                    {hasBallStock ? 'Asignadas ($0)' : 'Sin Stock'}
-                  </span>
-                </div>
-
-                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
-                  <div>
-                    <div className="font-bold text-slate-800">
-                      {requiredRackets} Raquetas ({playersType === 'singles' ? 'Singles: 2 raquetas' : 'Dobles: 4 raquetas'})
-                    </div>
-                    <div className="text-[11px] text-slate-400">Stock: {racketStock?.availableStock ?? 0} u.</div>
-                  </div>
-                  <span className={`text-xs font-bold ${
-                    hasRacketStock 
-                      ? 'text-tennis-700' 
-                      : 'text-slate-700'
-                  }`}>
-                    {hasRacketStock ? `Asignadas (${requiredRackets} u.) ($0)` : 'Sin Stock'}
-                  </span>
-                </div>
-              </div>
-
-              {/* Payment Method & Total Breakdown */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                <h3 className="text-xs font-bold uppercase text-slate-700">
-                  Medio de Pago y Seña Obligatoria del 50%
-                </h3>
-
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { id: 'Mercado Pago (QR)', label: 'QR MP' },
-                    { id: 'Tarjeta de Débito', label: 'Débito' },
-                    { id: 'Tarjeta de Crédito', label: 'Crédito' }
-                  ].map(method => {
-                    return (
-                      <button
-                        key={method.id}
-                        type="button"
-                        onClick={() => setPaymentMethod(method.id)}
-                        className={`p-2.5 rounded-xl text-center border text-xs font-bold transition-all ${
-                          paymentMethod === method.id
-                            ? 'bg-tennis-50 text-tennis-800 border-tennis-600 ring-1 ring-tennis-500'
-                            : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
-                        }`}
-                      >
-                        {method.label}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <div className="pt-3 border-t border-slate-100 text-xs space-y-2">
-                  <div className="flex justify-between text-slate-600">
-                    <span>Alquiler Cancha ({durationHours} hs):</span>
-                    <span className="font-semibold">${courtTotal.toLocaleString('es-AR')}</span>
-                  </div>
-                  <div className="flex justify-between text-slate-600">
-                    <span>Equipamiento (Red, Pelotas, {requiredRackets} Raquetas):</span>
-                    <span className="font-semibold text-tennis-700">Incluido ($0)</span>
-                  </div>
-                  <div className="flex justify-between text-slate-800 font-bold pt-1 border-t border-slate-100">
-                    <span>Costo Total de la Reserva:</span>
-                    <span>${totalReservation.toLocaleString('es-AR')}</span>
-                  </div>
-
-                  <div className="p-3 bg-tennis-50 rounded-xl border border-tennis-200 space-y-1">
-                    <div className="flex justify-between items-center text-tennis-900 font-extrabold text-sm">
-                      <span>Abonar Ahora (Seña 50%):</span>
-                      <span>${deposit50.toLocaleString('es-AR')} ARS</span>
-                    </div>
-                    <div className="text-[11px] text-tennis-700 flex items-center justify-between">
-                      <span>Saldo al finalizar el partido (50%):</span>
-                      <span className="font-bold">${remaining50.toLocaleString('es-AR')}</span>
-                    </div>
-                  </div>
-                </div>
-
+          {/* Fecha + modo de vista */}
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-slate-500 uppercase">Vista:</span>
+              <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl">
                 <button
                   type="button"
-                  disabled={!canBookWithStock || !selectedTimeSlot}
-                  onClick={handleProceedPayment}
-                  className="w-full py-3.5 px-4 rounded-xl bg-tennis-600 hover:bg-tennis-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-extrabold text-sm shadow-md flex items-center justify-center gap-2 transition-all"
+                  onClick={() => setViewMode('timeline')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all ${viewMode === 'timeline' ? 'bg-tennis-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
                 >
-                  {!selectedTimeSlot 
-                    ? 'Seleccioná un horario en la grilla'
-                    : canBookWithStock 
-                    ? 'Pagar seña y confirmar reserva' 
-                    : 'Sin stock de equipamiento'}
-                  <ChevronRight className="w-4 h-4" />
+                  Grilla horaria
                 </button>
-
-                <div className="text-[11px] text-slate-400 text-center flex items-center justify-center gap-1">
-                  Se emitirá automáticamente el recibo oficial con código QR
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('cards')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all ${viewMode === 'cards' ? 'bg-tennis-600 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}
+                >
+                  Por cancha
+                </button>
               </div>
+            </div>
 
+            <div className="flex items-center gap-3">
+              <div className="text-[11px] text-slate-400 hidden sm:block">Disponibilidad de <strong>08:00 a 22:00 hs</strong></div>
+              <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
+                <span className="text-xs text-slate-500 font-medium">Fecha:</span>
+                <input
+                  type="date"
+                  min={minDateStr}
+                  max={maxDateStr}
+                  value={selectedDate}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val < minDateStr || val > maxDateStr) {
+                      notify({ variant: 'warning', message: `Las reservas se pueden hacer con hasta ${maxDays} días de anticipación (hasta el ${maxDateStr}).` });
+                      return;
+                    }
+                    setSelectedDate(val);
+                    setSelectedTimeSlot('');
+                  }}
+                  className="font-bold text-slate-800 bg-transparent outline-none cursor-pointer text-xs"
+                />
+                <span className="text-[10px] font-bold text-tennis-700 bg-tennis-50 px-1.5 py-0.5 rounded border border-tennis-200">Máx. {maxDays} días</span>
+              </div>
             </div>
           </div>
-        </div>
-      ) : (
-        /* TRADITIONAL CARDS VIEW */
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          
-          {/* Left Column: Surface & Court Selector (7 Cols) */}
-          <div className="lg:col-span-7 space-y-6">
-            
-            {/* Surface filter tabs */}
-            <div>
-              <label className="block text-xs font-bold uppercase text-slate-500 mb-2">
-                1. Seleccioná el Tipo de Superficie:
-              </label>
-              <div className="grid grid-cols-4 gap-2">
-                {[
-                  { id: 'ALL', label: 'Todas', badge: '5 Canchas' },
-                  { id: 'Ladrillo', label: 'Ladrillo', badge: 'Polvo tradicional' },
-                  { id: 'Cemento', label: 'Cemento', badge: 'Hard Court rápida' },
-                  { id: 'Pasto', label: 'Pasto', badge: 'Césped Célebre' },
-                ].map(tab => (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    onClick={() => setSelectedSurface(tab.id)}
-                    className={`p-3 rounded-2xl text-left border transition-all ${
-                      selectedSurface === tab.id
-                        ? 'bg-tennis-600 text-white border-tennis-700 shadow-md'
-                        : 'bg-white text-slate-700 border-slate-200 hover:border-tennis-300'
-                    }`}
-                  >
-                    <div className="font-extrabold text-xs">{tab.label}</div>
-                    <div className={`text-[10px] mt-0.5 truncate ${selectedSurface === tab.id ? 'text-tennis-100' : 'text-slate-400'}`}>
-                      {tab.badge}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
 
-            {/* Courts list */}
-            <div className="space-y-3">
-              <label className="block text-xs font-bold uppercase text-slate-500">
-                2. Elegí la Cancha Deseada:
-              </label>
-              <div className="space-y-3">
-                {filteredCourts.map(court => {
-                  const isSelected = selectedCourt?.id === court.id;
-                  const isMaint = court.status === 'mantenimiento';
-
-                  return (
-                    <div
-                      key={court.id}
-                      onClick={() => !isMaint && setSelectedCourt(court)}
-                      className={`p-4 rounded-2xl border transition-all cursor-pointer ${
-                        isMaint 
-                          ? 'bg-slate-100 border-slate-200 opacity-60 cursor-not-allowed'
-                          : isSelected
-                          ? 'bg-white border-tennis-600 ring-2 ring-tennis-500/20 shadow-md'
-                          : 'bg-white border-slate-200 hover:border-slate-300 shadow-sm'
-                      }`}
-                    >
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div className="flex items-center gap-3">
-                          <img
-                            src={court.photo}
-                            alt={court.name}
-                            className="w-16 h-16 rounded-xl object-cover border border-slate-200"
-                          />
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-[10px] font-extrabold uppercase text-slate-500">
-                                {court.surfaceType}
-                              </span>
-                              <h3 className="text-sm font-bold text-slate-900">{court.name}</h3>
-                            </div>
-                            <p className="text-xs text-slate-500 mt-1 line-clamp-1">{court.description}</p>
-                            <div className="flex items-center gap-3 text-[11px] text-slate-400 mt-1">
-                              <span>Capacidad: hasta {court.capacity} personas ({court.capacity === 4 ? 'Dobles' : 'Singles'})</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="text-right sm:border-l sm:pl-4 sm:border-slate-100 flex sm:flex-col justify-between items-end">
-                          <div className="text-base font-extrabold text-slate-900">
-                            ${court.pricePerHour?.toLocaleString('es-AR')} <span className="text-[10px] font-normal text-slate-500">/hora</span>
-                          </div>
-                          <span className={`text-[10px] font-bold mt-1 ${
-                            isMaint ? 'text-slate-800' : 'text-tennis-800'
-                          }`}>
-                            {isMaint ? 'En Mantenimiento' : 'Disponible'}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Time Slot Picker (Max 2 hours per turn) */}
-            {selectedCourt && selectedCourt.status !== 'mantenimiento' && (
-              <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="block text-xs font-bold uppercase text-slate-700">
-                    3. Horarios Disponibles ({selectedDate})
-                  </label>
-                  <div className="flex items-center gap-2 text-xs text-slate-500">
-                    <span>Duración:</span>
-                    <select
-                      value={durationHours}
-                      onChange={(e) => setDurationHours(Number(e.target.value))}
-                      className="font-bold text-slate-800 bg-slate-100 px-2 py-1 rounded-lg outline-none"
-                    >
-                      <option value={1}>1 Hora</option>
-                      <option value={2}>2 Horas (max)</option>
-                    </select>
+          {viewMode === 'timeline' ? (
+            <CourtTimelineGrid
+              courts={courts}
+              selectedCourt={selectedCourt}
+              selectedTimeSlot={selectedTimeSlot}
+              selectedDate={selectedDate}
+              onSelectSlot={handleSelectTimelineSlot}
+              onDateChange={(d) => { setSelectedDate(d); setSelectedTimeSlot(''); }}
+              reservations={reservations}
+              maxAdvanceBookingDays={maxDays}
+            />
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {/* Superficie + canchas */}
+              <div className="lg:col-span-7 space-y-5">
+                <div>
+                  <label className="block text-xs font-bold uppercase text-slate-500 mb-2">Tipo de superficie</label>
+                  <div className="grid grid-cols-4 gap-2">
+                    {[
+                      { id: 'ALL', label: 'Todas', badge: `${courts.length} canchas` },
+                      { id: 'Ladrillo', label: 'Ladrillo', badge: 'Polvo tradicional' },
+                      { id: 'Cemento', label: 'Cemento', badge: 'Pista rápida' },
+                      { id: 'Pasto', label: 'Pasto', badge: 'Césped natural' }
+                    ].map(tab => (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        onClick={() => setSelectedSurface(tab.id)}
+                        className={`p-3 rounded-2xl text-left border transition-all ${selectedSurface === tab.id ? 'bg-tennis-600 text-white border-tennis-700 shadow-md' : 'bg-white text-slate-700 border-slate-200 hover:border-tennis-300'}`}
+                      >
+                        <div className="font-extrabold text-xs">{tab.label}</div>
+                        <div className={`text-[10px] mt-0.5 truncate ${selectedSurface === tab.id ? 'text-tennis-100' : 'text-slate-400'}`}>{tab.badge}</div>
+                      </button>
+                    ))}
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
-                  {[
-                    '08:00 - 10:00',
-                    '10:00 - 12:00',
-                    '14:00 - 16:00',
-                    '16:00 - 18:00',
-                    '18:00 - 20:00',
-                    '20:00 - 22:00'
-                  ].map((slot, sIdx) => {
-                    const blockReason = getSlotBlock(selectedCourt, selectedDate, slot);
-                    const isBooked = sIdx === 1 || Boolean(blockReason); // sIdx 1: Example booked slot
-                    const isSelected = selectedTimeSlot === slot;
-
+                <div className="space-y-3">
+                  <label className="block text-xs font-bold uppercase text-slate-500">Cancha</label>
+                  {filteredCourts.map(court => {
+                    const isSelected = selectedCourt?.id === court.id;
+                    const isMaint = court.status === 'mantenimiento';
                     return (
-                      <button
-                        key={slot}
-                        type="button"
-                        title={blockReason || undefined}
-                        disabled={isBooked}
-                        onClick={() => setSelectedTimeSlot(slot)}
-                        className={`p-2.5 rounded-xl text-center text-xs font-bold border transition-all ${
-                          isBooked
-                            ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed line-through'
-                            : isSelected
-                            ? 'bg-tennis-600 text-white border-tennis-700 shadow-sm'
-                            : 'bg-white text-slate-700 border-slate-200 hover:border-tennis-400'
-                        }`}
+                      <div
+                        key={court.id}
+                        onClick={() => { if (!isMaint) { setSelectedCourt(court); setSelectedTimeSlot(''); } }}
+                        className={`p-4 rounded-2xl border transition-all cursor-pointer ${isMaint ? 'bg-slate-100 border-slate-200 opacity-60 cursor-not-allowed' : isSelected ? 'bg-white border-tennis-600 ring-2 ring-tennis-500/20 shadow-md' : 'bg-white border-slate-200 hover:border-slate-300 shadow-sm'}`}
                       >
-                        {slot}
-                      </button>
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <img src={court.photo} alt={court.name} className="w-16 h-16 rounded-xl object-cover border border-slate-200" />
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-extrabold uppercase text-slate-500">{court.surfaceType}</span>
+                                <h3 className="text-sm font-bold text-slate-900">{court.name}</h3>
+                              </div>
+                              <p className="text-xs text-slate-500 mt-1 line-clamp-1">{court.description}</p>
+                              <div className="text-[11px] text-slate-400 mt-1">Capacidad: hasta {court.capacity} personas ({court.capacity === 4 ? 'Dobles' : 'Singles'})</div>
+                            </div>
+                          </div>
+                          <div className="text-right sm:border-l sm:pl-4 sm:border-slate-100 flex sm:flex-col justify-between items-end">
+                            <div className="text-base font-extrabold text-slate-900">${court.pricePerHour?.toLocaleString('es-AR')} <span className="text-[10px] font-normal text-slate-500">/hora</span></div>
+                            <span className={`text-[10px] font-bold mt-1 ${isMaint ? 'text-slate-800' : 'text-tennis-800'}`}>{isMaint ? 'En mantenimiento' : 'Disponible'}</span>
+                          </div>
+                        </div>
+                      </div>
                     );
                   })}
                 </div>
               </div>
-            )}
 
-            {/* Players Registration Form (Singles: 2 / Doubles: 4) */}
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-xs font-bold uppercase text-slate-700">
-                    4. Registro Obligatorio de Jugadores
-                  </h3>
-                  <p className="text-[11px] text-slate-400">
-                    Requerimiento: deben quedar registrados los datos de los 2 o 4 participantes que intervienen en el juego.
-                  </p>
-                </div>
-
-                {/* Modality selector */}
-                <div className="flex bg-slate-100 p-1 rounded-xl">
-                  <button
-                    type="button"
-                    onClick={() => handlePlayerTypeChange('singles')}
-                    className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
-                      playersType === 'singles' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'
-                    }`}
-                  >
-                    Singles (2)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handlePlayerTypeChange('dobles')}
-                    className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
-                      playersType === 'dobles' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'
-                    }`}
-                  >
-                    Dobles (4)
-                  </button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {players.map((p, idx) => (
-                  <div key={idx} className="p-3 rounded-xl border bg-slate-50 border-slate-200 space-y-2">
-                    <span className="text-[11px] font-bold text-tennis-800 uppercase block">
-                      Jugador {idx + 1} {idx === 0 && '(Titular / Socio)'}
-                    </span>
-
-                    {idx === 0 ? (
-                      <div>
-                        <div className="text-xs font-bold text-slate-900">{p.name}</div>
-                        <div className="text-[11px] text-slate-500">DNI {p.dni}</div>
+              {/* Horarios */}
+              <div className="lg:col-span-5">
+                {selectedCourt && selectedCourt.status !== 'mantenimiento' ? (
+                  <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3 sticky top-20">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-xs font-bold uppercase text-slate-700">Horarios ({selectedDate})</label>
+                      <div className="flex items-center gap-2 text-xs text-slate-500">
+                        <span>Duración:</span>
+                        <select
+                          value={durationHours}
+                          onChange={(e) => setDurationHours(Number(e.target.value))}
+                          className="font-bold text-slate-800 bg-slate-100 px-2 py-1 rounded-lg outline-none"
+                        >
+                          <option value={1}>1 hora</option>
+                          <option value={2}>2 horas (máx.)</option>
+                        </select>
                       </div>
-                    ) : (
-                      <PlayerSelect
-                        members={members}
-                        value={p}
-                        takenDnis={takenDnisFor(idx)}
-                        onSelect={(member) => handleSelectPlayer(idx, member)}
-                      />
-                    )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-2 pt-1">
+                      {CARD_SLOTS.map((slot) => {
+                        const blockReason = getSlotBlock(selectedCourt, selectedDate, slot);
+                        const startHour = slot.split(' - ')[0];
+                        const taken = reservations.some(r => (r.courtId === selectedCourt.id || r.courtName === selectedCourt.name) && r.date === selectedDate && r.startTime === startHour);
+                        const isBooked = taken || Boolean(blockReason);
+                        const isSelected = selectedTimeSlot === slot;
+                        return (
+                          <button
+                            key={slot}
+                            type="button"
+                            title={blockReason || (taken ? 'Turno ocupado' : undefined)}
+                            disabled={isBooked}
+                            onClick={() => setSelectedTimeSlot(slot)}
+                            className={`p-2.5 rounded-xl text-center text-xs font-bold border transition-all ${isBooked ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed line-through' : isSelected ? 'bg-tennis-600 text-white border-tennis-700 shadow-sm' : 'bg-white text-slate-700 border-slate-200 hover:border-tennis-400'}`}
+                          >
+                            {slot}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
-                ))}
+                ) : (
+                  <div className="p-8 text-center text-xs text-slate-400 bg-white rounded-2xl border border-slate-200">Seleccioná una cancha disponible para ver sus horarios.</div>
+                )}
               </div>
             </div>
+          )}
 
+          {/* Resumen del turno + Continuar */}
+          <div className="p-4 bg-slate-900 text-white rounded-3xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+            <div>
+              <span className="text-[10px] font-black uppercase text-tennis-400">Turno seleccionado</span>
+              <div className="text-base font-extrabold text-white mt-0.5">
+                {selectedCourt ? selectedCourt.name : 'Elegí una cancha'} • {selectedTimeSlot || 'elegí un horario'}
+              </div>
+              <div className="text-xs text-slate-300">
+                Fecha: {selectedDate} • {selectedCourt?.surfaceType} • Duración: {durationHours} hs • Total cancha: <strong className="text-tennis-400">${courtTotal.toLocaleString('es-AR')}</strong>
+              </div>
+            </div>
+            <button
+              type="button"
+              disabled={!selectedTimeSlot}
+              onClick={goToPlayers}
+              className="px-5 py-3 rounded-xl bg-tennis-500 hover:bg-tennis-400 disabled:bg-slate-700 disabled:text-slate-400 disabled:cursor-not-allowed text-slate-950 font-extrabold text-sm flex items-center justify-center gap-2 transition-all shrink-0"
+            >
+              Continuar: elegir jugadores
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
-
-          {/* Right Column: Equipment Rental & Checkout Summary (5 Cols) */}
-          <div className="lg:col-span-5 space-y-6">
-            
-            {/* Equipment Stock assignment */}
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-xs font-bold uppercase text-slate-700">
-                    5. Asignación de Equipamiento Reglamentario
-                  </h3>
-                  <p className="text-[11px] text-slate-400">
-                    Incluye Red, Pelotas y Raquetas sin costo extra.
-                  </p>
-                </div>
-                <span className="text-[10px] font-bold text-tennis-800">
-                  Sin costo extra ($0)
-                </span>
-              </div>
-
-              {!canBookWithStock && (
-                <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-start gap-2 text-xs text-slate-800">
-                  <div>
-                    <strong>Bloqueo por falta de stock</strong>
-                    <p className="text-[11px] mt-0.5">
-                      No es posible reservar la cancha porque no hay stock suficiente de red, pelotas o raquetas ({requiredRackets} requeridas).
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Red de Tenis */}
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
-                <div>
-                  <div className="font-bold text-slate-800">1 Red Reglamentaria de Tenis</div>
-                  <div className="text-[11px] text-slate-400">Stock disponible: {netStock?.availableStock ?? 0} u.</div>
-                </div>
-                <span className={`text-xs font-bold ${
-                  hasNetStock 
-                    ? 'text-tennis-700' 
-                    : 'text-slate-700'
-                }`}>
-                  {hasNetStock ? 'Asignada ($0)' : 'Sin Stock'}
-                </span>
-              </div>
-
-              {/* Pelotas de Tenis */}
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
-                <div>
-                  <div className="font-bold text-slate-800">Pelotas Reglamentarias de Tenis</div>
-                  <div className="text-[11px] text-slate-400">Stock disponible: {ballStock?.availableStock ?? 0} pelotas</div>
-                </div>
-                <span className={`text-xs font-bold ${
-                  hasBallStock 
-                    ? 'text-tennis-700' 
-                    : 'text-slate-700'
-                }`}>
-                  {hasBallStock ? 'Asignadas ($0)' : 'Sin Stock'}
-                </span>
-              </div>
-
-              {/* Raquetas de Tenis */}
-              <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
-                <div>
-                  <div className="font-bold text-slate-800">
-                    {requiredRackets} Raquetas de Tenis ({playersType === 'singles' ? 'Singles: 2 raquetas' : 'Dobles: 4 raquetas'})
-                  </div>
-                  <div className="text-[11px] text-slate-400">Stock disponible: {racketStock?.availableStock ?? 0} u.</div>
-                </div>
-                <span className={`text-xs font-bold ${
-                  hasRacketStock 
-                    ? 'text-tennis-700' 
-                    : 'text-slate-700'
-                }`}>
-                  {hasRacketStock ? `Asignadas (${requiredRackets} u.) ($0)` : 'Sin Stock'}
-                </span>
-              </div>
-
-              <div className="text-[11px] text-slate-500 italic bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                El equipamiento debe ser devuelto en recepción al finalizar el tiempo de juego.
-              </div>
-            </div>
-
-            {/* Payment Method & Total Breakdown */}
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-              <h3 className="text-xs font-bold uppercase text-slate-700">
-                6. Medio de Pago y Seña Obligatoria del 50%
-              </h3>
-
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  { id: 'Mercado Pago (QR)', label: 'QR MP' },
-                  { id: 'Tarjeta de Débito', label: 'Débito' },
-                  { id: 'Tarjeta de Crédito', label: 'Crédito' }
-                ].map(method => {
-                  return (
-                    <button
-                      key={method.id}
-                      type="button"
-                      onClick={() => setPaymentMethod(method.id)}
-                      className={`p-2.5 rounded-xl text-center border text-xs font-bold transition-all ${
-                        paymentMethod === method.id
-                          ? 'bg-tennis-50 text-tennis-800 border-tennis-600 ring-1 ring-tennis-500'
-                          : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
-                      }`}
-                    >
-                      {method.label}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Price Breakdown */}
-              <div className="pt-3 border-t border-slate-100 text-xs space-y-2">
-                <div className="flex justify-between text-slate-600">
-                  <span>Alquiler Cancha ({durationHours} hs):</span>
-                  <span className="font-semibold">${courtTotal.toLocaleString('es-AR')}</span>
-                </div>
-                <div className="flex justify-between text-slate-600">
-                  <span>Equipamiento (Red, Pelotas, {requiredRackets} Raquetas):</span>
-                  <span className="font-semibold text-tennis-700">Incluido ($0)</span>
-                </div>
-                <div className="flex justify-between text-slate-800 font-bold pt-1 border-t border-slate-100">
-                  <span>Costo Total de la Reserva:</span>
-                  <span>${totalReservation.toLocaleString('es-AR')}</span>
-                </div>
-
-                {/* 50% Deposit highlight box */}
-                <div className="p-3 bg-tennis-50 rounded-xl border border-tennis-200 space-y-1">
-                  <div className="flex justify-between items-center text-tennis-900 font-extrabold text-sm">
-                    <span>Abonar Ahora (Seña 50%):</span>
-                    <span>${deposit50.toLocaleString('es-AR')} ARS</span>
-                  </div>
-                  <div className="text-[11px] text-tennis-700 flex items-center justify-between">
-                    <span>Saldo al finalizar el partido (50%):</span>
-                    <span className="font-bold">${remaining50.toLocaleString('es-AR')}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Submit Button */}
-              <button
-                type="button"
-                disabled={!canBookWithStock}
-                onClick={handleProceedPayment}
-                className="w-full py-3.5 px-4 rounded-xl bg-tennis-600 hover:bg-tennis-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-extrabold text-sm shadow-md flex items-center justify-center gap-2 transition-all"
-              >
-                {canBookWithStock ? 'Pagar seña y confirmar reserva' : 'Sin stock de equipamiento'}
-                <ChevronRight className="w-4 h-4" />
-              </button>
-
-              <div className="text-[11px] text-slate-400 text-center flex items-center justify-center gap-1">
-                Se emitirá automáticamente el recibo oficial con código QR
-              </div>
-            </div>
-
-          </div>
-
         </div>
       )}
 
-      {/* QR Modal for Mercado Pago */}
+      {/* ======================= PASO 2: JUGADORES ======================= */}
+      {step === 1 && (
+        <div className="space-y-6 max-w-3xl mx-auto">
+          <SelectionSummary court={selectedCourt} date={selectedDate} slot={selectedTimeSlot} hours={durationHours} onEdit={() => setStep(0)} />
+
+          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900">¿Quiénes juegan?</h3>
+                <p className="text-[11px] text-slate-500">Deben quedar registrados los datos de los 2 o 4 participantes del partido.</p>
+              </div>
+              <div className="flex bg-slate-100 p-1 rounded-xl self-start">
+                <button
+                  type="button"
+                  onClick={() => handlePlayerTypeChange('singles')}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${playersType === 'singles' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'}`}
+                >
+                  Singles (2)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handlePlayerTypeChange('dobles')}
+                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${playersType === 'dobles' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'}`}
+                >
+                  Dobles (4)
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {players.map((p, idx) => (
+                <div key={idx} className="p-3 rounded-xl border bg-slate-50 border-slate-200 space-y-2">
+                  <span className="text-[11px] font-bold text-tennis-800 uppercase block">
+                    Jugador {idx + 1} {idx === 0 && '(Titular)'}
+                  </span>
+                  {idx === 0 ? (
+                    <div>
+                      <div className="text-xs font-bold text-slate-900">{p.name}</div>
+                      <div className="text-[11px] text-slate-500">DNI {p.dni}</div>
+                    </div>
+                  ) : (
+                    <PlayerSelect members={members} value={p} takenDnis={takenDnisFor(idx)} onSelect={(member) => handleSelectPlayer(idx, member)} />
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <StepActions
+            onBack={() => setStep(0)}
+            backLabel="Volver al cronograma"
+            onNext={goToPayment}
+            nextLabel="Continuar: pagar la seña"
+            nextDisabled={players.some(p => !p.dni)}
+          />
+        </div>
+      )}
+
+      {/* ======================= PASO 3: PAGO ======================= */}
+      {step === 2 && (
+        <div className="space-y-6 max-w-3xl mx-auto">
+          <SelectionSummary court={selectedCourt} date={selectedDate} slot={selectedTimeSlot} hours={durationHours} players={players} onEdit={() => setStep(0)} onEditPlayers={() => setStep(1)} />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Equipamiento */}
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-xs font-bold uppercase text-slate-700">Equipamiento incluido</h3>
+                  <p className="text-[11px] text-slate-400">Red, pelotas y raquetas sin costo extra.</p>
+                </div>
+                <span className="text-[10px] font-bold text-tennis-800">$0</span>
+              </div>
+
+              {!canBookWithStock && (
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900">
+                  <strong>Sin stock suficiente:</strong> falta red, pelotas o raquetas ({requiredRackets} requeridas) para este turno.
+                </div>
+              )}
+
+              {[
+                { label: '1 red reglamentaria', stock: netStock?.availableStock ?? 0, ok: hasNetStock, unit: 'u.' },
+                { label: 'Pelotas reglamentarias', stock: ballStock?.availableStock ?? 0, ok: hasBallStock, unit: 'pelotas' },
+                { label: `${requiredRackets} raquetas (${playersType === 'singles' ? 'singles' : 'dobles'})`, stock: racketStock?.availableStock ?? 0, ok: hasRacketStock, unit: 'u.' }
+              ].map(item => (
+                <div key={item.label} className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
+                  <div>
+                    <div className="font-bold text-slate-800">{item.label}</div>
+                    <div className="text-[11px] text-slate-400">Stock: {item.stock} {item.unit}</div>
+                  </div>
+                  <span className={`text-xs font-bold ${item.ok ? 'text-tennis-700' : 'text-slate-700'}`}>{item.ok ? 'Asignado' : 'Sin stock'}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Medio de pago y totales */}
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+              <h3 className="text-xs font-bold uppercase text-slate-700">Medio de pago de la seña (50%)</h3>
+
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { id: 'Mercado Pago (QR)', label: 'QR' },
+                  { id: 'Tarjeta de Débito', label: 'Débito' },
+                  { id: 'Tarjeta de Crédito', label: 'Crédito' }
+                ].map(method => (
+                  <button
+                    key={method.id}
+                    type="button"
+                    onClick={() => setPaymentMethod(method.id)}
+                    className={`p-2.5 rounded-xl text-center border text-xs font-bold transition-all ${paymentMethod === method.id ? 'bg-tennis-50 text-tennis-800 border-tennis-600 ring-1 ring-tennis-500' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'}`}
+                  >
+                    {method.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 text-xs space-y-2">
+                <div className="flex justify-between text-slate-600"><span>Alquiler cancha ({durationHours} hs):</span><span className="font-semibold">${courtTotal.toLocaleString('es-AR')}</span></div>
+                <div className="flex justify-between text-slate-600"><span>Equipamiento:</span><span className="font-semibold text-tennis-700">Incluido ($0)</span></div>
+                <div className="flex justify-between text-slate-800 font-bold pt-1 border-t border-slate-100"><span>Total de la reserva:</span><span>${totalReservation.toLocaleString('es-AR')}</span></div>
+                <div className="p-3 bg-tennis-50 rounded-xl border border-tennis-200 space-y-1">
+                  <div className="flex justify-between items-center text-tennis-900 font-extrabold text-sm"><span>Abonás ahora (seña 50%):</span><span>${deposit50.toLocaleString('es-AR')}</span></div>
+                  <div className="text-[11px] text-tennis-700 flex items-center justify-between"><span>Saldo al finalizar el partido:</span><span className="font-bold">${remaining50.toLocaleString('es-AR')}</span></div>
+                </div>
+              </div>
+
+              <div className="text-[11px] text-slate-400 text-center">Al acreditarse la seña se emite el recibo oficial con código QR.</div>
+            </div>
+          </div>
+
+          <StepActions
+            onBack={() => setStep(1)}
+            backLabel="Volver a jugadores"
+            onNext={handleProceedPayment}
+            nextLabel={saving ? 'Confirmando...' : canBookWithStock ? `Pagar seña de $${deposit50.toLocaleString('es-AR')} y confirmar` : 'Sin stock de equipamiento'}
+            nextDisabled={!canBookWithStock || saving}
+          />
+        </div>
+      )}
+
+      {/* QR para el pago de la seña */}
       <QRModal
         isOpen={showQRModal}
         onClose={() => setShowQRModal(false)}
         amount={deposit50}
         concept={`Seña 50% - ${selectedCourt?.name} (${selectedDate} ${selectedTimeSlot})`}
+        reference={`RES-${selectedCourt?.id}-${selectedDate}-${(selectedTimeSlot || '').split(' - ')[0]}`}
         onPaymentSuccess={executeReservation}
       />
+    </div>
+  );
+}
 
-      {/* Receipt Modal */}
-      <ReceiptModal
-        isOpen={showReceiptModal}
-        onClose={() => setShowReceiptModal(false)}
-        receipt={generatedReceipt}
-      />
+function slotHours(slot) {
+  const [a, b] = slot.split(' - ');
+  if (!a || !b) return 2;
+  return Number(b.split(':')[0]) - Number(a.split(':')[0]);
+}
 
+function PageHeader() {
+  return (
+    <div className="pb-4 border-b border-slate-200">
+      <h1 className="text-2xl font-black text-slate-900 tracking-tight">Reserva de Canchas de Tenis</h1>
+      <p className="text-xs text-slate-500 mt-1">Tres pasos: elegí el turno en el cronograma, registrá a los jugadores y pagá la seña del 50%.</p>
+    </div>
+  );
+}
+
+function SelectionSummary({ court, date, slot, hours, players, onEdit, onEditPlayers }) {
+  return (
+    <div className="p-4 bg-slate-900 text-white rounded-3xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+      <div className="space-y-1">
+        <span className="text-[10px] font-black uppercase text-tennis-400">Tu turno</span>
+        <div className="text-base font-extrabold">{court?.name} • {slot}</div>
+        <div className="text-xs text-slate-300">Fecha: {date} • {court?.surfaceType} • {hours} hs</div>
+        {players && (
+          <div className="text-xs text-slate-300">
+            Jugadores: <span className="text-white font-semibold">{players.map(p => p.name).filter(Boolean).join(', ')}</span>
+          </div>
+        )}
+      </div>
+      <div className="flex items-center gap-2 shrink-0">
+        <button type="button" onClick={onEdit} className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-bold border border-white/20">Cambiar turno</button>
+        {onEditPlayers && (
+          <button type="button" onClick={onEditPlayers} className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-bold border border-white/20">Cambiar jugadores</button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function StepActions({ onBack, backLabel, onNext, nextLabel, nextDisabled }) {
+  return (
+    <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-3 pt-2">
+      <button
+        type="button"
+        onClick={onBack}
+        className="w-full sm:w-auto px-4 py-3 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-bold text-sm border border-slate-200 flex items-center justify-center gap-2"
+      >
+        <ChevronLeft className="w-4 h-4" />
+        {backLabel}
+      </button>
+      <button
+        type="button"
+        disabled={nextDisabled}
+        onClick={onNext}
+        className="w-full sm:w-auto px-6 py-3 rounded-xl bg-tennis-600 hover:bg-tennis-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-extrabold text-sm shadow-md flex items-center justify-center gap-2 transition-all"
+      >
+        {nextLabel}
+        <ChevronRight className="w-4 h-4" />
+      </button>
     </div>
   );
 }
@@ -991,11 +696,7 @@ function PlayerSelect({ members, value, takenDnis, onSelect }) {
             DNI {value.dni}{value.memberNumber && ` • N° ${value.memberNumber}`}
           </div>
         </div>
-        <button
-          type="button"
-          onClick={() => onSelect(null)}
-          className="text-[11px] font-bold text-tennis-700 hover:text-tennis-900"
-        >
+        <button type="button" onClick={() => onSelect(null)} className="text-[11px] font-bold text-tennis-700 hover:text-tennis-900">
           Cambiar
         </button>
       </div>

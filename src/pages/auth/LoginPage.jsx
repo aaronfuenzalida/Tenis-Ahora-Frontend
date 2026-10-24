@@ -10,7 +10,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
-  const { login, loginDemo } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
@@ -19,7 +19,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      // El backend decide el rol (o fallback a demo si no hay backend y son credenciales demo)
+      // El backend decide el rol
       const loggedUser = await login(email, password);
       if (loggedUser.role === 'admin') {
         navigate('/admin');
@@ -32,18 +32,6 @@ export default function LoginPage() {
       setError(mensajeDeError(err, 'No se pudo iniciar sesión.'));
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleDemoLogin = (role) => {
-    setError('');
-    const demoUser = loginDemo(role);
-    if (demoUser.role === 'admin') {
-      navigate('/admin');
-    } else if (demoUser.role === 'coach') {
-      navigate('/coach');
-    } else {
-      navigate('/app/dashboard');
     }
   };
 
@@ -86,7 +74,7 @@ export default function LoginPage() {
           <div className="mb-6">
             <h2 className="text-2xl font-black text-slate-900 tracking-tight">Iniciar Sesión</h2>
             <p className="text-sm text-slate-500 mt-1">
-              Ingresá con tu cuenta o accedé directamente en modo demo.
+              Ingresá con tu cuenta de socio, docente o administración.
             </p>
           </div>
 
@@ -141,37 +129,15 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Quick Demo Access - Compact & Clean */}
-          <div className="mt-5 pt-4 border-t border-slate-100">
-            <div className="mb-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-              Acceso rápido demo
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => handleDemoLogin('client')}
-                className="py-2.5 px-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm"
-              >
-                <span>Demo Socio</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleDemoLogin('coach')}
-                className="py-2.5 px-3 rounded-xl border border-tennis-200 bg-tennis-50/70 hover:bg-tennis-100 text-tennis-900 text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm"
-              >
-                <span>Demo Docente</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleDemoLogin('admin')}
-                className="py-2.5 px-3 rounded-xl border border-slate-800 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm"
-              >
-                <span>Demo Admin</span>
-              </button>
-            </div>
+          {/* Acceso a la demo (entorno separado, sin backend) */}
+          <div className="mt-5 pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs">
+            <span className="text-slate-500">¿Querés recorrer el sistema con datos de ejemplo?</span>
+            <Link
+              to="/demo"
+              className="inline-flex items-center justify-center px-3.5 py-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-800 font-bold transition-all shadow-sm"
+            >
+              Abrir la demo
+            </Link>
           </div>
 
           {/* Switch to Register */}

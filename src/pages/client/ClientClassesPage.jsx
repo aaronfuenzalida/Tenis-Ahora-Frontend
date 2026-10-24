@@ -3,9 +3,14 @@ import { coachesAndClassesService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import CoachCredentialsModal from '../../components/common/CoachCredentialsModal';
 import Modal from '../../components/common/Modal';
+import PaymentFlowModal from '../../components/common/PaymentFlowModal';
+import { useFeedback } from '../../context/FeedbackContext';
 
 export default function ClientClassesPage() {
   const { user } = useAuth();
+  const { notify } = useFeedback();
+  // Pago pendiente: { kind: 'clase' | 'particular', ... }
+  const [payment, setPayment] = useState(null);
   const [coaches, setCoaches] = useState([]);
   const [classes, setClasses] = useState([]);
   const [selectedCoachForModal, setSelectedCoachForModal] = useState(null);
@@ -15,7 +20,6 @@ export default function ClientClassesPage() {
   const [privateLessonDate, setPrivateLessonDate] = useState('2026-10-22');
   const [privateLessonTime, setPrivateLessonTime] = useState('11:00 - 12:00');
   const [privateLessonNotes, setPrivateLessonNotes] = useState('');
-  const [privateSuccess, setPrivateSuccess] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -30,49 +34,93 @@ export default function ClientClassesPage() {
     setClasses(clRes.data);
   };
 
-  const handleEnrollGroupClass = async (cls) => {
-    try {
-      await coachesAndClassesService.enrollStudent(cls.id, {
+  // Inscribirse a una clase o entrenamiento grupal lleva al pago de la cuota; la inscripción se
+  // registra cuando el pago queda acreditado.
+  const handleEnrollGroupClass = (cls) => {
+    setPayment({ kind: 'clase', cls });
+  };
+
+  const handleRequestPrivateLesson = (e) => {
+    e.preventDefault();
+    if (!privateLessonCoach) return;
+    setPayment({
+      kind: 'particular',
+      coach: privateLessonCoach,
+      date: privateLessonDate,
+      time: privateLessonTime,
+      notes: privateLessonNotes
+    });
+    setPrivateLessonCoach(null);
+  };
+
+  const settleAfterPayment = async () => {
+    if (!payment) return null;
+    if (payment.kind === 'clase') {
+      await coachesAndClassesService.enrollStudent(payment.cls.id, {
         name: user?.name,
-        dni: user?.dni
+        dni: user?.dni,
+        phone: user?.phone
       });
-      alert(`Inscripción confirmada a "${cls.name}". El arancel mensual ha sido computado en su cuenta de socio.`);
+      return { relatedId: payment.cls.id };
+    }
+    const coach = payment.coach;
+    const res = await coachesAndClassesService.createPrivateClass({
+      coachId: coach.id,
+      coachName: coach.name,
+      // Un profesor da clases y un entrenador, entrenamientos.
+      kind: coach.type === 'Entrenador' ? 'entrenamiento' : 'clase',
+      studentName: user?.name,
+      studentDni: user?.dni,
+      studentPhone: user?.phone,
+      date: payment.date,
+      time: payment.time,
+      courtAssigned: 'Cancha 1 (Ladrillo)',
+      hourlyRate: coach.hourlyRatePrivate || 6000,
+      notes: payment.notes,
+      status: 'programada'
+    });
+    return { relatedId: res?.data?.id || coach.id };
+  };
+
+  const handlePaymentClosed = async (receipt) => {
+    const paid = payment;
+    setPayment(null);
+    if (!receipt || !paid) return;
+    if (paid.kind === 'clase') {
       await loadData();
-    } catch (err) {
-      alert(err.message || 'No fue posible completar la inscripción.');
+      notify({ variant: 'success', title: 'Inscripción confirmada', message: `Quedaste inscripto en "${paid.cls.name}". El recibo ${receipt.id} ya figura en Mis Pagos y Recibos.` });
+    } else {
+      setPrivateLessonNotes('');
+      notify({ variant: 'success', title: 'Turno particular reservado', message: `Tu turno con ${paid.coach.name} quedó registrado para el ${paid.date} (${paid.time}). El docente coordinará los detalles en cancha.` });
     }
   };
 
-  const handleRequestPrivateLesson = async (e) => {
-    e.preventDefault();
-    if (!privateLessonCoach) return;
-    setPrivateSuccess(true);
-    try {
-      await coachesAndClassesService.createPrivateClass({
-        coachId: privateLessonCoach.id,
-        coachName: privateLessonCoach.name,
-        // Un profesor da clases y un entrenador, entrenamientos.
-        kind: privateLessonCoach.type === 'Entrenador' ? 'entrenamiento' : 'clase',
-        studentName: user?.name,
-        studentDni: user?.dni,
-        studentPhone: user?.phone,
-        date: privateLessonDate,
-        time: privateLessonTime,
-        courtAssigned: 'Cancha 1 (Ladrillo)',
-        hourlyRate: privateLessonCoach.hourlyRatePrivate || 6000,
-        notes: privateLessonNotes,
-        status: 'programada'
-      });
-    } catch (err) {
-      setPrivateSuccess(false);
-      alert(err.message || 'No se pudo registrar la solicitud.');
-      return;
+  const paymentProps = (() => {
+    if (!payment) return { concept: '', amount: 0, items: [] };
+    if (payment.kind === 'clase') {
+      const fee = Number(payment.cls.monthlyFee) || 0;
+      return {
+        title: 'Pago de cuota de la clase',
+        concept: `Cuota mensual - ${payment.cls.name}`,
+        summary: `${payment.cls.coachName} • ${payment.cls.scheduleDays} ${payment.cls.scheduleTime}`,
+        amount: fee,
+        items: [{ description: `Cuota mensual - ${payment.cls.name}`, amount: fee }],
+        relatedId: payment.cls.id,
+        kind: 'inscripcion-clase'
+      };
     }
-    setPrivateSuccess(false);
-    setPrivateLessonCoach(null);
-    setPrivateLessonNotes('');
-    alert('Solicitud de clase particular registrada exitosamente. El docente coordinará los detalles en cancha.');
-  };
+    const rate = Number(payment.coach.hourlyRatePrivate) || 6000;
+    const label = payment.coach.type === 'Entrenador' ? 'Entrenamiento particular' : 'Clase particular';
+    return {
+      title: `Pago de ${label.toLowerCase()}`,
+      concept: `${label} con ${payment.coach.name}`,
+      summary: `${payment.date} • ${payment.time}`,
+      amount: rate,
+      items: [{ description: `${label} (1 hora) - ${payment.coach.name}`, amount: rate }],
+      relatedId: payment.coach.id,
+      kind: 'turno-particular'
+    };
+  })();
 
   return (
     <div className="space-y-8">
@@ -217,7 +265,7 @@ export default function ClientClassesPage() {
                     onClick={() => handleEnrollGroupClass(cls)}
                     className="w-full py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs transition-colors flex items-center justify-center gap-1.5"
                   >
-                    Inscribirme a esta Clase
+                    Inscribirme y pagar la cuota
                   </button>
                 )}
               </div>
@@ -225,6 +273,21 @@ export default function ClientClassesPage() {
           })}
         </div>
       </div>
+
+      {/* Pago de cuota o turno particular */}
+      <PaymentFlowModal
+        isOpen={!!payment}
+        onClose={handlePaymentClosed}
+        title={paymentProps.title}
+        concept={paymentProps.concept}
+        summary={paymentProps.summary}
+        amount={paymentProps.amount}
+        items={paymentProps.items}
+        client={{ name: user?.name, dni: user?.dni }}
+        relatedId={paymentProps.relatedId}
+        kind={paymentProps.kind}
+        onPaid={settleAfterPayment}
+      />
 
       {/* Coach Certificate Viewer Modal */}
       <CoachCredentialsModal
@@ -291,10 +354,10 @@ export default function ClientClassesPage() {
 
           <button
             type="submit"
-            disabled={privateSuccess}
+            disabled={!!payment}
             className="w-full py-2.5 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-semibold text-xs shadow-sm"
           >
-            {privateSuccess ? 'Enviando solicitud...' : 'Confirmar Solicitud de Turno'}
+            Continuar al pago del turno
           </button>
         </form>
       </Modal>
