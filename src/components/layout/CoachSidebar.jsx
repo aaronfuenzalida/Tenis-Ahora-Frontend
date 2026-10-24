@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Logo from '../common/Logo';
-import { Home, Calendar, Award, Layers, Trophy, UserCheck } from 'lucide-react';
+import { Home, Calendar, Award, UserCheck } from 'lucide-react';
 
 export default function CoachSidebar({ isOpen, onClose }) {
   const { user, logout, switchRole } = useAuth();
@@ -16,7 +16,7 @@ export default function CoachSidebar({ isOpen, onClose }) {
       exact: true
     },
     {
-      name: 'Mis Clases y Asistencia',
+      name: user?.rolBackend === 'Entrenador' ? 'Mis Entrenamientos y Asistencia' : 'Mis Clases y Asistencia',
       to: '/coach/clases',
       icon: UserCheck
     },
@@ -29,16 +29,6 @@ export default function CoachSidebar({ isOpen, onClose }) {
       name: 'Horarios y Certificación',
       to: '/coach/perfil',
       icon: Award
-    },
-    {
-      name: 'Reservar Cancha',
-      to: '/coach/reservas',
-      icon: Layers
-    },
-    {
-      name: 'Torneos y Ligas',
-      to: '/coach/torneos',
-      icon: Trophy
     }
   ];
 
@@ -132,22 +122,24 @@ export default function CoachSidebar({ isOpen, onClose }) {
 
         {/* Switcher & Logout Footer */}
         <div className="p-4 border-t border-slate-100 space-y-2 bg-slate-50/50">
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={handleGoToClient}
-              className="py-2 px-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold flex items-center justify-center gap-1 transition-colors"
-            >
-              <span>Socio</span>
-            </button>
-            <button
-              type="button"
-              onClick={handleGoToAdmin}
-              className="py-2 px-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold flex items-center justify-center gap-1 transition-colors"
-            >
-              <span>Admin</span>
-            </button>
-          </div>
+          {user?.isDemo && (
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={handleGoToClient}
+                className="py-2 px-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold flex items-center justify-center gap-1 transition-colors"
+              >
+                <span>Socio</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleGoToAdmin}
+                className="py-2 px-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold flex items-center justify-center gap-1 transition-colors"
+              >
+                <span>Admin</span>
+              </button>
+            </div>
+          )}
 
           <button
             type="button"

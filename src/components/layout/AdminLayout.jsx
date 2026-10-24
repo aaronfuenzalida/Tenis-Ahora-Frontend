@@ -45,25 +45,27 @@ export default function AdminLayout() {
             )}
 
             {/* Quick Demo Switchers */}
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={handleGoToCoach}
-                title="Cambiar a vista de docente"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-tennis-50 hover:bg-tennis-100 text-tennis-900 text-xs font-bold border border-tennis-200 transition-all shadow-sm"
-              >
-                <span className="hidden sm:inline">Ver como</span> Docente
-              </button>
+            {user?.isDemo && (
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={handleGoToCoach}
+                  title="Cambiar a vista de docente"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-tennis-50 hover:bg-tennis-100 text-tennis-900 text-xs font-bold border border-tennis-200 transition-all shadow-sm"
+                >
+                  <span className="hidden sm:inline">Ver como</span> Docente
+                </button>
 
-              <button
-                type="button"
-                onClick={handleToggleRole}
-                title="Cambiar a vista de socio"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200 transition-all shadow-sm"
-              >
-                <span className="hidden sm:inline">Ver como</span> Socio
-              </button>
-            </div>
+                <button
+                  type="button"
+                  onClick={handleToggleRole}
+                  title="Cambiar a vista de socio"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200 transition-all shadow-sm"
+                >
+                  <span className="hidden sm:inline">Ver como</span> Socio
+                </button>
+              </div>
+            )}
 
             {/* Admin User Info */}
             <div className="flex items-center gap-2.5 pl-3 border-l border-slate-200">

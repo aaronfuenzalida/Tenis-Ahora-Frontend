@@ -5,7 +5,7 @@ import Logo from '../common/Logo';
 import { LayoutDashboard, Layers, Calendar, Package, Trophy, GraduationCap, DollarSign, Users, BarChart3 } from 'lucide-react';
 
 export default function Sidebar({ isOpen, onClose }) {
-  const { switchRole } = useAuth();
+  const { switchRole, isDemo } = useAuth();
   const navigate = useNavigate();
 
   const handleReturnToClient = () => {
@@ -117,24 +117,26 @@ export default function Sidebar({ isOpen, onClose }) {
         </div>
 
         {/* Quick Return to Client or Coach View Footer */}
-        <div className="p-3 border-t border-slate-800 bg-slate-950/40">
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={handleReturnToClient}
-              className="flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-colors border border-slate-700 cursor-pointer"
-            >
-              <span>Socio</span>
-            </button>
-            <button
-              type="button"
-              onClick={handleGoToCoach}
-              className="flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-tennis-950/80 hover:bg-tennis-900 text-tennis-300 text-xs font-semibold transition-colors border border-tennis-800/60 cursor-pointer"
-            >
-              <span>Docente</span>
-            </button>
+        {isDemo && (
+          <div className="p-3 border-t border-slate-800 bg-slate-950/40">
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={handleReturnToClient}
+                className="flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-colors border border-slate-700 cursor-pointer"
+              >
+                <span>Socio</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleGoToCoach}
+                className="flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-tennis-950/80 hover:bg-tennis-900 text-tennis-300 text-xs font-semibold transition-colors border border-tennis-800/60 cursor-pointer"
+              >
+                <span>Docente</span>
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
       </aside>
     </>

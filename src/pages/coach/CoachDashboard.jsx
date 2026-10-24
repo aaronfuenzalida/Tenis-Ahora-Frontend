@@ -29,7 +29,7 @@ export default function CoachDashboard() {
     ]);
 
     // Match coach by name or ID (fallback to first coach)
-    const currentCoach = cRes.data.find(c => c.name === user?.name || c.id === 'coach-01') || cRes.data[0];
+    const currentCoach = cRes.data.find(c => c.id === user?.coachId);
     setCoachProfile(currentCoach);
 
     // Classes assigned to this coach
@@ -79,12 +79,6 @@ export default function CoachDashboard() {
           >
             Ver Mi Título Habilitante
           </button>
-          <Link
-            to="/coach/reservas"
-            className="px-3.5 py-2 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white text-xs font-semibold shadow-sm flex items-center gap-1.5 transition-colors"
-          >
-            Reservar Cancha
-          </Link>
         </div>
       </div>
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Outlet, Link, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import CoachSidebar from './CoachSidebar';
 import { Menu } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -56,21 +56,16 @@ export default function CoachLayout() {
           {/* Right Header Actions */}
           <div className="flex items-center gap-3">
 
-            <Link
-              to="/coach/reservas"
-              className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white text-xs font-semibold shadow-sm transition-all"
-            >
-              Reservar Cancha
-            </Link>
-
-            <button
-              type="button"
-              onClick={handleToggleToClient}
-              title="Cambiar a vista de socio"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold border border-slate-200 transition-all shadow-sm"
-            >
-              <span className="hidden sm:inline">Vista</span> Socio
-            </button>
+            {user?.isDemo && (
+              <button
+                type="button"
+                onClick={handleToggleToClient}
+                title="Cambiar a vista de socio"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold border border-slate-200 transition-all shadow-sm"
+              >
+                <span className="hidden sm:inline">Vista</span> Socio
+              </button>
+            )}
 
             <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
               <div className="w-8 h-8 rounded-lg bg-tennis-700 text-white flex items-center justify-center font-bold text-xs shadow-sm">

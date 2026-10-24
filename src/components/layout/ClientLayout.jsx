@@ -66,23 +66,27 @@ export default function ClientLayout() {
               Reservar Cancha
             </Link>
 
-            <button
-              type="button"
-              onClick={handleGoToCoach}
-              title="Cambiar a vista de profesor o entrenador"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-tennis-50 hover:bg-tennis-100 text-tennis-900 text-xs font-bold border border-tennis-200 transition-all shadow-sm"
-            >
-              <span className="hidden sm:inline">Panel</span> Docente
-            </button>
+            {user?.isDemo && (
+              <>
+                <button
+                  type="button"
+                  onClick={handleGoToCoach}
+                  title="Cambiar a vista de profesor o entrenador"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-tennis-50 hover:bg-tennis-100 text-tennis-900 text-xs font-bold border border-tennis-200 transition-all shadow-sm"
+                >
+                  <span className="hidden sm:inline">Panel</span> Docente
+                </button>
 
-            <button
-              type="button"
-              onClick={handleToggleRole}
-              title="Cambiar a vista de administración"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200 transition-all shadow-sm"
-            >
-              <span className="hidden sm:inline">Modo</span> Admin
-            </button>
+                <button
+                  type="button"
+                  onClick={handleToggleRole}
+                  title="Cambiar a vista de administración"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200 transition-all shadow-sm"
+                >
+                  <span className="hidden sm:inline">Modo</span> Admin
+                </button>
+              </>
+            )}
 
             <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
               <div className="w-8 h-8 rounded-full bg-tennis-600 text-white flex items-center justify-center font-bold text-xs shadow-sm">

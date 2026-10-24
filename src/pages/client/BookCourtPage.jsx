@@ -56,7 +56,7 @@ export default function BookCourtPage() {
     const [cRes, sRes, rRes] = await Promise.all([
       courtsService.getAll(), 
       stockService.getAll(),
-      reservationsService.getAll()
+      reservationsService.getOccupancy()
     ]);
     setCourts(cRes.data);
     setStock(sRes.data);

@@ -34,11 +34,11 @@ export default function CoachPrivateLessonsPage() {
       coachesAndClassesService.getPrivateClasses(),
       coachesAndClassesService.getCoaches()
     ]);
-    const currentCoach = cRes.data.find(c => c.name === user?.name || c.id === 'coach-01') || cRes.data[0];
+    const currentCoach = cRes.data.find(c => c.id === user?.coachId);
     setCoachProfile(currentCoach);
 
     const myLessons = prvRes.data.filter(p => p.coachId === currentCoach?.id || p.coachName === currentCoach?.name);
-    setLessons(myLessons.length > 0 ? myLessons : prvRes.data);
+    setLessons(myLessons);
 
     if (currentCoach) {
       setNewLessonForm(prev => ({
@@ -52,8 +52,10 @@ export default function CoachPrivateLessonsPage() {
     e.preventDefault();
     await coachesAndClassesService.createPrivateClass({
       ...newLessonForm,
-      coachId: coachProfile?.id || 'coach-01',
-      coachName: coachProfile?.name || 'Prof. Santiago Álvarez'
+      coachId: coachProfile?.id,
+      coachName: coachProfile?.name,
+      // Un profesor da clases y un entrenador, entrenamientos.
+      kind: coachProfile?.type === 'Entrenador' ? 'entrenamiento' : 'clase'
     });
     setShowAddModal(false);
     setNewLessonForm({

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { tournamentsService, leaguesService } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 import Modal from '../../components/common/Modal';
 import TournamentBracketTree from '../../components/common/TournamentBracketTree';
 
 export default function ClientTournamentsPage() {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('tournaments'); // 'tournaments' | 'leagues'
 
   // Tournaments
@@ -22,9 +24,9 @@ export default function ClientTournamentsPage() {
   const [enrollingLeague, setEnrollingLeague] = useState(false);
   const [leagueSubView, setLeagueSubView] = useState('standings'); // 'standings' | 'fixtures' | 'rules'
   const [leagueEnrollForm, setLeagueEnrollForm] = useState({
-    name: 'Federico Gómez',
-    dni: '38.452.129',
-    phone: '11-4892-1234',
+    name: user?.name || '',
+    dni: user?.dni || '',
+    phone: user?.phone || '',
     partnerName: '',
     partnerDni: ''
   });
@@ -49,8 +51,8 @@ export default function ClientTournamentsPage() {
     e.preventDefault();
     setEnrollingTrn(true);
     await tournamentsService.enroll(selectedTournament.id, {
-      name: 'Federico Gómez',
-      dni: '38.452.129',
+      name: user?.name,
+      dni: user?.dni,
       partnerName: partnerNameTrn,
       partnerDni: partnerDniTrn
     });

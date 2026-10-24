@@ -11,10 +11,12 @@ import { authService } from '../services/api';
 
 const AuthContext = createContext(null);
 
-// El backend define los roles en Domain/Enums/Rol.cs; el front usa 'client' / 'admin'.
+// El front usa 'client' / 'admin' / 'coach'; el tipo de profesional queda en rolBackend.
 const ROL_BACKEND_A_FRONT = {
   Socio: 'client',
-  Empleado: 'admin'
+  Empleado: 'admin',
+  Profesor: 'coach',
+  Entrenador: 'coach'
 };
 
 /**
@@ -33,9 +35,9 @@ function mapearUsuario(data) {
     address: data.direccion ?? '',
     role: ROL_BACKEND_A_FRONT[data.rol] ?? 'client',
     rolBackend: data.rol,
-    // TODO: la entidad Usuario del backend todavía no guarda DNI ni número de socio.
-    dni: '',
-    memberNumber: `TA-${String(data.id).padStart(4, '0')}`,
+    coachId: data.coachId || undefined,
+    dni: data.dni ?? '',
+    memberNumber: data.memberNumber ?? '',
     isDemo: false
   };
 }
@@ -157,6 +159,7 @@ export function AuthProvider({ children }) {
         direccion: formData.address,
         email: formData.email,
         numeroTelefono: formData.phone,
+        dni: formData.dni,
         password: formData.password
       });
       return guardarSesion(data);
@@ -195,48 +198,44 @@ export function AuthProvider({ children }) {
   };
 
   /**
-   * Alterna la vista socio/admin
+   * Alterna la vista socio/docente/admin. Solo en Modo Demo: el rol de un usuario real lo
+   * define el backend y no se puede cambiar desde el front.
    */
   const switchRole = (newRole) => {
-    if (!user) return;
-    const isDemo = user.isDemo || !user.rolBackend;
-    const updatedUser = isDemo
-      ? (newRole === 'admin'
-          ? {
-              ...user,
-              role: 'admin',
-              rolBackend: 'Empleado',
-              name: 'Administrador General',
-              email: 'admin@tenisahora.com',
-              isDemo: true
-            }
-          : newRole === 'coach'
-          ? {
-              ...user,
-              role: 'coach',
-              coachId: 'coach-01',
-              rolBackend: 'Profesor',
-              name: 'Prof. Santiago Álvarez',
-              email: 'profesor@tenisahora.com',
-              dni: '27.890.123',
-              memberNumber: 'DOC-77492',
-              isDemo: true
-            }
-          : {
-              ...user,
-              role: 'client',
-              rolBackend: 'Socio',
-              name: 'Federico Gómez',
-              email: 'socio@tenisahora.com',
-              isDemo: true
-            })
-      : { ...user, role: newRole };
+    if (!user?.isDemo) return;
+    const updatedUser = newRole === 'admin'
+      ? {
+          ...user,
+          role: 'admin',
+          rolBackend: 'Empleado',
+          name: 'Administrador General',
+          email: 'admin@tenisahora.com',
+          isDemo: true
+        }
+      : newRole === 'coach'
+      ? {
+          ...user,
+          role: 'coach',
+          coachId: 'coach-01',
+          rolBackend: 'Profesor',
+          name: 'Prof. Santiago Álvarez',
+          email: 'profesor@tenisahora.com',
+          dni: '27.890.123',
+          memberNumber: 'DOC-77492',
+          isDemo: true
+        }
+      : {
+          ...user,
+          role: 'client',
+          rolBackend: 'Socio',
+          name: 'Federico Gómez',
+          email: 'socio@tenisahora.com',
+          isDemo: true
+        };
 
-    if (updatedUser.isDemo) {
-      const mockToken = createMockToken(updatedUser);
-      setStoredToken(mockToken);
-      setToken(mockToken);
-    }
+    const mockToken = createMockToken(updatedUser);
+    setStoredToken(mockToken);
+    setToken(mockToken);
     setStoredUser(updatedUser);
     setUser(updatedUser);
     return updatedUser;

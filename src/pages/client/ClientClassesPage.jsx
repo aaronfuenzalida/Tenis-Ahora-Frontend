@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { coachesAndClassesService } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 import CoachCredentialsModal from '../../components/common/CoachCredentialsModal';
 import Modal from '../../components/common/Modal';
 
 export default function ClientClassesPage() {
+  const { user } = useAuth();
   const [coaches, setCoaches] = useState([]);
   const [classes, setClasses] = useState([]);
   const [selectedCoachForModal, setSelectedCoachForModal] = useState(null);
@@ -31,8 +33,8 @@ export default function ClientClassesPage() {
   const handleEnrollGroupClass = async (cls) => {
     try {
       await coachesAndClassesService.enrollStudent(cls.id, {
-        name: 'Federico Gómez',
-        dni: '38.452.129'
+        name: user?.name,
+        dni: user?.dni
       });
       alert(`Inscripción confirmada a "${cls.name}". El arancel mensual ha sido computado en su cuenta de socio.`);
       await loadData();
@@ -48,9 +50,11 @@ export default function ClientClassesPage() {
     await coachesAndClassesService.createPrivateClass({
       coachId: privateLessonCoach.id,
       coachName: privateLessonCoach.name,
-      studentName: 'Federico Gómez',
-      studentDni: '38.452.129',
-      studentPhone: '11-4892-1234',
+      // Un profesor da clases y un entrenador, entrenamientos.
+      kind: privateLessonCoach.type === 'Entrenador' ? 'entrenamiento' : 'clase',
+      studentName: user?.name,
+      studentDni: user?.dni,
+      studentPhone: user?.phone,
       date: privateLessonDate,
       time: privateLessonTime,
       courtAssigned: 'Cancha 1 (Ladrillo)',

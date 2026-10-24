@@ -36,14 +36,14 @@ import UsersManagementPage from './pages/admin/UsersManagementPage';
 import ReportsPage from './pages/admin/ReportsPage';
 
 // Protected Route helper (permits exploration or auto-routes)
-function ProtectedRoute({ children, requireAdmin = false }) {
-  const { isAuthenticated, isAdmin } = useAuth();
+function ProtectedRoute({ children, requireAdmin = false, requireCoach = false }) {
+  const { isAuthenticated, isAdmin, isCoach } = useAuth();
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
-  if (requireAdmin && !isAdmin) {
+  if ((requireAdmin && !isAdmin) || (requireCoach && !isCoach)) {
     return <Navigate to="/app/dashboard" replace />;
   }
 
@@ -101,7 +101,7 @@ export default function App() {
           <Route
             path="/coach"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute requireCoach={true}>
                 <CoachLayout />
               </ProtectedRoute>
             }
@@ -111,8 +111,6 @@ export default function App() {
             <Route path="clases" element={<CoachClassesPage />} />
             <Route path="particulares" element={<CoachPrivateLessonsPage />} />
             <Route path="perfil" element={<CoachProfilePage />} />
-            <Route path="reservas" element={<BookCourtPage />} />
-            <Route path="torneos" element={<ClientTournamentsPage />} />
           </Route>
 
           {/* Catch all */}

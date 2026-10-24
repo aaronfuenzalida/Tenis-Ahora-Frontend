@@ -67,7 +67,7 @@ export function mensajeDeError(err, fallback = 'Ocurrió un error inesperado.') 
   return fallback;
 }
 
-// ---- Auth: único módulo conectado al backend real (TenisAhora.API) ----
+// ---- Auth: siempre contra el backend (el Modo Demo no pasa por acá) ----
 export const authService = {
   // POST /api/auth/login -> AuthResponseDto
   async login(email, password) {
@@ -76,13 +76,14 @@ export const authService = {
   },
 
   // POST /api/auth/registrar -> AuthResponseDto
-  async registrar({ nombre, apellido, direccion, email, numeroTelefono, password }) {
+  async registrar({ nombre, apellido, direccion, email, numeroTelefono, dni, password }) {
     const { data } = await api.post('/auth/registrar', {
       nombre,
       apellido,
       direccion,
       email,
       numeroTelefono,
+      dni,
       password
     });
     return data;
@@ -294,6 +295,10 @@ const reservationsMock = {
   async getAll() {
     await delay();
     return { data: reservationsStore };
+  },
+  async getOccupancy() {
+    await delay();
+    return { data: reservationsStore.filter(r => r.status !== 'cancelada') };
   },
   async create(bookingData) {
     await delay();
@@ -1317,6 +1322,8 @@ const stockHttp = {
 
 const reservationsHttp = {
   ...crud('/reservas'),
+  // Turnos tomados de todo el club, sin datos de quién reservó (getAll solo trae las propias).
+  getOccupancy: () => api.get('/reservas/ocupacion'),
   create: (bookingData) => body(api.post('/reservas', bookingData)),
   payRemainingBalance: (reservationId, paymentMethod = 'Efectivo') =>
     api.post(`/reservas/${reservationId}/pagar-saldo`, { paymentMethod }),

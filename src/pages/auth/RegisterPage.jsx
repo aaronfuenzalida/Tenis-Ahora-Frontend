@@ -107,8 +107,7 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            {/* DNI — TODO: la entidad Usuario del backend todavia no tiene columna Dni,
-                asi que este dato no se envia ni se persiste. */}
+            {/* DNI: el backend lo usa para saber qué reservas, recibos e inscripciones son del socio. */}
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
                 Documento (DNI) *

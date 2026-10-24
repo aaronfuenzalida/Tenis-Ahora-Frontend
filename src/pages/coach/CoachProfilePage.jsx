@@ -23,7 +23,7 @@ export default function CoachProfilePage() {
 
   const loadProfile = async () => {
     const cRes = await coachesAndClassesService.getCoaches();
-    const currentCoach = cRes.data.find(c => c.name === user?.name || c.id === 'coach-01') || cRes.data[0];
+    const currentCoach = cRes.data.find(c => c.id === user?.coachId);
     if (currentCoach) {
       setCoachProfile(currentCoach);
       setAvailableHoursInput(currentCoach.availableHours || 'Lunes a Viernes 08:00 - 13:00, 16:00 - 21:00');

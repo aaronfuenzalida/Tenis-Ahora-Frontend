@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { usersService } from '../../services/api';
+import { usersService, coachesAndClassesService } from '../../services/api';
 import { Users, Search, Edit3, Trash2 } from 'lucide-react';
 import Modal from '../../components/common/Modal';
 import MemberCardModal from '../../components/common/MemberCardModal';
@@ -10,6 +10,7 @@ import { formatDNI, formatPhone, isValidDNI, isValidEmail } from '../../utils/fo
 
 export default function UsersManagementPage() {
   const [users, setUsers] = useState([]);
+  const [coaches, setCoaches] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedUserForCard, setSelectedUserForCard] = useState(null);
@@ -36,6 +37,7 @@ export default function UsersManagementPage() {
 
   useEffect(() => {
     loadUsers();
+    coachesAndClassesService.getCoaches().then(res => setCoaches(res.data));
   }, []);
 
   const loadUsers = async () => {
@@ -268,7 +270,7 @@ export default function UsersManagementPage() {
                           ? 'text-tennis-300' 
                           : 'text-tennis-800'
                       }`}>
-                        {u.role === 'admin' ? 'Administrador' : 'Socio'}
+                        {u.role === 'admin' ? 'Administrador' : u.role === 'coach' ? 'Profesional' : 'Socio'}
                       </span>
                     </td>
 
@@ -494,9 +496,27 @@ export default function UsersManagementPage() {
               className="w-full p-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white font-bold"
             >
               <option value="client">Socio</option>
+              <option value="coach">Profesional (profesor o entrenador)</option>
               <option value="admin">Administrador / Empleado</option>
             </select>
           </div>
+
+          {createData.role === 'coach' && (
+            <div>
+              <label className="font-bold text-slate-700 uppercase block mb-1">Ficha de profesional *</label>
+              <select
+                required
+                value={createData.coachId || ''}
+                onChange={(e) => setCreateData({ ...createData, coachId: e.target.value })}
+                className="w-full p-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white font-bold"
+              >
+                <option value="" disabled>Elegir profesional</option>
+                {coaches.map(c => (
+                  <option key={c.id} value={c.id}>{c.name} ({c.type})</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div className="flex justify-end gap-2 pt-2">
             <button type="button" onClick={() => setShowCreateModal(false)} className="px-3 py-2 text-slate-600">

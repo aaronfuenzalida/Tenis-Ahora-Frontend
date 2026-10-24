@@ -19,7 +19,7 @@ export default function CoachClassesPage() {
   const loadClasses = async () => {
     const clRes = await coachesAndClassesService.getClasses();
     const cRes = await coachesAndClassesService.getCoaches();
-    const currentCoach = cRes.data.find(c => c.name === user?.name || c.id === 'coach-01') || cRes.data[0];
+    const currentCoach = cRes.data.find(c => c.id === user?.coachId);
 
     const myClasses = clRes.data.filter(c => c.coachId === currentCoach?.id || c.coachName === currentCoach?.name);
     setClasses(myClasses.length > 0 ? myClasses : clRes.data);
@@ -48,7 +48,7 @@ export default function CoachClassesPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 no-print">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-            Mis Clases Asignadas y Control de Asistencia
+            {user?.rolBackend === 'Entrenador' ? 'Mis Entrenamientos Asignados' : 'Mis Clases Asignadas'} y Control de Asistencia
           </h1>
         </div>
 
