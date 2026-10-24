@@ -11,9 +11,9 @@ import { getSlotBlock } from '../../components/admin/CourtAvailabilityPanel';
 import { cleanDNI } from '../../utils/formatters';
 
 const STEPS = [
-  { id: 'schedule', label: 'Cronograma', description: 'Fecha, cancha y horario' },
-  { id: 'players', label: 'Jugadores', description: 'Singles o dobles' },
-  { id: 'payment', label: 'Pago de seña', description: '50% para confirmar' }
+  { id: 'schedule', label: 'Cronograma' },
+  { id: 'players', label: 'Jugadores' },
+  { id: 'payment', label: 'Pago de seña' }
 ];
 
 const CARD_SLOTS = ['08:00 - 10:00', '10:00 - 12:00', '14:00 - 16:00', '16:00 - 18:00', '18:00 - 20:00', '20:00 - 22:00'];
@@ -143,7 +143,7 @@ export default function BookCourtPage() {
   // ---- Navegación entre pasos ----
   const goToPlayers = () => {
     if (selectedDate < minDateStr || selectedDate > maxDateStr) {
-      notify({ variant: 'warning', message: `Las reservas se pueden hacer con hasta ${maxDays} días de anticipación (hasta el ${maxDateStr}).` });
+      notify({ variant: 'warning', message: `Las reservas se pueden hacer con hasta ${maxDays} días de anticipación, es decir hasta el ${maxDateStr}.` });
       return;
     }
     if (!selectedCourt || !selectedTimeSlot) {
@@ -236,7 +236,7 @@ export default function BookCourtPage() {
         <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm text-center max-w-2xl mx-auto space-y-4">
           <h2 className="text-2xl font-extrabold text-slate-900">¡Reserva confirmada!</h2>
           <p className="text-sm text-slate-600">
-            Se registró el pago de la seña del <strong>50% (${deposit50.toLocaleString('es-AR')})</strong>. El 50% restante (${remaining50.toLocaleString('es-AR')}) se abona en administración al terminar el partido.
+            Se registró el pago de la seña del 50%: <strong>${deposit50.toLocaleString('es-AR')}</strong>. El saldo de ${remaining50.toLocaleString('es-AR')} se abona en administración al terminar el partido.
           </p>
 
           <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-left text-xs space-y-2">
@@ -302,7 +302,6 @@ export default function BookCourtPage() {
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="text-[11px] text-slate-400 hidden sm:block">Disponibilidad de <strong>08:00 a 22:00 hs</strong></div>
               <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200">
                 <span className="text-xs text-slate-500 font-medium">Fecha:</span>
                 <input
@@ -313,7 +312,7 @@ export default function BookCourtPage() {
                   onChange={(e) => {
                     const val = e.target.value;
                     if (val < minDateStr || val > maxDateStr) {
-                      notify({ variant: 'warning', message: `Las reservas se pueden hacer con hasta ${maxDays} días de anticipación (hasta el ${maxDateStr}).` });
+                      notify({ variant: 'warning', message: `Las reservas se pueden hacer con hasta ${maxDays} días de anticipación, es decir hasta el ${maxDateStr}.` });
                       return;
                     }
                     setSelectedDate(val);
@@ -321,7 +320,6 @@ export default function BookCourtPage() {
                   }}
                   className="font-bold text-slate-800 bg-transparent outline-none cursor-pointer text-xs"
                 />
-                <span className="text-[10px] font-bold text-tennis-700 bg-tennis-50 px-1.5 py-0.5 rounded border border-tennis-200">Máx. {maxDays} días</span>
               </div>
             </div>
           </div>
@@ -402,7 +400,7 @@ export default function BookCourtPage() {
                 {selectedCourt && selectedCourt.status !== 'mantenimiento' ? (
                   <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3 sticky top-20">
                     <div className="flex items-center justify-between">
-                      <label className="block text-xs font-bold uppercase text-slate-700">Horarios ({selectedDate})</label>
+                      <label className="block text-xs font-bold uppercase text-slate-700">Horarios del {selectedDate}</label>
                       <div className="flex items-center gap-2 text-xs text-slate-500">
                         <span>Duración:</span>
                         <select
@@ -411,7 +409,7 @@ export default function BookCourtPage() {
                           className="font-bold text-slate-800 bg-slate-100 px-2 py-1 rounded-lg outline-none"
                         >
                           <option value={1}>1 hora</option>
-                          <option value={2}>2 horas (máx.)</option>
+                          <option value={2}>2 horas</option>
                         </select>
                       </div>
                     </div>
@@ -501,7 +499,7 @@ export default function BookCourtPage() {
               {players.map((p, idx) => (
                 <div key={idx} className="p-3 rounded-xl border bg-slate-50 border-slate-200 space-y-2">
                   <span className="text-[11px] font-bold text-tennis-800 uppercase block">
-                    Jugador {idx + 1} {idx === 0 && '(Titular)'}
+                    Jugador {idx + 1}{idx === 0 && ', titular'}
                   </span>
                   {idx === 0 ? (
                     <div>
@@ -539,7 +537,6 @@ export default function BookCourtPage() {
                   <h3 className="text-xs font-bold uppercase text-slate-700">Equipamiento incluido</h3>
                   <p className="text-[11px] text-slate-400">Red, pelotas y raquetas sin costo extra.</p>
                 </div>
-                <span className="text-[10px] font-bold text-tennis-800">$0</span>
               </div>
 
               {!canBookWithStock && (
@@ -551,7 +548,7 @@ export default function BookCourtPage() {
               {[
                 { label: '1 red reglamentaria', stock: netStock?.availableStock ?? 0, ok: hasNetStock, unit: 'u.' },
                 { label: 'Pelotas reglamentarias', stock: ballStock?.availableStock ?? 0, ok: hasBallStock, unit: 'pelotas' },
-                { label: `${requiredRackets} raquetas (${playersType === 'singles' ? 'singles' : 'dobles'})`, stock: racketStock?.availableStock ?? 0, ok: hasRacketStock, unit: 'u.' }
+                { label: `${requiredRackets} raquetas`, stock: racketStock?.availableStock ?? 0, ok: hasRacketStock, unit: 'u.' }
               ].map(item => (
                 <div key={item.label} className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
                   <div>
@@ -585,16 +582,15 @@ export default function BookCourtPage() {
               </div>
 
               <div className="pt-3 border-t border-slate-100 text-xs space-y-2">
-                <div className="flex justify-between text-slate-600"><span>Alquiler cancha ({durationHours} hs):</span><span className="font-semibold">${courtTotal.toLocaleString('es-AR')}</span></div>
-                <div className="flex justify-between text-slate-600"><span>Equipamiento:</span><span className="font-semibold text-tennis-700">Incluido ($0)</span></div>
+                <div className="flex justify-between text-slate-600"><span>Alquiler cancha, {durationHours} hs:</span><span className="font-semibold">${courtTotal.toLocaleString('es-AR')}</span></div>
+                <div className="flex justify-between text-slate-600"><span>Equipamiento:</span><span className="font-semibold text-tennis-700">Incluido</span></div>
                 <div className="flex justify-between text-slate-800 font-bold pt-1 border-t border-slate-100"><span>Total de la reserva:</span><span>${totalReservation.toLocaleString('es-AR')}</span></div>
                 <div className="p-3 bg-tennis-50 rounded-xl border border-tennis-200 space-y-1">
-                  <div className="flex justify-between items-center text-tennis-900 font-extrabold text-sm"><span>Abonás ahora (seña 50%):</span><span>${deposit50.toLocaleString('es-AR')}</span></div>
+                  <div className="flex justify-between items-center text-tennis-900 font-extrabold text-sm"><span>Seña del 50% a abonar ahora:</span><span>${deposit50.toLocaleString('es-AR')}</span></div>
                   <div className="text-[11px] text-tennis-700 flex items-center justify-between"><span>Saldo al finalizar el partido:</span><span className="font-bold">${remaining50.toLocaleString('es-AR')}</span></div>
                 </div>
               </div>
 
-              <div className="text-[11px] text-slate-400 text-center">Al acreditarse la seña se emite el recibo oficial con código QR.</div>
             </div>
           </div>
 
@@ -613,7 +609,7 @@ export default function BookCourtPage() {
         isOpen={showQRModal}
         onClose={() => setShowQRModal(false)}
         amount={deposit50}
-        concept={`Seña 50% - ${selectedCourt?.name} (${selectedDate} ${selectedTimeSlot})`}
+        concept={`Seña 50% - ${selectedCourt?.name}, ${selectedDate} ${selectedTimeSlot}`}
         reference={`RES-${selectedCourt?.id}-${selectedDate}-${(selectedTimeSlot || '').split(' - ')[0]}`}
         onPaymentSuccess={executeReservation}
       />
@@ -631,7 +627,6 @@ function PageHeader() {
   return (
     <div className="pb-4 border-b border-slate-200">
       <h1 className="text-2xl font-black text-slate-900 tracking-tight">Reserva de Canchas de Tenis</h1>
-      <p className="text-xs text-slate-500 mt-1">Tres pasos: elegí el turno en el cronograma, registrá a los jugadores y pagá la seña del 50%.</p>
     </div>
   );
 }

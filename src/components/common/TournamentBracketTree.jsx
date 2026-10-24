@@ -385,7 +385,7 @@ export default function TournamentBracketTree({
               </div>
 
               <div>
-                <span className="text-[10px] text-slate-400 block mb-1">Set 3 (opcional)</span>
+                <span className="text-[10px] text-slate-400 block mb-1">Set 3, opcional</span>
                 <input
                   type="text"
                   placeholder="7-5"

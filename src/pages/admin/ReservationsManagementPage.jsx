@@ -108,9 +108,9 @@ export default function ReservationsManagementPage() {
     loadReservations();
     
     if (result.isWithinFreeWindow) {
-      notify({ variant: 'success', title: 'Cancelación procesada', message: `Cancelación procesada (>= ${clubConfig.freeCancellationHours} hs de antelación). Se generó el reembolso ${result.refund?.id || ''} por ${(result.refund?.refundAmount || 0).toLocaleString('es-AR')} (pendiente de proceso en Caja > Reembolsos).` });
+      notify({ variant: 'success', title: 'Cancelación procesada', message: `Cancelación con ${clubConfig.freeCancellationHours} hs o más de antelación. Se generó el reembolso ${result.refund?.id || ''} por ${(result.refund?.refundAmount || 0).toLocaleString('es-AR')} (pendiente de proceso en Caja > Reembolsos).` });
     } else {
-      notify({ variant: 'warning', title: 'Cancelación procesada', message: `Cancelación procesada (< ${clubConfig.freeCancellationHours} hs de antelación): fuera de plazo reglamentario. Se aplicó el cargo ${result.penaltyReceipt?.id || ''} por ${(result.penaltyReceipt?.totalPaid || 0).toLocaleString('es-AR')} y se reintegra el resto como crédito (${result.refund?.id || ''}).` });
+      notify({ variant: 'warning', title: 'Cancelación procesada', message: `Cancelación con menos de ${clubConfig.freeCancellationHours} hs de antelación, fuera de plazo. Se aplicó el cargo ${result.penaltyReceipt?.id || ''} por ${(result.penaltyReceipt?.totalPaid || 0).toLocaleString('es-AR')} y se reintegra el resto como crédito (${result.refund?.id || ''}).` });
     }
   };
 
@@ -317,7 +317,7 @@ export default function ReservationsManagementPage() {
                           concept: `Seña 50% - ${res.courtName}`,
                           items: [
                             { description: `Alquiler ${res.courtName}`, amount: res.courtCost },
-                            { description: `Equipamiento incluido (Red, Pelotas, Raquetas)`, amount: 0 },
+                            { description: 'Equipamiento incluido: red, pelotas y raquetas', amount: 0 },
                             { description: `Seña 50% Abonada`, amount: res.depositPaid }
                           ],
                           totalPaid: res.depositPaid,
@@ -449,7 +449,7 @@ export default function ReservationsManagementPage() {
               onChange={(e) => setRemainingPaymentMethod(e.target.value)}
               className="w-full p-2.5 rounded-xl border border-slate-200 outline-none bg-white font-bold text-slate-800"
             >
-              <option value="Mercado Pago (QR)">Mercado Pago (QR)</option>
+              <option value="Mercado Pago (QR)">Billetera virtual QR</option>
               <option value="Tarjeta de Débito">Tarjeta de Débito</option>
               <option value="Tarjeta de Crédito">Tarjeta de Crédito</option>
             </select>

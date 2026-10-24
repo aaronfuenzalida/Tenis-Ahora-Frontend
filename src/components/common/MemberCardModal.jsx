@@ -36,7 +36,7 @@ export default function MemberCardModal({ isOpen, onClose, member }) {
           
           <div className="text-center no-print">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-              Vista Previa de Impresión (Frente y Dorso)
+              Vista previa de impresión: frente y dorso
             </span>
           </div>
 

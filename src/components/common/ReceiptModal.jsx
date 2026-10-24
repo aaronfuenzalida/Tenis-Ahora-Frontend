@@ -82,7 +82,7 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
                       </td>
                       <td className="py-2 px-3 text-right font-mono">
                         {isFree ? (
-                          <span className="text-tennis-700 font-bold">INCLUIDO ($0)</span>
+                          <span className="text-tennis-700 font-bold">Incluido</span>
                         ) : (
                           `$${item.amount?.toLocaleString('es-AR')}`
                         )}

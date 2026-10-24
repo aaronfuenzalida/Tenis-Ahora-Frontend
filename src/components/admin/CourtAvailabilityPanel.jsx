@@ -292,7 +292,7 @@ export default function CourtAvailabilityPanel({ courts = [], onUpdated }) {
             </div>
 
             <div className="space-y-2">
-              <label className="font-semibold text-slate-700 block">Bloqueos Programados (sin disponibilidad)</label>
+              <label className="font-semibold text-slate-700 block">Bloqueos programados</label>
               {form.blockedRanges.length > 0 && (
                 <ul className="space-y-1">
                   {form.blockedRanges.map((b, idx) => (

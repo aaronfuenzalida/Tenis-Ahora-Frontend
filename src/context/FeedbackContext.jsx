@@ -1,5 +1,4 @@
 import React, { createContext, useCallback, useContext, useRef, useState } from 'react';
-import { CheckCircle2, AlertTriangle, Info, XCircle } from 'lucide-react';
 import Modal from '../components/common/Modal';
 
 /**
@@ -13,10 +12,10 @@ import Modal from '../components/common/Modal';
 const FeedbackContext = createContext(null);
 
 const VARIANTS = {
-  info: { icon: Info, iconClass: 'text-slate-500 bg-slate-100', title: 'Aviso' },
-  success: { icon: CheckCircle2, iconClass: 'text-tennis-700 bg-tennis-50', title: 'Operación exitosa' },
-  warning: { icon: AlertTriangle, iconClass: 'text-amber-700 bg-amber-50', title: 'Atención' },
-  error: { icon: XCircle, iconClass: 'text-red-700 bg-red-50', title: 'No se pudo completar' }
+  info: { title: 'Aviso' },
+  success: { title: 'Operación exitosa' },
+  warning: { title: 'Atención' },
+  error: { title: 'No se pudo completar' }
 };
 
 export function FeedbackProvider({ children }) {
@@ -62,7 +61,6 @@ export function FeedbackProvider({ children }) {
   }, []);
 
   const variant = dialog ? VARIANTS[dialog.variant] || VARIANTS.info : VARIANTS.info;
-  const Icon = variant.icon;
 
   return (
     <FeedbackContext.Provider value={{ notify, confirm }}>
@@ -76,14 +74,9 @@ export function FeedbackProvider({ children }) {
       >
         {dialog && (
           <div className="space-y-5">
-            <div className="flex items-start gap-3">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${variant.iconClass}`}>
-                <Icon className="w-5 h-5" />
-              </div>
-              <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line pt-2">
-                {dialog.message}
-              </p>
-            </div>
+            <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">
+              {dialog.message}
+            </p>
 
             <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
               {dialog.kind === 'confirm' && (

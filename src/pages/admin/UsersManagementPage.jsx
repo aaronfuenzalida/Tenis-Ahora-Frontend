@@ -63,7 +63,7 @@ export default function UsersManagementPage() {
   const handleSaveUser = async (e) => {
     e.preventDefault();
     if (!isValidDNI(formData.dni)) {
-      notify({ variant: 'warning', message: 'Por favor ingrese un DNI válido (entre 7 y 8 dígitos).' });
+      notify({ variant: 'warning', message: 'Ingresá un DNI válido de 7 u 8 dígitos.' });
       return;
     }
     if (!isValidEmail(formData.email)) {
@@ -79,7 +79,7 @@ export default function UsersManagementPage() {
   const handleCreateUser = async (e) => {
     e.preventDefault();
     if (!isValidDNI(createData.dni)) {
-      notify({ variant: 'warning', message: 'Por favor ingrese un DNI válido (entre 7 y 8 dígitos).' });
+      notify({ variant: 'warning', message: 'Ingresá un DNI válido de 7 u 8 dígitos.' });
       return;
     }
     if (!isValidEmail(createData.email)) {
@@ -498,7 +498,7 @@ export default function UsersManagementPage() {
               className="w-full p-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white font-bold"
             >
               <option value="client">Socio</option>
-              <option value="coach">Profesional (profesor o entrenador)</option>
+              <option value="coach">Profesional</option>
               <option value="admin">Administrador / Empleado</option>
             </select>
           </div>

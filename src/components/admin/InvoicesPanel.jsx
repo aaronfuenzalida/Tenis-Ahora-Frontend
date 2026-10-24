@@ -189,7 +189,7 @@ export default function InvoicesPanel() {
           </tbody>
           <tfoot>
             <tr className="bg-slate-50 border-t border-slate-200 font-bold text-slate-900">
-              <td colSpan={7} className="p-3 text-right">Total facturado (vigentes)</td>
+              <td colSpan={7} className="p-3 text-right">Total facturado vigente</td>
               <td className="p-3 text-right">{money(totalIssued)}</td>
               <td colSpan={2}></td>
             </tr>
@@ -210,7 +210,7 @@ export default function InvoicesPanel() {
               </select>
             </div>
             <div className="col-span-2">
-              <label className="font-semibold text-slate-700 block mb-1">Recibo Asociado (opcional)</label>
+              <label className="font-semibold text-slate-700 block mb-1">Recibo asociado</label>
               <select value={form.relatedReceiptId} onChange={(e) => fillFromReceipt(e.target.value)} className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white">
                 <option value="">Sin recibo asociado</option>
                 {receipts.map(r => (

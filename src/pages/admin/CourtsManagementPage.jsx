@@ -368,8 +368,8 @@ export default function CourtsManagementPage() {
                   onChange={(e) => setCourtToEdit({ ...courtToEdit, capacity: Number(e.target.value) })}
                   className="w-full p-2.5 rounded-lg border border-slate-200 outline-none focus:border-tennis-600 bg-white text-xs"
                 >
-                  <option value={2}>2 Jugadores (Singles)</option>
-                  <option value={4}>4 Jugadores (Dobles / Singles)</option>
+                  <option value={2}>2 jugadores, singles</option>
+                  <option value={4}>4 jugadores, dobles</option>
                 </select>
               </div>
             </div>
@@ -534,8 +534,8 @@ export default function CourtsManagementPage() {
                 onChange={(e) => setNewCourt({ ...newCourt, capacity: Number(e.target.value) })}
                 className="w-full p-2.5 rounded-lg border border-slate-200 outline-none focus:border-tennis-600 bg-white text-xs"
               >
-                <option value={2}>2 Jugadores (Singles)</option>
-                <option value={4}>4 Jugadores (Dobles / Singles)</option>
+                <option value={2}>2 jugadores, singles</option>
+                <option value={4}>4 jugadores, dobles</option>
               </select>
             </div>
           </div>

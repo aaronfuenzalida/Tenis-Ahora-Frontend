@@ -569,7 +569,7 @@ export default function ClientTournamentsPage() {
           )}
 
           <div className="p-3 bg-slate-50 text-slate-600 rounded-xl border border-slate-200">
-            Al continuar vas a abonar el arancel de inscripción. Con el pago acreditado quedás en el padrón de participantes para el sorteo del fixture oficial y se emite tu recibo.
+            La inscripción queda confirmada al acreditarse el pago del arancel.
           </div>
 
           <button

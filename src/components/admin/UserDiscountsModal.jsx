@@ -52,7 +52,7 @@ export default function UserDiscountsModal({ isOpen, onClose, user, onSaved }) {
                     <div>
                       <div className="font-bold text-slate-900 flex items-center gap-1.5">
                         {d.name}
-                        {d.active === false && <span className="text-[10px] text-slate-400">(inactivo)</span>}
+                        {d.active === false && <span className="text-[10px] text-slate-400">inactivo</span>}
                       </div>
                       <div className="text-[11px] text-slate-500">{d.applicableTo} • <code className="font-mono">{d.code}</code></div>
                     </div>

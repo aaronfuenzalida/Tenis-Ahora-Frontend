@@ -400,7 +400,7 @@ export default function CashierAndReceiptsPage() {
               >
                 <option value="Tarjeta de Débito">Tarjeta de Débito</option>
                 <option value="Tarjeta de Crédito">Tarjeta de Crédito</option>
-                <option value="Mercado Pago (QR)">Billetera Virtual: Mercado Pago (QR)</option>
+                <option value="Mercado Pago (QR)">Billetera virtual QR</option>
                 <option value="Billetera Virtual (MODO / Cuenta DNI)">Billetera Virtual: MODO / Cuenta DNI / Otras</option>
               </select>
             </div>

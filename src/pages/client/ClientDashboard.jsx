@@ -108,7 +108,7 @@ export default function ClientDashboard() {
           <div>
             <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Clase Semanal</span>
             <div className="text-lg font-black text-slate-800 mt-1">Martes 19:00 hs</div>
-            <span className="text-xs text-slate-500 font-medium">Prof. Álvarez (AAT Lic)</span>
+            <span className="text-xs text-slate-500 font-medium">Prof. Álvarez</span>
           </div>
         </div>
 
@@ -159,7 +159,7 @@ export default function ClientDashboard() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                     {upcomingBooking.participants?.map((p, idx) => (
                       <div key={idx} className="p-2 bg-slate-50 rounded-xl flex items-center justify-between">
-                        <span className="font-semibold text-slate-800">{p.name} {p.isLead && '(Titular)'}</span>
+                        <span className="font-semibold text-slate-800">{p.name}{p.isLead && ', titular'}</span>
                         <span className="text-slate-400">{p.dni}</span>
                       </div>
                     ))}
@@ -189,8 +189,8 @@ export default function ClientDashboard() {
                         clientDni: user?.dni,
                         concept: `Seña 50% Alquiler - ${upcomingBooking.courtName}`,
                         items: [
-                          { description: `Alquiler Cancha (${upcomingBooking.durationHours} hs)`, amount: upcomingBooking.courtCost },
-                          { description: `Equipamiento incluido (Red, Pelotas, Raquetas)`, amount: 0 },
+                          { description: `Alquiler cancha, ${upcomingBooking.durationHours} hs`, amount: upcomingBooking.courtCost },
+                          { description: 'Equipamiento incluido: red, pelotas y raquetas', amount: 0 },
                           { description: `Total Turno`, amount: upcomingBooking.totalCost },
                           { description: `Seña 50% Abonada`, amount: upcomingBooking.depositPaid }
                         ],
@@ -200,7 +200,7 @@ export default function ClientDashboard() {
                       })}
                       className="flex-1 sm:flex-initial px-3 py-2 rounded-xl bg-tennis-50 hover:bg-tennis-100 text-tennis-800 font-bold text-xs border border-tennis-200 flex items-center justify-center gap-1.5 transition-colors"
                     >
-                      Comprobante (QR)
+                      Ver comprobante
                     </button>
                   </div>
                 </div>

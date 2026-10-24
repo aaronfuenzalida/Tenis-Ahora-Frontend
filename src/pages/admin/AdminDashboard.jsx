@@ -194,7 +194,7 @@ export default function AdminDashboard() {
                     </td>
                     <td className="py-2.5 px-3">
                       <div className="font-semibold text-slate-800">{res.participants[0]?.name}</div>
-                      <div className="text-[11px] text-slate-400">{res.playersType === 'dobles' ? '4 Jugadores (Dobles)' : '2 Jugadores (Singles)'}</div>
+                      <div className="text-[11px] text-slate-400">{res.playersType === 'dobles' ? '4 jugadores, dobles' : '2 jugadores, singles'}</div>
                     </td>
                     <td className="py-2.5 px-3">
                       <span className="font-bold text-tennis-700">${res.depositPaid?.toLocaleString('es-AR')}</span>
@@ -226,7 +226,7 @@ export default function AdminDashboard() {
                           concept: `Reserva - ${res.courtName}`,
                           items: [
                             { description: `Alquiler Cancha ${res.courtName}`, amount: res.courtCost },
-                            { description: `Equipamiento incluido (Red, Pelotas, Raquetas)`, amount: 0 },
+                            { description: 'Equipamiento incluido: red, pelotas y raquetas', amount: 0 },
                             { description: `Seña 50% Abonada`, amount: res.depositPaid }
                           ],
                           totalPaid: res.depositPaid,

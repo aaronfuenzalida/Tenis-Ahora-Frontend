@@ -426,7 +426,7 @@ export default function MatchesPanel({ onChanged }) {
               <div className="grid grid-cols-3 gap-3">
                 <input type="text" placeholder="Set 1 (6-4)" value={editForm.set1} onChange={(e) => setEditForm({ ...editForm, set1: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 font-mono" />
                 <input type="text" placeholder="Set 2 (6-3)" value={editForm.set2} onChange={(e) => setEditForm({ ...editForm, set2: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 font-mono" />
-                <input type="text" placeholder="Set 3 (opcional)" value={editForm.set3} onChange={(e) => setEditForm({ ...editForm, set3: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 font-mono" />
+                <input type="text" placeholder="Set 3, opcional" value={editForm.set3} onChange={(e) => setEditForm({ ...editForm, set3: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 font-mono" />
               </div>
               <div>
                 <label className="font-semibold text-slate-700 block mb-1">Ganador</label>

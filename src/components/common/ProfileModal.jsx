@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Camera, Trash2 } from 'lucide-react';
 import Modal from './Modal';
 import Avatar from './Avatar';
 import { useAuth } from '../../context/AuthContext';
@@ -13,7 +12,7 @@ const PHOTO_SIDE = 320;
 function readPhoto(file) {
   return new Promise((resolve, reject) => {
     if (!file.type.startsWith('image/')) {
-      reject(new Error('El archivo tiene que ser una imagen (JPG, PNG o WebP).'));
+      reject(new Error('La foto tiene que ser una imagen JPG, PNG o WebP.'));
       return;
     }
     if (file.size > MAX_PHOTO_BYTES) {
@@ -96,7 +95,6 @@ export default function ProfileModal({ isOpen, onClose }) {
 
   if (!user) return null;
 
-  const roleLabel = user.role === 'admin' ? 'Empleado / Administración' : user.role === 'coach' ? user.rolBackend || 'Docente' : 'Socio';
   const preview = { ...user, name: name || user.name, photo };
 
   return (
@@ -112,7 +110,6 @@ export default function ProfileModal({ isOpen, onClose }) {
                 onClick={() => fileRef.current?.click()}
                 className="px-3 py-1.5 rounded-xl bg-tennis-50 hover:bg-tennis-100 text-tennis-800 font-bold border border-tennis-200 inline-flex items-center gap-1.5 transition-colors"
               >
-                <Camera className="w-3.5 h-3.5" />
                 {photo ? 'Cambiar foto' : 'Subir foto'}
               </button>
               {photo && (
@@ -121,12 +118,10 @@ export default function ProfileModal({ isOpen, onClose }) {
                   onClick={() => setPhoto('')}
                   className="px-3 py-1.5 rounded-xl text-slate-500 hover:bg-slate-100 font-bold inline-flex items-center gap-1.5 transition-colors"
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
                   Quitar
                 </button>
               )}
             </div>
-            <p className="text-[11px] text-slate-400">JPG, PNG o WebP de hasta 2 MB. Se recorta en formato cuadrado.</p>
             <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
           </div>
         </div>
@@ -153,14 +148,6 @@ export default function ProfileModal({ isOpen, onClose }) {
               className="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 text-sm"
             />
           </div>
-        </div>
-
-        {/* Datos fijos */}
-        <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 grid grid-cols-2 gap-2 text-[11px] text-slate-600">
-          <div><span className="text-slate-400 block uppercase font-bold text-[10px]">Email</span>{user.email}</div>
-          <div><span className="text-slate-400 block uppercase font-bold text-[10px]">DNI</span>{user.dni || '—'}</div>
-          <div><span className="text-slate-400 block uppercase font-bold text-[10px]">Rol</span>{roleLabel}</div>
-          <div><span className="text-slate-400 block uppercase font-bold text-[10px]">N° de registro</span>{user.memberNumber || '—'}</div>
         </div>
 
         {error && (

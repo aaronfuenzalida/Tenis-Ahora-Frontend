@@ -24,7 +24,7 @@ export default function QRModal({ isOpen, onClose, amount, concept, reference, o
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Pago con Billetera Virtual (QR)" maxWidth="max-w-md">
+    <Modal isOpen={isOpen} onClose={onClose} title="Pago con billetera virtual" maxWidth="max-w-md">
       <div className="text-center">
         <h4 className="text-lg font-bold text-slate-800">Escaneá el código con tu app</h4>
         <p className="text-xs text-slate-500 mt-1">
@@ -47,7 +47,6 @@ export default function QRModal({ isOpen, onClose, amount, concept, reference, o
             <QRCode value={payload} size={208} level="M" />
           </div>
         </div>
-        <p className="text-[10px] text-slate-400 break-all px-4">{payload}</p>
 
         <div className="mt-5 pt-3 border-t border-slate-100">
           <button

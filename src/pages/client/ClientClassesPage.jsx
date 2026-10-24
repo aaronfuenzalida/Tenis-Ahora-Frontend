@@ -91,7 +91,7 @@ export default function ClientClassesPage() {
       notify({ variant: 'success', title: 'Inscripción confirmada', message: `Quedaste inscripto en "${paid.cls.name}". El recibo ${receipt.id} ya figura en Mis Pagos y Recibos.` });
     } else {
       setPrivateLessonNotes('');
-      notify({ variant: 'success', title: 'Turno particular reservado', message: `Tu turno con ${paid.coach.name} quedó registrado para el ${paid.date} (${paid.time}). El docente coordinará los detalles en cancha.` });
+      notify({ variant: 'success', title: 'Turno particular reservado', message: `Tu turno con ${paid.coach.name} quedó registrado para el ${paid.date} a las ${paid.time}. El docente coordinará los detalles en cancha.` });
     }
   };
 

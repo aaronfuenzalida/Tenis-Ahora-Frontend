@@ -253,7 +253,7 @@ export default function CourtTimelineGrid({
             
             <div className="flex items-center gap-1.5">
               <span className="w-3.5 h-3.5 rounded-md bg-tennis-500 border border-tennis-600" />
-              <span className="text-tennis-900 font-extrabold">Verde = Libre (Clic para reservar)</span>
+              <span className="text-tennis-900 font-extrabold">Verde = Libre</span>
             </div>
 
             <div className="flex items-center gap-1.5">

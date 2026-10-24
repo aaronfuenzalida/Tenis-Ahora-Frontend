@@ -5,8 +5,8 @@ import QRCode, { qrPayloads } from '../common/QRCode';
 const CONCEPT_PRESETS = [
   { id: 'court_rental_2h', label: 'Alquiler de Cancha (Turno 2 hs)', defaultAmount: 9600, category: 'Alquiler' },
   { id: 'class_monthly_fee', label: 'Cuota de Clase (Escuela de Tenis Mensual)', defaultAmount: 16000, category: 'Clases' },
-  { id: 'tournament_singles', label: 'Inscripción a Torneo Apertura (Singles)', defaultAmount: 7500, category: 'Torneos' },
-  { id: 'tournament_doubles', label: 'Inscripción a Torneo Oficial (Dobles)', defaultAmount: 12000, category: 'Torneos' },
+  { id: 'tournament_singles', label: 'Inscripción a Torneo Apertura, singles', defaultAmount: 7500, category: 'Torneos' },
+  { id: 'tournament_doubles', label: 'Inscripción a Torneo Oficial, dobles', defaultAmount: 12000, category: 'Torneos' },
   { id: 'court_rental_1h', label: 'Alquiler Cancha Rápida (Turno 1 h)', defaultAmount: 4800, category: 'Alquiler' },
   { id: 'custom', label: 'Concepto Personalizado...', defaultAmount: 5000, category: 'Otro' },
 ];
@@ -343,7 +343,7 @@ export default function POSDiscountCalculator({ onChargeComplete }) {
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {[
-                { id: 'Mercado Pago (QR)', label: 'Mercado Pago (QR)' },
+                { id: 'Mercado Pago (QR)', label: 'Billetera virtual QR' },
                 { id: 'Tarjeta de Débito', label: 'Débito Bancario' },
                 { id: 'Tarjeta de Crédito', label: 'Tarjeta Crédito' },
               ].map(method => {

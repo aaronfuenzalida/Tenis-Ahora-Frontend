@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import CoachSidebar from './CoachSidebar';
-import { Menu, UserCog } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import usePortalPaths from '../../hooks/usePortalPaths';
 import Logo from '../common/Logo';
@@ -56,7 +56,7 @@ export default function CoachLayout() {
           {/* Right Header Actions */}
           <div className="flex items-center gap-3">
             {isDemo && (
-              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800 bg-amber-50 border border-amber-200 px-2 py-1 rounded-lg">Demo</span>
+              <span className="text-xs text-slate-400">Modo demo</span>
             )}
 
             {isDemo && (
@@ -81,7 +81,6 @@ export default function CoachLayout() {
                 <div className="text-xs font-bold text-slate-900 leading-tight group-hover:text-tennis-700">{user?.name || 'Docente'}</div>
                 <div className="text-[11px] text-slate-500 font-medium">{user?.rolBackend || 'Profesor'} • N° {user?.memberNumber || '—'}</div>
               </div>
-              <UserCog className="w-4 h-4 text-slate-400 group-hover:text-tennis-700 hidden md:block" />
             </button>
           </div>
 

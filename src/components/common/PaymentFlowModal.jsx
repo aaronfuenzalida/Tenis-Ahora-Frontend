@@ -1,14 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { CheckCircle2, CreditCard, QrCode, Wallet } from 'lucide-react';
 import Modal from './Modal';
 import QRCode, { qrPayloads } from './QRCode';
 import ReceiptModal from './ReceiptModal';
 import { receiptsService } from '../../services/api';
 
 export const PAYMENT_METHODS = [
-  { id: 'Mercado Pago (QR)', label: 'Billetera virtual (QR)', icon: QrCode },
-  { id: 'Tarjeta de Débito', label: 'Tarjeta de débito', icon: CreditCard },
-  { id: 'Tarjeta de Crédito', label: 'Tarjeta de crédito', icon: Wallet }
+  { id: 'Mercado Pago (QR)', label: 'Billetera virtual QR' },
+  { id: 'Tarjeta de Débito', label: 'Tarjeta de débito' },
+  { id: 'Tarjeta de Crédito', label: 'Tarjeta de crédito' }
 ];
 
 function nowStamp() {
@@ -40,7 +39,7 @@ export function buildReceipt({ concept, items, amount, paymentMethod, client, re
     status: 'completado',
     date: nowStamp(),
     qrData: `https://tenisahora.app/recibos/${id}?monto=${amount}`,
-    cashierName: 'Autogestión del socio (Portal Web)'
+    cashierName: 'Portal del socio'
   };
 }
 
@@ -139,7 +138,7 @@ export default function PaymentFlowModal({
                 <span className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[11px] shrink-0 ${
                   idx < stepIndex ? 'bg-tennis-600 text-white' : idx === stepIndex ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-400'
                 }`}>
-                  {idx < stepIndex ? '✓' : idx + 1}
+                  {idx + 1}
                 </span>
                 <span className={`font-bold truncate ${idx === stepIndex ? 'text-slate-900' : 'text-slate-400'}`}>{s.label}</span>
                 {idx < steps.length - 1 && <span className="flex-1 border-t border-slate-200" />}
@@ -168,7 +167,6 @@ export default function PaymentFlowModal({
                 <label className="font-bold text-slate-700 uppercase block mb-2">Elegí cómo pagar</label>
                 <div className="grid grid-cols-1 gap-2">
                   {PAYMENT_METHODS.map(m => {
-                    const Icon = m.icon;
                     const active = paymentMethod === m.id;
                     return (
                       <button
@@ -182,7 +180,6 @@ export default function PaymentFlowModal({
                             : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
                         }`}
                       >
-                        <Icon className={`w-4 h-4 ${active ? 'text-tennis-700' : 'text-slate-400'}`} />
                         {m.label}
                       </button>
                     );
@@ -218,13 +215,12 @@ export default function PaymentFlowModal({
           {/* Paso 2: QR real */}
           {step === 'qr' && (
             <div className="text-center space-y-3">
-              <p className="text-slate-600">Escaneá el código con tu billetera virtual (Mercado Pago, Cuenta DNI, MODO, BNA+).</p>
+              <p className="text-slate-600">Escaneá el código con tu billetera virtual.</p>
               <div className="inline-block p-3 bg-white rounded-2xl border-2 border-dashed border-slate-300">
                 <div className="w-48 h-48">
                   <QRCode value={qrPayload} size={192} />
                 </div>
               </div>
-              <p className="text-[10px] text-slate-400 break-all px-2">{qrPayload}</p>
               <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
                 <button
                   type="button"
@@ -247,9 +243,6 @@ export default function PaymentFlowModal({
           {/* Paso 3: comprobante */}
           {step === 'done' && receipt && (
             <div className="space-y-4 text-center">
-              <div className="mx-auto w-12 h-12 rounded-2xl bg-tennis-50 text-tennis-700 flex items-center justify-center">
-                <CheckCircle2 className="w-6 h-6" />
-              </div>
               <div>
                 <h4 className="text-base font-extrabold text-slate-900">Pago acreditado</h4>
                 <p className="text-slate-600 mt-1">

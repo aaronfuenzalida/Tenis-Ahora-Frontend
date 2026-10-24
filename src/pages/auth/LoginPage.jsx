@@ -129,14 +129,9 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Acceso a la demo (entorno separado, sin backend) */}
-          <div className="mt-5 pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs">
-            <span className="text-slate-500">¿Querés recorrer el sistema con datos de ejemplo?</span>
-            <Link
-              to="/demo"
-              className="inline-flex items-center justify-center px-3.5 py-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-800 font-bold transition-all shadow-sm"
-            >
-              Abrir la demo
+          <div className="mt-5 pt-4 border-t border-slate-100 text-center text-xs text-slate-600">
+            <Link to="/demo" className="font-bold text-slate-700 hover:text-tennis-700 hover:underline">
+              Ver demo con datos de ejemplo
             </Link>
           </div>
 

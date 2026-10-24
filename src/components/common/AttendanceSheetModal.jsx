@@ -80,7 +80,7 @@ export default function AttendanceSheetModal({ isOpen, onClose, classItem }) {
               <thead>
                 <tr className="bg-slate-100 text-slate-700 font-bold uppercase text-[10px] border-b border-slate-300">
                   <th className="py-2 px-2 border-r border-slate-300 w-8 text-center">N°</th>
-                  <th className="py-2 px-3 border-r border-slate-300">Alumno (Nombre y Apellido)</th>
+                  <th className="py-2 px-3 border-r border-slate-300">Alumno</th>
                   <th className="py-2 px-3 border-r border-slate-300 w-24">DNI</th>
                   {/* 8 Attendance Session Columns */}
                   {[1, 2, 3, 4, 5, 6, 7, 8].map(s => (

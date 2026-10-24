@@ -1334,7 +1334,7 @@ export default function CoachesAndClassesPage() {
               </div>
               <div>
                 <label className="font-semibold text-slate-700 block mb-1">
-                  Documento del Título {coachToEdit.document ? `(actual: ${coachToEdit.document.name})` : '(sin documento: obligatorio)'}
+                  Documento del Título {coachToEdit.document ? `· actual: ${coachToEdit.document.name}` : '· obligatorio'}
                 </label>
                 <input
                   type="file"
@@ -1455,8 +1455,8 @@ export default function CoachesAndClassesPage() {
               onChange={(e) => setNewClassForm({ ...newClassForm, kind: e.target.value })}
               className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white"
             >
-              <option value="clase">Clase (Escuela de Tenis)</option>
-              <option value="entrenamiento">Entrenamiento (Preparación física / competitiva)</option>
+              <option value="clase">Clase</option>
+              <option value="entrenamiento">Entrenamiento</option>
             </select>
           </div>
           <div>
@@ -1589,8 +1589,8 @@ export default function CoachesAndClassesPage() {
                 onChange={(e) => setClassToEdit({ ...classToEdit, kind: e.target.value })}
                 className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white"
               >
-                <option value="clase">Clase (Escuela de Tenis)</option>
-                <option value="entrenamiento">Entrenamiento (Preparación física / competitiva)</option>
+                <option value="clase">Clase</option>
+                <option value="entrenamiento">Entrenamiento</option>
               </select>
             </div>
             <div>

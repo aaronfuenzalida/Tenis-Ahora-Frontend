@@ -1255,8 +1255,8 @@ export default function TournamentsManagementPage() {
                 onChange={(e) => setNewTrnForm({ ...newTrnForm, modality: e.target.value })}
                 className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white"
               >
-                <option value="Singles">Singles (Individual)</option>
-                <option value="Pareja">Parejas (Dobles)</option>
+                <option value="Singles">Singles</option>
+                <option value="Pareja">Dobles</option>
               </select>
             </div>
 
@@ -1391,8 +1391,8 @@ export default function TournamentsManagementPage() {
                   onChange={(e) => setEditTrnForm({ ...editTrnForm, modality: e.target.value })}
                   className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white"
                 >
-                  <option value="Singles">Singles (Individual)</option>
-                  <option value="Pareja">Parejas (Dobles)</option>
+                  <option value="Singles">Singles</option>
+                  <option value="Pareja">Dobles</option>
                 </select>
               </div>
 
@@ -1727,8 +1727,8 @@ export default function TournamentsManagementPage() {
                 onChange={(e) => setNewLeagueForm({ ...newLeagueForm, modality: e.target.value })}
                 className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white"
               >
-                <option value="Singles">Singles (Individual)</option>
-                <option value="Pareja">Parejas (Dobles)</option>
+                <option value="Singles">Singles</option>
+                <option value="Pareja">Dobles</option>
               </select>
             </div>
 
@@ -1864,8 +1864,8 @@ export default function TournamentsManagementPage() {
                   onChange={(e) => setEditLeagueForm({ ...editLeagueForm, modality: e.target.value })}
                   className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white"
                 >
-                  <option value="Singles">Singles (Individual)</option>
-                  <option value="Pareja">Parejas (Dobles)</option>
+                  <option value="Singles">Singles</option>
+                  <option value="Pareja">Dobles</option>
                 </select>
               </div>
 
@@ -2185,7 +2185,7 @@ export default function TournamentsManagementPage() {
                   />
                 </div>
                 <div>
-                  <span className="text-[11px] text-slate-500 block mb-1">Set 3 (Opcional)</span>
+                  <span className="text-[11px] text-slate-500 block mb-1">Set 3, opcional</span>
                   <input
                     type="text"
                     placeholder="7-6"

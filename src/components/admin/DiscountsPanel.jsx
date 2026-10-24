@@ -152,7 +152,7 @@ export default function DiscountsPanel({ onChange }) {
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="p-3 border-b border-slate-200 flex items-center gap-2">
             <h3 className="text-sm font-bold text-slate-900">Descuentos Asignados por Usuario</h3>
-            <span className="text-xs text-slate-400">({usersWithDiscounts.length} usuarios con beneficios)</span>
+            <span className="text-xs text-slate-400">{usersWithDiscounts.length} usuarios con beneficios</span>
           </div>
           <table className="w-full text-left text-xs">
             <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-semibold">
