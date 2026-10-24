@@ -3,8 +3,6 @@ import { courtsService, reservationsService, courtTypesService, clubConfigServic
 import { Edit3, Trash2 } from 'lucide-react';
 import Modal from '../../components/common/Modal';
 import CourtTimelineGrid from '../../components/common/CourtTimelineGrid';
-import CourtTypesPanel from '../../components/admin/CourtTypesPanel';
-import CourtAvailabilityPanel from '../../components/admin/CourtAvailabilityPanel';
 import { useFeedback } from '../../context/FeedbackContext';
 
 export default function CourtsManagementPage() {
@@ -133,7 +131,7 @@ export default function CourtsManagementPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 no-print">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-            Gestión de Canchas
+            Canchas
           </h1>
         </div>
 
@@ -143,7 +141,7 @@ export default function CourtsManagementPage() {
             onClick={handlePrintReport}
             className="px-4 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs border border-slate-200 shadow-sm flex items-center gap-1.5 transition-colors"
           >
-            {activeTab === 'types' ? 'Reporte de Tipos de Cancha' : activeTab === 'availability' ? 'Reporte de Horarios' : 'Reporte de Canchas'}
+            Reporte de Canchas
           </button>
           <button
             type="button"
@@ -179,35 +177,9 @@ export default function CourtsManagementPage() {
         >
           Cronograma Horario
         </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('availability')}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
-            activeTab === 'availability'
-              ? 'bg-slate-900 text-white'
-              : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
-          }`}
-        >
-          Horarios Disponibles
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('types')}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
-            activeTab === 'types'
-              ? 'bg-slate-900 text-white'
-              : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
-          }`}
-        >
-          Tipos de Cancha
-        </button>
       </div>
 
-      {activeTab === 'types' ? (
-        <CourtTypesPanel courts={courts} onChange={loadCourts} />
-      ) : activeTab === 'availability' ? (
-        <CourtAvailabilityPanel courts={courts} onUpdated={loadCourts} />
-      ) : activeTab === 'timeline' ? (
+      {activeTab === 'timeline' ? (
         <div className="no-print space-y-4">
           <CourtTimelineGrid
             courts={courts}

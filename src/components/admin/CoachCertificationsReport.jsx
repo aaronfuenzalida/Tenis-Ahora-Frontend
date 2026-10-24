@@ -22,7 +22,7 @@ export default function CoachCertificationsReport({ coaches = [], roleFilter = '
         <div>
           <h2 className="text-base font-bold text-slate-900">Reporte de Certificaciones Deportivas y Títulos Habilitantes</h2>
           <p className="text-xs text-slate-500">
-            {roleFilter === 'ALL' ? 'Profesores y entrenadores' : `${roleFilter}es`} • Todos los docentes deben acreditar título habilitante y certificación vigente.
+            {roleFilter === 'ALL' ? 'Profesores y entrenadores' : `${roleFilter}es`} • Todos los profesionales deben acreditar título habilitante y certificación vigente.
           </p>
         </div>
         <div className="text-xs text-slate-600">
@@ -34,7 +34,7 @@ export default function CoachCertificationsReport({ coaches = [], roleFilter = '
       <table className="w-full text-left text-xs">
         <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-semibold">
           <tr>
-            <th className="p-3">Docente</th>
+            <th className="p-3">Profesional</th>
             <th className="p-3">Rol</th>
             <th className="p-3">Título Habilitante</th>
             <th className="p-3">Institución Emisora</th>
@@ -48,7 +48,7 @@ export default function CoachCertificationsReport({ coaches = [], roleFilter = '
         <tbody className="divide-y divide-slate-100">
           {list.length === 0 ? (
             <tr>
-              <td colSpan={9} className="p-8 text-center text-slate-400">No hay docentes registrados.</td>
+              <td colSpan={9} className="p-8 text-center text-slate-400">No hay profesionales registrados.</td>
             </tr>
           ) : (
             list.map(c => {

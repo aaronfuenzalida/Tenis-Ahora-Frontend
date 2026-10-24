@@ -195,19 +195,21 @@ export default function AttendanceMatrixModal({
           ) : (
             <div className="flex items-center justify-between text-[11px] text-slate-500">
               <span>Cupos disponibles para inscripción: <strong>{maxCapacity - totalStudents} lugares</strong>.</span>
-              <button
-                type="button"
-                onClick={() => setShowAddStudentForm(!showAddStudentForm)}
-                className="text-tennis-700 font-bold hover:underline flex items-center gap-1"
-              >
-                {showAddStudentForm ? 'Ocultar Formulario' : 'Inscribir Nuevo Alumno'}
-              </button>
+              {onEnrollStudent && (
+                <button
+                  type="button"
+                  onClick={() => setShowAddStudentForm(!showAddStudentForm)}
+                  className="text-tennis-700 font-bold hover:underline flex items-center gap-1"
+                >
+                  {showAddStudentForm ? 'Ocultar Formulario' : 'Inscribir Nuevo Alumno'}
+                </button>
+              )}
             </div>
           )}
         </div>
 
         {/* Quick Student Enrollment Form */}
-        {showAddStudentForm && !isCupoLleno && (
+        {onEnrollStudent && showAddStudentForm && !isCupoLleno && (
           <form onSubmit={handleCreateStudent} className="p-4 bg-tennis-50/60 rounded-2xl border border-tennis-200 space-y-3">
             <div className="flex items-center justify-between">
               <h4 className="font-extrabold text-xs uppercase text-tennis-900 flex items-center gap-1.5">

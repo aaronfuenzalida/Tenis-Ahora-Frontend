@@ -1,73 +1,148 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useFeedback } from '../../context/FeedbackContext';
+import { useAuth } from '../../context/AuthContext';
+import { courtsService, coachesAndClassesService, tournamentsService, leaguesService } from '../../services/api';
 import QRCode, { qrPayloads } from '../common/QRCode';
 
-const CONCEPT_PRESETS = [
-  { id: 'court_rental_2h', label: 'Alquiler de Cancha (Turno 2 hs)', defaultAmount: 9600, category: 'Alquiler' },
-  { id: 'class_monthly_fee', label: 'Cuota de Clase (Escuela de Tenis Mensual)', defaultAmount: 16000, category: 'Clases' },
-  { id: 'tournament_singles', label: 'Inscripción a Torneo Apertura, singles', defaultAmount: 7500, category: 'Torneos' },
-  { id: 'tournament_doubles', label: 'Inscripción a Torneo Oficial, dobles', defaultAmount: 12000, category: 'Torneos' },
-  { id: 'court_rental_1h', label: 'Alquiler Cancha Rápida (Turno 1 h)', defaultAmount: 4800, category: 'Alquiler' },
-  { id: 'custom', label: 'Concepto Personalizado...', defaultAmount: 5000, category: 'Otro' },
+// Cada categoría arma sus conceptos a partir de las tarifas cargadas en el sistema.
+const CATEGORIES = [
+  { id: 'alquiler', label: 'Alquiler de Cancha' },
+  { id: 'clases', label: 'Cuota de Clase' },
+  { id: 'particulares', label: 'Clase Particular' },
+  { id: 'torneos', label: 'Inscripción a Torneo' },
+  { id: 'ligas', label: 'Inscripción a Liga' },
+  { id: 'otro', label: 'Otro Concepto' }
 ];
 
-const TP_DISCOUNTS = [
-  {
-    code: 'NONE',
-    name: 'Sin Descuento',
-    discountPercent: 0,
-    description: 'Tarifa regular estándar sin bonificación.',
-    color: 'slate'
-  },
-  {
-    code: 'PAQ10',
-    name: 'Paquete de 10 Horas Mensuales',
-    discountPercent: 15,
-    description: 'Aplicable a socios con paquete de horas acumuladas contratado.',
-    color: 'emerald'
-  },
-  {
-    code: 'LIGA20',
-    name: 'Socio Liga Regular Tenis Ahora',
-    discountPercent: 20,
-    description: 'Bonificación especial socios activos en liga interna oficial.',
-    color: 'tennis'
-  },
-  {
-    code: 'FUTBOL10',
-    name: 'Convenio Escuela de Fútbol Afiliada',
-    discountPercent: 10,
-    description: 'Convenio interclubes para socios y familiares directos.',
-    color: 'sky'
+const money = (n) => '$' + Number(n || 0).toLocaleString('es-AR');
+
+// Conceptos cobrables de una categoría: { id, label, detail, amount, concept }.
+function conceptsFor(category, catalog, hours) {
+  switch (category) {
+    case 'alquiler':
+      return catalog.courts
+        .filter(c => c.status !== 'mantenimiento')
+        .map(c => ({
+          id: c.id,
+          label: c.name,
+          detail: `${c.surfaceType} · ${money(c.pricePerHour)}/h`,
+          amount: (c.pricePerHour || 0) * hours,
+          concept: `Alquiler ${c.name} (${hours} ${hours === 1 ? 'h' : 'hs'})`
+        }));
+    case 'clases':
+      return catalog.classes.map(c => ({
+        id: c.id,
+        label: c.name,
+        detail: `${c.coachName} · ${c.scheduleDays} ${c.scheduleTime}`,
+        amount: c.monthlyFee || 0,
+        concept: `Cuota mensual: ${c.name}`
+      }));
+    case 'particulares':
+      return catalog.coaches.map(c => ({
+        id: c.id,
+        label: c.name,
+        detail: `${c.type || 'Profesor'} · ${money(c.hourlyRatePrivate)}/h`,
+        amount: (c.hourlyRatePrivate || 0) * hours,
+        concept: `Clase particular con ${c.name} (${hours} ${hours === 1 ? 'h' : 'hs'})`
+      }));
+    case 'torneos':
+      return catalog.tournaments
+        .filter(t => t.status === 'inscripcion_abierta')
+        .map(t => ({
+          id: t.id,
+          label: t.name,
+          detail: `${t.category} · ${t.modality}`,
+          amount: t.registrationFee || 0,
+          concept: `Inscripción a torneo: ${t.name}`
+        }));
+    case 'ligas':
+      return catalog.leagues
+        .filter(l => l.status === 'inscripcion_abierta')
+        .map(l => ({
+          id: l.id,
+          label: l.name,
+          detail: `${l.category} · ${l.modality}`,
+          amount: l.registrationFee || 0,
+          concept: `Inscripción a liga: ${l.name}`
+        }));
+    default:
+      return [];
   }
-];
+}
 
-export default function POSDiscountCalculator({ onChargeComplete }) {
+// Opción fija para cobrar a tarifa regular; el resto sale de los descuentos vigentes del club.
+const NO_DISCOUNT = {
+  code: 'NONE',
+  name: 'Sin Descuento',
+  discountPercent: 0
+};
+
+export default function POSDiscountCalculator({ discounts = [], onChargeComplete }) {
   const { notify } = useFeedback();
-  const [selectedConceptPreset, setSelectedConceptPreset] = useState('court_rental_2h');
+  const { user } = useAuth();
+  const [catalog, setCatalog] = useState({ courts: [], classes: [], coaches: [], tournaments: [], leagues: [] });
+  const [category, setCategory] = useState('alquiler');
+  const [selectedItemId, setSelectedItemId] = useState('');
+  const [hours, setHours] = useState(1);
   const [customConceptTitle, setCustomConceptTitle] = useState('');
-  const [baseAmount, setBaseAmount] = useState(9600);
+  const [baseAmount, setBaseAmount] = useState(0);
+
+  useEffect(() => {
+    Promise.all([
+      courtsService.getAll(),
+      coachesAndClassesService.getClasses(),
+      coachesAndClassesService.getCoaches(),
+      tournamentsService.getAll(),
+      leaguesService.getAll()
+    ]).then(([courts, classes, coaches, tournaments, leagues]) => {
+      setCatalog({
+        courts: courts.data || [],
+        classes: classes.data || [],
+        coaches: coaches.data || [],
+        tournaments: tournaments.data || [],
+        leagues: leagues.data || []
+      });
+    });
+  }, []);
+
+  const concepts = useMemo(() => conceptsFor(category, catalog, hours), [category, catalog, hours]);
+  const withHours = category === 'alquiler' || category === 'particulares';
+
+  // Al cambiar de categoría, catálogo o duración se toma el ítem elegido (o el primero) y su tarifa.
+  const selectedItem = useMemo(
+    () => concepts.find(i => i.id === selectedItemId) || concepts[0] || null,
+    [concepts, selectedItemId]
+  );
+
+  useEffect(() => {
+    if (category === 'otro') return;
+    setSelectedItemId(selectedItem ? selectedItem.id : '');
+    setBaseAmount(selectedItem ? selectedItem.amount : 0);
+  }, [category, selectedItem]);
   
-  const [clientName, setClientName] = useState('Federico Gómez');
-  const [clientDni, setClientDni] = useState('38.452.129');
+  const [clientName, setClientName] = useState('');
+  const [clientDni, setClientDni] = useState('');
   
-  const [selectedDiscountCode, setSelectedDiscountCode] = useState('LIGA20');
+  const [selectedDiscountCode, setSelectedDiscountCode] = useState('NONE');
   const [paymentMethod, setPaymentMethod] = useState('Mercado Pago (QR)');
   const [showSuccessToast, setShowSuccessToast] = useState(false);
 
-  // Concept name display
   const activeConceptName = useMemo(() => {
-    if (selectedConceptPreset === 'custom') {
-      return customConceptTitle || 'Concepto Personalizado';
-    }
-    const preset = CONCEPT_PRESETS.find(p => p.id === selectedConceptPreset);
-    return preset ? preset.label : 'Alquiler de Cancha';
-  }, [selectedConceptPreset, customConceptTitle]);
+    if (category === 'otro') return customConceptTitle || 'Concepto Personalizado';
+    return selectedItem ? selectedItem.concept : CATEGORIES.find(c => c.id === category)?.label || '';
+  }, [category, customConceptTitle, selectedItem]);
 
-  // Discount calculation
+  // Descuentos vigentes del club (los inactivos no se pueden aplicar en mostrador).
+  const discountOptions = useMemo(() => [
+    NO_DISCOUNT,
+    ...discounts
+      .filter(d => d.active !== false)
+      .map(d => ({ code: d.code, name: d.name, discountPercent: d.discountPercent }))
+  ], [discounts]);
+
   const activeDiscount = useMemo(() => {
-    return TP_DISCOUNTS.find(d => d.code === selectedDiscountCode) || TP_DISCOUNTS[0];
-  }, [selectedDiscountCode]);
+    return discountOptions.find(d => d.code === selectedDiscountCode) || NO_DISCOUNT;
+  }, [discountOptions, selectedDiscountCode]);
 
   const discountAmountPesos = useMemo(() => {
     return Math.round(baseAmount * (activeDiscount.discountPercent / 100));
@@ -77,18 +152,20 @@ export default function POSDiscountCalculator({ onChargeComplete }) {
     return Math.max(0, baseAmount - discountAmountPesos);
   }, [baseAmount, discountAmountPesos]);
 
-  const handleConceptChange = (presetId) => {
-    setSelectedConceptPreset(presetId);
-    const preset = CONCEPT_PRESETS.find(p => p.id === presetId);
-    if (preset && preset.id !== 'custom') {
-      setBaseAmount(preset.defaultAmount);
-    }
+  const handleCategoryChange = (id) => {
+    setCategory(id);
+    setSelectedItemId('');
+    if (id === 'otro') setBaseAmount(0);
   };
 
   const handleProcessCharge = async (e) => {
     e.preventDefault();
     if (!clientName.trim() || !clientDni.trim()) {
       notify({ variant: 'warning', message: 'Por favor complete el nombre y DNI del socio o cliente.' });
+      return;
+    }
+    if (category !== 'otro' && !selectedItem) {
+      notify({ variant: 'warning', message: 'No hay conceptos disponibles en esta categoría para cobrar.' });
       return;
     }
     if (baseAmount <= 0) {
@@ -114,7 +191,7 @@ export default function POSDiscountCalculator({ onChargeComplete }) {
       paymentMethod,
       date: new Date().toISOString().replace('T', ' ').substring(0, 16),
       status: 'completado',
-      cashierName: 'Caja Principal (Turno Mañana)',
+      cashierName: user?.name || 'Administración',
       qrData: `https://mpago.la/pos/tenisahora/${receiptId.toLowerCase()}`
     };
 
@@ -132,7 +209,7 @@ export default function POSDiscountCalculator({ onChargeComplete }) {
       {/* Header */}
       <div className="pb-3 border-b border-slate-200">
         <h2 className="text-lg font-black text-slate-900 tracking-tight">
-          Simulador y Cotizador de Descuentos en Caja
+          Cobro en Mostrador
         </h2>
       </div>
 
@@ -146,30 +223,63 @@ export default function POSDiscountCalculator({ onChargeComplete }) {
             <label className="text-xs font-extrabold uppercase text-slate-700 flex items-center gap-1.5">
               1. Seleccionar Concepto a Cobrar *
             </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {CONCEPT_PRESETS.map((preset) => {
-                const isSelected = selectedConceptPreset === preset.id;
-                return (
-                  <button
-                    key={preset.id}
-                    type="button"
-                    onClick={() => handleConceptChange(preset.id)}
-                    className={`p-2.5 rounded-2xl text-left border transition-all flex flex-col justify-between ${
-                      isSelected
-                        ? 'bg-tennis-50/80 border-tennis-600 text-tennis-950 shadow-sm ring-1 ring-tennis-600'
-                        : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-50'
-                    }`}
-                  >
-                    <span className="text-xs font-bold leading-snug">{preset.label}</span>
-                    <span className="text-[11px] font-black text-tennis-800 mt-1">
-                      {preset.id === 'custom' ? 'Manual' : `$${preset.defaultAmount.toLocaleString('es-AR')}`}
-                    </span>
-                  </button>
-                );
-              })}
+            <div className="flex flex-wrap gap-1.5">
+              {CATEGORIES.map((cat) => (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => handleCategoryChange(cat.id)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${
+                    category === cat.id
+                      ? 'bg-slate-900 text-white border-slate-900'
+                      : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              ))}
             </div>
 
-            {selectedConceptPreset === 'custom' && (
+            {category !== 'otro' && (
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 pt-1">
+                <select
+                  value={selectedItem ? selectedItem.id : ''}
+                  onChange={(e) => setSelectedItemId(e.target.value)}
+                  disabled={concepts.length === 0}
+                  className={`p-2.5 rounded-xl border border-slate-200 text-xs bg-white outline-none focus:border-tennis-600 font-medium ${withHours ? 'sm:col-span-8' : 'sm:col-span-12'}`}
+                >
+                  {concepts.length === 0 ? (
+                    <option value="">Sin conceptos disponibles</option>
+                  ) : (
+                    concepts.map(item => (
+                      <option key={item.id} value={item.id}>
+                        {item.label} — {item.detail}
+                      </option>
+                    ))
+                  )}
+                </select>
+                {withHours && (
+                  <div className="sm:col-span-4 flex items-center gap-1">
+                    {[1, 2].map(h => (
+                      <button
+                        key={h}
+                        type="button"
+                        onClick={() => setHours(h)}
+                        className={`flex-1 py-2 rounded-xl text-xs font-semibold border transition-colors ${
+                          hours === h
+                            ? 'bg-tennis-50 border-tennis-600 text-tennis-900'
+                            : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                        }`}
+                      >
+                        {h} {h === 1 ? 'hora' : 'horas'}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {category === 'otro' && (
               <div className="pt-1 grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <input
                   type="text"
@@ -217,7 +327,7 @@ export default function POSDiscountCalculator({ onChargeComplete }) {
                   <input
                     type="text"
                     required
-                    placeholder="38.452.129"
+                    placeholder="Sin puntos ni guiones"
                     value={clientDni}
                     onChange={(e) => setClientDni(e.target.value)}
                     className="w-full p-2 rounded-xl border border-slate-200 text-xs bg-slate-50/50 outline-none focus:border-tennis-600 font-mono"
@@ -238,11 +348,11 @@ export default function POSDiscountCalculator({ onChargeComplete }) {
         {/* Row 2: Discounts Policy Selection */}
         <div className="space-y-2">
           <label className="text-xs font-extrabold uppercase text-slate-700 flex items-center gap-1.5">
-            2. Aplicar Política de Descuento Reglamentaria (TP)
+            2. Aplicar Descuento
           </label>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
-            {TP_DISCOUNTS.map((disc) => {
+            {discountOptions.map((disc) => {
               const isSelected = selectedDiscountCode === disc.code;
               return (
                 <div
@@ -272,10 +382,6 @@ export default function POSDiscountCalculator({ onChargeComplete }) {
                   <div className={`font-extrabold text-xs ${isSelected ? 'text-white' : 'text-slate-900'}`}>
                     {disc.name}
                   </div>
-                  
-                  <p className={`text-[10px] mt-1 line-clamp-2 ${isSelected ? 'text-slate-300' : 'text-slate-500'}`}>
-                    {disc.description}
-                  </p>
                 </div>
               );
             })}

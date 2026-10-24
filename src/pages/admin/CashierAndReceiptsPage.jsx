@@ -2,11 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { receiptsService } from '../../services/api';
 import { Receipt, Search, ChevronDown, ChevronUp } from 'lucide-react';
 import ReceiptModal from '../../components/common/ReceiptModal';
-import Modal from '../../components/common/Modal';
 import POSDiscountCalculator from '../../components/admin/POSDiscountCalculator';
-import InvoicesPanel from '../../components/admin/InvoicesPanel';
-import RefundsPanel from '../../components/admin/RefundsPanel';
-import DiscountsPanel from '../../components/admin/DiscountsPanel';
 import TablePaginationBar, { TableSortHeader } from '../../components/common/TablePaginationBar';
 import { useTablePagination } from '../../hooks/useTablePagination';
 
@@ -16,18 +12,6 @@ export default function CashierAndReceiptsPage() {
   const [selectedReceipt, setSelectedReceipt] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showSimulator, setShowSimulator] = useState(true);
-  const [activeTab, setActiveTab] = useState('recibos'); // recibos | facturas | reembolsos | descuentos
-
-  // Register New Charge Modal
-  const [showChargeModal, setShowChargeModal] = useState(false);
-  const [chargeData, setChargeData] = useState({
-    clientName: '',
-    clientDni: '',
-    concept: 'Inscripción a Torneo de Tenis',
-    amount: 7500,
-    paymentMethod: 'Mercado Pago (QR)',
-    discountApplied: 'NONE'
-  });
 
   useEffect(() => {
     loadData();
@@ -46,31 +30,6 @@ export default function CashierAndReceiptsPage() {
     const res = await receiptsService.create(newReceipt);
     setReceipts(prev => [res.data, ...prev]);
     setSelectedReceipt(res.data);
-  };
-
-  const handleRegisterCharge = async (e) => {
-    e.preventDefault();
-    const discountObj = discounts.find(d => d.code === chargeData.discountApplied);
-    const discountPercent = discountObj ? discountObj.discountPercent : 0;
-    const finalAmount = chargeData.amount - (chargeData.amount * (discountPercent / 100));
-
-    const newRec = {
-      id: `REC-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
-      clientName: chargeData.clientName,
-      clientDni: chargeData.clientDni,
-      concept: chargeData.concept,
-      items: [
-        { description: chargeData.concept, amount: chargeData.amount },
-        ...(discountObj ? [{ description: `Descuento ${discountObj.name} (${discountPercent}%)`, amount: -(chargeData.amount * (discountPercent / 100)) }] : [])
-      ],
-      totalPaid: finalAmount,
-      paymentMethod: chargeData.paymentMethod,
-      date: new Date().toISOString().replace('T', ' ').substring(0, 16),
-      cashierName: 'Administración General'
-    };
-
-    await handleChargeCompleted(newRec);
-    setShowChargeModal(false);
   };
 
   const filteredReceipts = receipts.filter(r => 
@@ -107,7 +66,7 @@ export default function CashierAndReceiptsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 no-print">
         <div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-            Caja, Cobros, Facturas, Reembolsos y Descuentos
+            Recibos y Cobros
           </h1>
         </div>
 
@@ -121,7 +80,7 @@ export default function CashierAndReceiptsPage() {
                 : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
             }`}
           >
-            <span>{showSimulator ? 'Ocultar Simulador' : 'Abrir Simulador'}</span>
+            <span>{showSimulator ? 'Ocultar Cobro en Mostrador' : 'Abrir Cobro en Mostrador'}</span>
             {showSimulator ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
           </button>
 
@@ -130,72 +89,17 @@ export default function CashierAndReceiptsPage() {
             onClick={() => window.print()}
             className="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs border border-slate-200 shadow-sm flex items-center gap-1.5 transition-colors"
           >
-            {activeTab === 'facturas' ? 'Imprimir Facturas' : activeTab === 'reembolsos' ? 'Imprimir Reembolsos' : activeTab === 'descuentos' ? 'Imprimir Descuentos' : 'Imprimir Libro de Recibos'}
+            Imprimir Libro de Recibos
           </button>
         </div>
       </div>
 
-      {/* Section Tabs */}
-      <div className="flex items-center gap-2 flex-wrap no-print">
-        {[
-          { id: 'recibos', label: 'Recibos y Cobros' },
-          { id: 'facturas', label: 'Facturas' },
-          { id: 'reembolsos', label: 'Reembolsos' },
-          { id: 'descuentos', label: 'Descuentos' }
-        ].map(tab => (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-              activeTab === tab.id ? 'bg-slate-900 text-white shadow-sm' : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      {activeTab === 'facturas' && <InvoicesPanel />}
-      {activeTab === 'reembolsos' && <RefundsPanel />}
-      {activeTab === 'descuentos' && <DiscountsPanel onChange={loadData} />}
-
-      {activeTab === 'recibos' && (
-      <>
-
-      {/* POS Realtime Checkout & Discount Simulator */}
+      {/* Cobro en mostrador */}
       {showSimulator && (
         <div className="no-print">
-          <POSDiscountCalculator onChargeComplete={handleChargeCompleted} />
+          <POSDiscountCalculator discounts={discounts} onChargeComplete={handleChargeCompleted} />
         </div>
       )}
-
-      {/* Discounts quick view */}
-      <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-3 no-print">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <h2 className="text-sm font-extrabold text-slate-900">Políticas de Descuentos Activas en el Club</h2>
-          </div>
-          <button type="button" onClick={() => setActiveTab('descuentos')} className="text-xs text-tennis-700 font-bold hover:underline">
-            Administrar descuentos
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {discounts.map(d => (
-            <div key={d.id} className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-1">
-              <div className="flex items-center justify-between">
-                <span className="font-extrabold text-xs text-slate-800">{d.name}</span>
-                <span className="text-tennis-800 font-black text-xs">
-                  {d.discountPercent}% OFF
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-500">Aplica a: <strong>{d.applicableTo}</strong></p>
-              <div className="text-[10px] text-slate-400">Código interno: <code className="font-mono bg-white px-1.5 py-0.5 rounded border">{d.code}</code></div>
-            </div>
-          ))}
-        </div>
-      </div>
 
       {/* Receipts History Table */}
       <div id="printable-area" className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
@@ -329,114 +233,6 @@ export default function CashierAndReceiptsPage() {
           pageSizeOptions={[10, 20, 50]}
         />
       </div>
-
-      </>
-      )}
-
-      {/* Modal to register new POS charge */}
-      <Modal
-        isOpen={showChargeModal}
-        onClose={() => setShowChargeModal(false)}
-        title="Registrar Nuevo Cobro en Caja"
-        maxWidth="max-w-md"
-      >
-        <form onSubmit={handleRegisterCharge} className="space-y-4 text-xs">
-          <div>
-            <label className="font-bold text-slate-700 uppercase block mb-1">Nombre del Socio / Cliente *</label>
-            <input
-              type="text"
-              required
-              placeholder="Juan Martín del Potro"
-              value={chargeData.clientName}
-              onChange={(e) => setChargeData({ ...chargeData, clientName: e.target.value })}
-              className="w-full p-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="font-bold text-slate-700 uppercase block mb-1">DNI *</label>
-              <input
-                type="text"
-                required
-                placeholder="30.123.456"
-                value={chargeData.clientDni}
-                onChange={(e) => setChargeData({ ...chargeData, clientDni: e.target.value })}
-                className="w-full p-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
-              />
-            </div>
-
-            <div>
-              <label className="font-bold text-slate-700 uppercase block mb-1">Monto Base (ARS) *</label>
-              <input
-                type="number"
-                required
-                value={chargeData.amount}
-                onChange={(e) => setChargeData({ ...chargeData, amount: Number(e.target.value) })}
-                className="w-full p-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 font-bold"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="font-bold text-slate-700 uppercase block mb-1">Concepto *</label>
-            <input
-              type="text"
-              required
-              placeholder="Inscripción Torneo / Alquiler / Clase"
-              value={chargeData.concept}
-              onChange={(e) => setChargeData({ ...chargeData, concept: e.target.value })}
-              className="w-full p-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="font-bold text-slate-700 uppercase block mb-1">Medio de Pago *</label>
-              <select
-                value={chargeData.paymentMethod}
-                onChange={(e) => setChargeData({ ...chargeData, paymentMethod: e.target.value })}
-                className="w-full p-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white font-bold"
-              >
-                <option value="Tarjeta de Débito">Tarjeta de Débito</option>
-                <option value="Tarjeta de Crédito">Tarjeta de Crédito</option>
-                <option value="Mercado Pago (QR)">Billetera virtual QR</option>
-                <option value="Billetera Virtual (MODO / Cuenta DNI)">Billetera Virtual: MODO / Cuenta DNI / Otras</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="font-bold text-slate-700 uppercase block mb-1">Descuento Club</label>
-              <select
-                value={chargeData.discountApplied}
-                onChange={(e) => setChargeData({ ...chargeData, discountApplied: e.target.value })}
-                className="w-full p-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white font-bold"
-              >
-                <option value="NONE">Sin Descuento (0%)</option>
-                {discounts.map(d => (
-                  <option key={d.id} value={d.code}>{d.name} ({d.discountPercent}%)</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-2 pt-2">
-            <button
-              type="button"
-              onClick={() => setShowChargeModal(false)}
-              className="px-3 py-2 text-slate-600"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-tennis-600 hover:bg-tennis-700 text-white font-bold rounded-xl shadow-md"
-            >
-              Procesar Cobro y Emitir Recibo
-            </button>
-          </div>
-        </form>
-      </Modal>
 
       {/* Receipt Modal */}
       {selectedReceipt && (

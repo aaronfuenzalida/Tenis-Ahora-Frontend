@@ -32,11 +32,23 @@ import CoachProfilePage from './pages/coach/CoachProfilePage';
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
 import CourtsManagementPage from './pages/admin/CourtsManagementPage';
+import CourtTypesPage from './pages/admin/CourtTypesPage';
+import CourtAvailabilityPage from './pages/admin/CourtAvailabilityPage';
 import ReservationsManagementPage from './pages/admin/ReservationsManagementPage';
+import ClubPoliciesPage from './pages/admin/ClubPoliciesPage';
 import StockManagementPage from './pages/admin/StockManagementPage';
 import TournamentsManagementPage from './pages/admin/TournamentsManagementPage';
-import CoachesAndClassesPage from './pages/admin/CoachesAndClassesPage';
+import LeaguesManagementPage from './pages/admin/LeaguesManagementPage';
+import MatchesManagementPage from './pages/admin/MatchesManagementPage';
+import CompetitionTypesPage from './pages/admin/CompetitionTypesPage';
+import CoachesManagementPage from './pages/admin/CoachesManagementPage';
+import ClassesManagementPage from './pages/admin/ClassesManagementPage';
+import AttendanceManagementPage from './pages/admin/AttendanceManagementPage';
+import PrivateLessonsManagementPage from './pages/admin/PrivateLessonsManagementPage';
 import CashierAndReceiptsPage from './pages/admin/CashierAndReceiptsPage';
+import InvoicesPage from './pages/admin/InvoicesPage';
+import RefundsPage from './pages/admin/RefundsPage';
+import DiscountsPage from './pages/admin/DiscountsPage';
 import UsersManagementPage from './pages/admin/UsersManagementPage';
 import ReportsPage from './pages/admin/ReportsPage';
 
@@ -100,11 +112,24 @@ function portalRoutes(demo) {
       <Route path="admin" element={wrap('admin', <AdminLayout />, { requireAdmin: true })}>
         <Route index element={<AdminDashboard />} />
         <Route path="canchas" element={<CourtsManagementPage />} />
+        <Route path="tipos-cancha" element={<CourtTypesPage />} />
+        <Route path="horarios" element={<CourtAvailabilityPage />} />
         <Route path="reservas" element={<ReservationsManagementPage />} />
+        <Route path="politicas" element={<ClubPoliciesPage />} />
         <Route path="stock" element={<StockManagementPage />} />
         <Route path="torneos" element={<TournamentsManagementPage />} />
-        <Route path="profesores-clases" element={<CoachesAndClassesPage />} />
+        <Route path="ligas" element={<LeaguesManagementPage />} />
+        <Route path="enfrentamientos" element={<MatchesManagementPage />} />
+        <Route path="tipos-competencia" element={<CompetitionTypesPage />} />
+        <Route path="profesionales" element={<CoachesManagementPage />} />
+        <Route path="clases" element={<ClassesManagementPage />} />
+        <Route path="asistencia" element={<AttendanceManagementPage />} />
+        <Route path="turnos-particulares" element={<PrivateLessonsManagementPage />} />
+        <Route path="profesores-clases" element={<Navigate to="../profesionales" replace />} />
         <Route path="caja" element={<CashierAndReceiptsPage />} />
+        <Route path="facturas" element={<InvoicesPage />} />
+        <Route path="reembolsos" element={<RefundsPage />} />
+        <Route path="descuentos" element={<DiscountsPage />} />
         <Route path="usuarios" element={<UsersManagementPage />} />
         <Route path="reportes" element={<ReportsPage />} />
       </Route>

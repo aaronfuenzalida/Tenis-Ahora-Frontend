@@ -3,7 +3,11 @@ import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Logo from '../common/Logo';
 import usePortalPaths from '../../hooks/usePortalPaths';
-import { LayoutDashboard, Layers, Calendar, Package, Trophy, GraduationCap, DollarSign, Users, BarChart3 } from 'lucide-react';
+import {
+  LayoutDashboard, Layers, Tags, Clock, Calendar, SlidersHorizontal, Package,
+  Trophy, Medal, Swords, ListChecks, GraduationCap, BookOpen, ClipboardCheck, CalendarClock,
+  Receipt, FileText, RotateCcw, Percent, Users, BarChart3
+} from 'lucide-react';
 
 export default function Sidebar({ isOpen, onClose }) {
   const { switchRole, isDemo, logout } = useAuth();
@@ -35,8 +39,11 @@ export default function Sidebar({ isOpen, onClose }) {
     {
       group: 'Canchas y Reservas',
       items: [
-        { name: 'Canchas, Tipos y Horarios', to: `${paths.admin}/canchas`, icon: Layers },
-        { name: 'Control de Reservas', to: `${paths.admin}/reservas`, icon: Calendar }
+        { name: 'Canchas', to: `${paths.admin}/canchas`, icon: Layers },
+        { name: 'Tipos de Cancha', to: `${paths.admin}/tipos-cancha`, icon: Tags },
+        { name: 'Horarios Disponibles', to: `${paths.admin}/horarios`, icon: Clock },
+        { name: 'Control de Reservas', to: `${paths.admin}/reservas`, icon: Calendar },
+        { name: 'Políticas de Reserva', to: `${paths.admin}/politicas`, icon: SlidersHorizontal }
       ]
     },
     {
@@ -46,16 +53,35 @@ export default function Sidebar({ isOpen, onClose }) {
       ]
     },
     {
-      group: 'Competición y Enseñanza',
+      group: 'Competición',
       items: [
-        { name: 'Torneos, Ligas y Competencias', to: `${paths.admin}/torneos`, icon: Trophy },
-        { name: 'Docentes, Clases y Entrenamientos', to: `${paths.admin}/profesores-clases`, icon: GraduationCap}
+        { name: 'Torneos', to: `${paths.admin}/torneos`, icon: Trophy },
+        { name: 'Ligas', to: `${paths.admin}/ligas`, icon: Medal },
+        { name: 'Enfrentamientos', to: `${paths.admin}/enfrentamientos`, icon: Swords },
+        { name: 'Tipos de Competencia', to: `${paths.admin}/tipos-competencia`, icon: ListChecks }
       ]
     },
     {
-      group: 'Caja y Administración',
+      group: 'Enseñanza',
       items: [
-        { name: 'Caja, Facturas y Reembolsos', to: `${paths.admin}/caja`, icon: DollarSign },
+        { name: 'Profesionales', to: `${paths.admin}/profesionales`, icon: GraduationCap },
+        { name: 'Clases y Entrenamientos', to: `${paths.admin}/clases`, icon: BookOpen },
+        { name: 'Asistencia', to: `${paths.admin}/asistencia`, icon: ClipboardCheck },
+        { name: 'Turnos Particulares', to: `${paths.admin}/turnos-particulares`, icon: CalendarClock }
+      ]
+    },
+    {
+      group: 'Caja',
+      items: [
+        { name: 'Recibos y Cobros', to: `${paths.admin}/caja`, icon: Receipt },
+        { name: 'Facturas', to: `${paths.admin}/facturas`, icon: FileText },
+        { name: 'Reembolsos', to: `${paths.admin}/reembolsos`, icon: RotateCcw },
+        { name: 'Descuentos', to: `${paths.admin}/descuentos`, icon: Percent }
+      ]
+    },
+    {
+      group: 'Administración',
+      items: [
         { name: 'Padrón de Usuarios', to: `${paths.admin}/usuarios`, icon: Users },
         { name: 'Reportes y Estadísticas', to: `${paths.admin}/reportes`, icon: BarChart3 }
       ]

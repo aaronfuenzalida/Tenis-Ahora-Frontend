@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { reservationsService, courtsService, clubConfigService, DEFAULT_CLUB_CONFIG, maxBookingDate } from '../../services/api';
 import { Search, Edit3, Trash2 } from 'lucide-react';
 import ReceiptModal from '../../components/common/ReceiptModal';
 import Modal from '../../components/common/Modal';
-import ClubPolicyModal from '../../components/admin/ClubPolicyModal';
 import TablePaginationBar, { TableSortHeader } from '../../components/common/TablePaginationBar';
 import { useTablePagination } from '../../hooks/useTablePagination';
 import { calculateHoursUntil, formatHoursMinutes } from '../../utils/formatters';
 import { useFeedback } from '../../context/FeedbackContext';
+import usePortalPaths from '../../hooks/usePortalPaths';
 
 export default function ReservationsManagementPage() {
   const { notify } = useFeedback();
@@ -32,7 +33,7 @@ export default function ReservationsManagementPage() {
 
   // RD02 - RD05: políticas del club
   const [clubConfig, setClubConfig] = useState(DEFAULT_CLUB_CONFIG);
-  const [showPolicyModal, setShowPolicyModal] = useState(false);
+  const paths = usePortalPaths();
 
   useEffect(() => {
     loadReservations();
@@ -113,7 +114,7 @@ export default function ReservationsManagementPage() {
     loadReservations();
     
     if (result.isWithinFreeWindow) {
-      notify({ variant: 'success', title: 'Cancelación procesada', message: `Cancelación con ${clubConfig.freeCancellationHours} hs o más de antelación. Se generó el reembolso ${result.refund?.id || ''} por ${(result.refund?.refundAmount || 0).toLocaleString('es-AR')} (pendiente de proceso en Caja > Reembolsos).` });
+      notify({ variant: 'success', title: 'Cancelación procesada', message: `Cancelación con ${clubConfig.freeCancellationHours} hs o más de antelación. Se generó el reembolso ${result.refund?.id || ''} por ${(result.refund?.refundAmount || 0).toLocaleString('es-AR')} (pendiente de proceso en Reembolsos).` });
     } else {
       notify({ variant: 'warning', title: 'Cancelación procesada', message: `Cancelación con menos de ${clubConfig.freeCancellationHours} hs de antelación, fuera de plazo. Se aplicó el cargo ${result.penaltyReceipt?.id || ''} por ${(result.penaltyReceipt?.totalPaid || 0).toLocaleString('es-AR')} y se reintegra el resto como crédito (${result.refund?.id || ''}).` });
     }
@@ -187,13 +188,12 @@ export default function ReservationsManagementPage() {
           <span className="font-bold text-tennis-800">
             Cancelación sin cargo: ≥ {clubConfig.freeCancellationHours} hs · Retención fuera de plazo: {clubConfig.lateCancellationRetentionPercent}% · Reservas hasta {clubConfig.maxAdvanceBookingDays} días
           </span>
-          <button
-            type="button"
-            onClick={() => setShowPolicyModal(true)}
+          <Link
+            to={`${paths.admin}/politicas`}
             className="px-3 py-1.5 rounded-lg bg-white hover:bg-tennis-100 text-tennis-800 font-bold border border-tennis-200 no-print"
           >
             Modificar Políticas
-          </button>
+          </Link>
         </div>
       </div>
 
@@ -468,13 +468,6 @@ export default function ReservationsManagementPage() {
           </button>
         </form>
       </Modal>
-
-      <ClubPolicyModal
-        isOpen={showPolicyModal}
-        config={clubConfig}
-        onClose={() => setShowPolicyModal(false)}
-        onSaved={(cfg) => { setClubConfig(cfg); setShowPolicyModal(false); }}
-      />
 
       {/* Cancellation Policy Modal */}
       <Modal
