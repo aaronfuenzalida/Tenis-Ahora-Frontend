@@ -5,8 +5,13 @@ import Logo from '../common/Logo';
 import { LayoutDashboard, Layers, Calendar, Package, Trophy, GraduationCap, DollarSign, Users, BarChart3 } from 'lucide-react';
 
 export default function Sidebar({ isOpen, onClose }) {
-  const { switchRole, isDemo } = useAuth();
+  const { switchRole, isDemo, logout } = useAuth();
   const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   const handleReturnToClient = () => {
     switchRole('client');
@@ -117,8 +122,8 @@ export default function Sidebar({ isOpen, onClose }) {
         </div>
 
         {/* Quick Return to Client or Coach View Footer */}
-        {isDemo && (
-          <div className="p-3 border-t border-slate-800 bg-slate-950/40">
+        <div className="p-3 border-t border-slate-800 bg-slate-950/40 space-y-2">
+          {isDemo && (
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
@@ -135,8 +140,16 @@ export default function Sidebar({ isOpen, onClose }) {
                 <span>Docente</span>
               </button>
             </div>
-          </div>
-        )}
+          )}
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/60 transition-colors"
+          >
+            Cerrar Sesión
+          </button>
+        </div>
 
       </aside>
     </>

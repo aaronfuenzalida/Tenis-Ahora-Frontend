@@ -1403,6 +1403,14 @@ const usersMock = {
     await delay();
     return { data: usersStore };
   },
+  async getMembers() {
+    await delay();
+    return {
+      data: usersStore
+        .filter(u => u.role === 'client')
+        .map(({ id, name, dni, memberNumber }) => ({ id, name, dni, memberNumber }))
+    };
+  },
   // RF001: registrar usuario desde administración
   async create(userData) {
     await delay();
@@ -1581,6 +1589,7 @@ const refundsHttp = {
 
 const usersHttp = {
   ...crud('/usuarios'),
+  getMembers: () => api.get('/socios'),
   updateDiscounts: (userId, activeDiscounts) => api.put(`/usuarios/${userId}/descuentos`, { activeDiscounts })
 };
 

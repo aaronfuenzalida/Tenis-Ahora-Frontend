@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { courtsService, stockService, reservationsService, clubConfigService, DEFAULT_CLUB_CONFIG, maxBookingDate } from '../../services/api';
+import { courtsService, stockService, reservationsService, clubConfigService, usersService, DEFAULT_CLUB_CONFIG, maxBookingDate } from '../../services/api';
 import { ChevronRight } from 'lucide-react';
 import QRModal from '../../components/common/QRModal';
 import ReceiptModal from '../../components/common/ReceiptModal';
 import CourtTimelineGrid from '../../components/common/CourtTimelineGrid';
 import { getSlotBlock } from '../../components/admin/CourtAvailabilityPanel';
-import { formatDNI, formatPhone, cleanDNI, isValidDNI } from '../../utils/formatters';
+import { cleanDNI } from '../../utils/formatters';
 
 export default function BookCourtPage() {
   const { user } = useAuth();
@@ -17,6 +17,7 @@ export default function BookCourtPage() {
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [clubConfig, setClubConfig] = useState(DEFAULT_CLUB_CONFIG);
+  const [members, setMembers] = useState([]);
 
   // View Mode: 'timeline' (Cronograma Horario) vs 'cards' (Vista Tradicional)
   const [viewMode, setViewMode] = useState('timeline');
@@ -55,13 +56,15 @@ export default function BookCourtPage() {
 
   const loadData = async () => {
     setLoading(true);
-    const [cRes, sRes, rRes, cfgRes] = await Promise.all([
+    const [cRes, sRes, rRes, cfgRes, mRes] = await Promise.all([
       courtsService.getAll(), 
       stockService.getAll(),
       reservationsService.getOccupancy(),
-      clubConfigService.get()
+      clubConfigService.get(),
+      usersService.getMembers()
     ]);
     setClubConfig(cfgRes.data);
+    setMembers(mRes.data || []);
     setCourts(cRes.data);
     setStock(sRes.data);
     setReservations(rRes.data || []);
@@ -102,21 +105,17 @@ export default function BookCourtPage() {
     }
   };
 
-  const handlePlayerChange = (index, field, value) => {
-    let formatted = value;
-    if (field === 'dni') {
-      formatted = formatDNI(value);
-    } else if (field === 'phone') {
-      formatted = formatPhone(value);
-    }
+  const handleSelectPlayer = (index, member) => {
     const updated = [...players];
-    updated[index] = { ...updated[index], [field]: formatted };
+    updated[index] = member
+      ? { name: member.name, dni: member.dni, phone: '', memberNumber: member.memberNumber }
+      : { name: '', dni: '', phone: '' };
     setPlayers(updated);
   };
 
-  // Check for duplicate DNIs
-  const participantDnis = players.map(p => cleanDNI(p.dni)).filter(Boolean);
-  const duplicateDnis = participantDnis.filter((d, idx) => participantDnis.indexOf(d) !== idx);
+  // Un socio no puede ocupar dos lugares del mismo partido.
+  const takenDnisFor = (index) =>
+    players.filter((_, i) => i !== index).map(p => cleanDNI(p.dni)).filter(Boolean);
 
   // Pricing calculations
   const courtPricePerHour = selectedCourt ? selectedCourt.pricePerHour : 4800;
@@ -163,23 +162,8 @@ export default function BookCourtPage() {
       return;
     }
 
-    // Validate player names (Nombre y Apellido)
-    const incompleteNames = players.some(p => !p.name || p.name.trim().split(/\s+/).length < 2);
-    if (incompleteNames) {
-      alert('Por favor complete Nombre y Apellido de todos los participantes del partido.');
-      return;
-    }
-
-    // Validate player DNIs
-    const invalidDnis = players.some(p => !isValidDNI(p.dni));
-    if (invalidDnis) {
-      alert('Por favor verifique que todos los participantes tengan un DNI válido (entre 7 y 8 dígitos).');
-      return;
-    }
-
-    // Validate unique DNIs
-    if (duplicateDnis.length > 0) {
-      alert('No se permiten DNIs duplicados entre los participantes del partido.');
+    if (players.some(p => !p.dni)) {
+      alert('Por favor seleccioná a todos los participantes del partido.');
       return;
     }
 
@@ -420,73 +404,27 @@ export default function BookCourtPage() {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {players.map((p, idx) => {
-                    const cleaned = cleanDNI(p.dni);
-                    const isDup = cleaned && duplicateDnis.includes(cleaned);
-                    const isDniInvalid = p.dni && !isValidDNI(p.dni);
+                  {players.map((p, idx) => (
+                    <div key={idx} className="p-3 rounded-xl border bg-slate-50 border-slate-200 space-y-2">
+                      <span className="text-[11px] font-bold text-tennis-800 uppercase block">
+                        Jugador {idx + 1} {idx === 0 && '(Titular / Socio)'}
+                      </span>
 
-                    return (
-                      <div 
-                        key={idx} 
-                        className={`p-3 rounded-xl border space-y-2 transition-all ${
-                          isDup 
-                            ? 'bg-slate-50/70 border-slate-300 ring-1 ring-slate-400' 
-                            : 'bg-slate-50 border-slate-200'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-bold text-tennis-800 uppercase block">
-                            Jugador {idx + 1} {idx === 0 && '(Titular / Socio)'}
-                          </span>
-                          {isDup && (
-                            <span className="text-[10px] font-bold text-slate-600">
-                              DNI Duplicado
-                            </span>
-                          )}
+                      {idx === 0 ? (
+                        <div>
+                          <div className="text-xs font-bold text-slate-900">{p.name}</div>
+                          <div className="text-[11px] text-slate-500">DNI {p.dni}</div>
                         </div>
-
-                        <input
-                          type="text"
-                          required
-                          placeholder="Nombre y Apellido *"
-                          value={p.name}
-                          onChange={(e) => handlePlayerChange(idx, 'name', e.target.value)}
-                          className="w-full px-2.5 py-1.5 bg-white rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-tennis-500 outline-none"
+                      ) : (
+                        <PlayerSelect
+                          members={members}
+                          value={p}
+                          takenDnis={takenDnisFor(idx)}
+                          onSelect={(member) => handleSelectPlayer(idx, member)}
                         />
-                        
-                        <div className="grid grid-cols-2 gap-2">
-                          <div>
-                            <input
-                              type="text"
-                              required
-                              maxLength={10}
-                              placeholder="DNI (XX.XXX.XXX) *"
-                              value={p.dni}
-                              onChange={(e) => handlePlayerChange(idx, 'dni', e.target.value)}
-                              className={`w-full px-2.5 py-1.5 bg-white rounded-lg border text-xs focus:ring-1 outline-none font-bold ${
-                                isDup || isDniInvalid 
-                                  ? 'border-slate-300 text-slate-800 focus:ring-slate-400' 
-                                  : 'border-slate-200 text-slate-800 focus:ring-tennis-500'
-                              }`}
-                            />
-                            {isDniInvalid && (
-                              <span className="text-[9px] text-slate-600 block mt-0.5">7-8 dígitos</span>
-                            )}
-                          </div>
-
-                          <div>
-                            <input
-                              type="text"
-                              placeholder="Teléfono"
-                              value={p.phone}
-                              onChange={(e) => handlePlayerChange(idx, 'phone', e.target.value)}
-                              className="w-full px-2.5 py-1.5 bg-white rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-tennis-500 outline-none"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
 
@@ -834,73 +772,27 @@ export default function BookCourtPage() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {players.map((p, idx) => {
-                  const cleaned = cleanDNI(p.dni);
-                  const isDup = cleaned && duplicateDnis.includes(cleaned);
-                  const isDniInvalid = p.dni && !isValidDNI(p.dni);
+                {players.map((p, idx) => (
+                  <div key={idx} className="p-3 rounded-xl border bg-slate-50 border-slate-200 space-y-2">
+                    <span className="text-[11px] font-bold text-tennis-800 uppercase block">
+                      Jugador {idx + 1} {idx === 0 && '(Titular / Socio)'}
+                    </span>
 
-                  return (
-                    <div 
-                      key={idx} 
-                      className={`p-3 rounded-xl border space-y-2 transition-all ${
-                        isDup 
-                          ? 'bg-slate-50/70 border-slate-300 ring-1 ring-slate-400' 
-                          : 'bg-slate-50 border-slate-200'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-bold text-tennis-800 uppercase block">
-                          Jugador {idx + 1} {idx === 0 && '(Titular / Socio)'}
-                        </span>
-                        {isDup && (
-                          <span className="text-[10px] font-bold text-slate-600">
-                            DNI Duplicado
-                          </span>
-                        )}
+                    {idx === 0 ? (
+                      <div>
+                        <div className="text-xs font-bold text-slate-900">{p.name}</div>
+                        <div className="text-[11px] text-slate-500">DNI {p.dni}</div>
                       </div>
-
-                      <input
-                        type="text"
-                        required
-                        placeholder="Nombre y Apellido *"
-                        value={p.name}
-                        onChange={(e) => handlePlayerChange(idx, 'name', e.target.value)}
-                        className="w-full px-2.5 py-1.5 bg-white rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-tennis-500 outline-none"
+                    ) : (
+                      <PlayerSelect
+                        members={members}
+                        value={p}
+                        takenDnis={takenDnisFor(idx)}
+                        onSelect={(member) => handleSelectPlayer(idx, member)}
                       />
-                      
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <input
-                            type="text"
-                            required
-                            maxLength={10}
-                            placeholder="DNI (XX.XXX.XXX) *"
-                            value={p.dni}
-                            onChange={(e) => handlePlayerChange(idx, 'dni', e.target.value)}
-                            className={`w-full px-2.5 py-1.5 bg-white rounded-lg border text-xs focus:ring-1 outline-none font-bold ${
-                              isDup || isDniInvalid 
-                                ? 'border-slate-300 text-slate-800 focus:ring-slate-400' 
-                                : 'border-slate-200 text-slate-800 focus:ring-tennis-500'
-                            }`}
-                          />
-                          {isDniInvalid && (
-                            <span className="text-[9px] text-slate-600 block mt-0.5">7-8 dígitos</span>
-                          )}
-                        </div>
-
-                        <div>
-                          <input
-                            type="text"
-                            placeholder="Teléfono"
-                            value={p.phone}
-                            onChange={(e) => handlePlayerChange(idx, 'phone', e.target.value)}
-                            className="w-full px-2.5 py-1.5 bg-white rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-tennis-500 outline-none"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
 
@@ -1082,6 +974,80 @@ export default function BookCourtPage() {
         receipt={generatedReceipt}
       />
 
+    </div>
+  );
+}
+
+function PlayerSelect({ members, value, takenDnis, onSelect }) {
+  const [query, setQuery] = useState('');
+  const [open, setOpen] = useState(false);
+
+  if (value.dni) {
+    return (
+      <div className="flex items-center justify-between gap-2">
+        <div>
+          <div className="text-xs font-bold text-slate-900">{value.name}</div>
+          <div className="text-[11px] text-slate-500">
+            DNI {value.dni}{value.memberNumber && ` • N° ${value.memberNumber}`}
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={() => onSelect(null)}
+          className="text-[11px] font-bold text-tennis-700 hover:text-tennis-900"
+        >
+          Cambiar
+        </button>
+      </div>
+    );
+  }
+
+  const text = query.trim().toLowerCase();
+  const digits = cleanDNI(query);
+  const options = members
+    .filter(m => !takenDnis.includes(cleanDNI(m.dni)))
+    .filter(m =>
+      !text ||
+      m.name.toLowerCase().includes(text) ||
+      (m.memberNumber || '').toLowerCase().includes(text) ||
+      (digits && cleanDNI(m.dni).includes(digits))
+    );
+
+  return (
+    <div className="relative">
+      <input
+        type="text"
+        placeholder="Buscar socio por nombre, DNI o N° de socio"
+        value={query}
+        onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setOpen(false)}
+        className="w-full px-2.5 py-1.5 bg-white rounded-lg border border-slate-200 text-xs focus:ring-1 focus:ring-tennis-500 outline-none"
+      />
+      {open && (
+        <ul className="absolute z-20 mt-1 w-full max-h-52 overflow-y-auto bg-white rounded-lg border border-slate-200 shadow-sm">
+          {options.length === 0 ? (
+            <li className="px-2.5 py-2 text-xs text-slate-400">Sin resultados</li>
+          ) : options.map(m => (
+            <li key={m.id}>
+              <button
+                type="button"
+                // mousedown en vez de click: el blur del input cierra la lista antes de que llegue el click.
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  onSelect(m);
+                  setQuery('');
+                  setOpen(false);
+                }}
+                className="w-full text-left px-2.5 py-1.5 hover:bg-slate-50"
+              >
+                <span className="block text-xs font-semibold text-slate-800">{m.name}</span>
+                <span className="block text-[10px] text-slate-500">DNI {m.dni} • N° {m.memberNumber}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
