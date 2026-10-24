@@ -129,12 +129,6 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div className="mt-5 pt-4 border-t border-slate-100 text-center text-xs text-slate-600">
-            <Link to="/demo" className="font-bold text-slate-700 hover:text-tennis-700 hover:underline">
-              Ver demo con datos de ejemplo
-            </Link>
-          </div>
-
           {/* Switch to Register */}
           <div className="mt-5 text-center text-xs text-slate-600 pt-3 border-t border-slate-100">
             ¿No tenés una cuenta registrada?{' '}
