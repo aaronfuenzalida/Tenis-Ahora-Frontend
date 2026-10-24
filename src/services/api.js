@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { getStoredToken } from '../utils/jwt';
+import { getStoredToken, getStoredUser } from '../utils/jwt';
 import {
   INITIAL_COURTS,
   INITIAL_STOCK,
@@ -45,6 +45,10 @@ api.interceptors.response.use(
   (error) => {
     if (error.response && error.response.status === 401) {
       console.warn('Session expired or unauthorized token.');
+    }
+    // Las pantallas muestran err.message (como con los errores del mock); usamos el del backend.
+    if (error.response?.data?.error) {
+      error.message = error.response.data.error;
     }
     return Promise.reject(error);
   }
@@ -116,7 +120,7 @@ export const DEFAULT_COURT_AVAILABILITY = {
 // Simulated delay helper
 const delay = (ms = 150) => new Promise(res => setTimeout(res, ms));
 
-export const courtsService = {
+const courtsMock = {
   async getAll() {
     await delay();
     return { data: courtsStore };
@@ -164,7 +168,7 @@ export const courtsService = {
 };
 
 // ---- Tipos de Cancha (RF011 - RF015) ----
-export const courtTypesService = {
+const courtTypesMock = {
   async getAll() {
     await delay();
     return { data: courtTypesStore };
@@ -215,7 +219,7 @@ export const courtTypesService = {
   }
 };
 
-export const stockService = {
+const stockMock = {
   async getAll() {
     await delay();
     return { data: stockStore };
@@ -286,7 +290,7 @@ export const stockService = {
   }
 };
 
-export const reservationsService = {
+const reservationsMock = {
   async getAll() {
     await delay();
     return { data: reservationsStore };
@@ -495,7 +499,7 @@ export const reservationsService = {
   }
 };
 
-export const tournamentsService = {
+const tournamentsMock = {
   async getAll() {
     await delay();
     return { data: tournamentsStore };
@@ -614,7 +618,7 @@ export const tournamentsService = {
 };
 
 // ---- Tipos de Competencia (RF061 - RF065) ----
-export const competitionTypesService = {
+const competitionTypesMock = {
   async getAll() {
     await delay();
     return { data: competitionTypesStore };
@@ -649,7 +653,7 @@ export const competitionTypesService = {
   }
 };
 
-export const leaguesService = {
+const leaguesMock = {
   async getAll() {
     await delay();
     return { data: leaguesStore };
@@ -845,7 +849,7 @@ export const leaguesService = {
   }
 };
 
-export const coachesAndClassesService = {
+const coachesAndClassesMock = {
   // ---- Coaches / Professors ----
   async getCoaches() {
     await delay();
@@ -1087,7 +1091,7 @@ export const coachesAndClassesService = {
   }
 };
 
-export const receiptsService = {
+const receiptsMock = {
   async getAll() {
     await delay();
     return { data: receiptsStore };
@@ -1104,7 +1108,7 @@ export const receiptsService = {
 };
 
 // ---- Descuentos (RF138 - RF142) ----
-export const discountsService = {
+const discountsMock = {
   async getAll() {
     await delay();
     return { data: discountsStore };
@@ -1154,7 +1158,7 @@ export const discountsService = {
 };
 
 // ---- Facturas (RF125 - RF127) ----
-export const invoicesService = {
+const invoicesMock = {
   async getAll() {
     await delay();
     return { data: invoicesStore };
@@ -1199,7 +1203,7 @@ export const invoicesService = {
 };
 
 // ---- Reembolsos (RF131 - RF133) ----
-export const refundsService = {
+const refundsMock = {
   async getAll() {
     await delay();
     return { data: refundsStore };
@@ -1233,7 +1237,7 @@ export const refundsService = {
   }
 };
 
-export const usersService = {
+const usersMock = {
   async getAll() {
     await delay();
     return { data: usersStore };
@@ -1282,5 +1286,146 @@ export const usersService = {
     return { data: usersStore.find(u => u.id === userId) };
   }
 };
+
+// ---- Servicios contra la API (mismas firmas y formas de respuesta que el mock) ----
+// Cuando el backend devuelve el documento, la respuesta de axios ya lo expone en `.data`
+// igual que el mock. Cuando devuelve su propio sobre ({ success, ... } o { data, ... }),
+// hay que desenvolverlo con `body`.
+const body = (request) => request.then(res => res.data);
+
+const crud = (path) => ({
+  getAll: () => api.get(path),
+  create: (data) => api.post(path, data),
+  update: (id, data) => api.put(`${path}/${id}`, data),
+  delete: (id) => body(api.delete(`${path}/${id}`))
+});
+
+const courtsHttp = {
+  ...crud('/canchas'),
+  updateStatus: (courtId, status, maintenanceNotes = '') =>
+    api.patch(`/canchas/${courtId}/estado`, { status, maintenanceNotes }),
+  updateAvailability: (courtId, availability) =>
+    api.put(`/canchas/${courtId}/disponibilidad`, availability)
+};
+
+const courtTypesHttp = crud('/tipos-cancha');
+
+const stockHttp = {
+  ...crud('/stock'),
+  updateStock: (itemId, totalStock) => api.patch(`/stock/${itemId}/ajuste`, { totalStock })
+};
+
+const reservationsHttp = {
+  ...crud('/reservas'),
+  create: (bookingData) => body(api.post('/reservas', bookingData)),
+  payRemainingBalance: (reservationId, paymentMethod = 'Efectivo') =>
+    api.post(`/reservas/${reservationId}/pagar-saldo`, { paymentMethod }),
+  cancel: (reservationId, hoursInAdvance) =>
+    body(api.post(`/reservas/${reservationId}/cancelar`, { hoursInAdvance }))
+};
+
+// Torneos y ligas comparten las rutas de reglamento, inscripciones y enfrentamientos.
+const competitionHttp = (path) => ({
+  ...crud(path),
+  updateInternalRules: (id, internalRules) => api.put(`${path}/${id}/reglamento`, { internalRules }),
+  enroll: (id, participantData) => body(api.post(`${path}/${id}/inscripciones`, participantData)),
+  removeParticipant: (id, participantId) => body(api.delete(`${path}/${id}/inscripciones/${participantId}`)),
+  addMatch: (id, round, matchData) => body(api.post(`${path}/${id}/enfrentamientos`, { ...matchData, round })),
+  updateMatch: (id, matchId, updatedData) => body(api.put(`${path}/${id}/enfrentamientos/${matchId}`, updatedData))
+});
+
+const tournamentsHttp = competitionHttp('/torneos');
+
+const competitionTypesHttp = crud('/tipos-competencia');
+
+const leaguesHttp = {
+  ...competitionHttp('/ligas'),
+  updateMatchScore: (leagueId, matchId, score, winner) =>
+    body(api.post(`/ligas/${leagueId}/enfrentamientos/${matchId}/resultado`, { score, winner }))
+};
+
+const coaches = crud('/profesores');
+const classes = crud('/clases');
+const privateClasses = crud('/clases-particulares');
+
+const coachesAndClassesHttp = {
+  getCoaches: coaches.getAll,
+  createCoach: coaches.create,
+  updateCoach: coaches.update,
+  deleteCoach: coaches.delete,
+  updateCoachAvailability: (coachId, availableHours) =>
+    api.put(`/profesores/${coachId}/disponibilidad`, { availableHours }),
+  updateCoachLicense: (coachId, licenseDetails) =>
+    api.put(`/profesores/${coachId}/certificacion`, licenseDetails),
+
+  getClasses: classes.getAll,
+  addClass: classes.create,
+  updateClass: classes.update,
+  deleteClass: classes.delete,
+  toggleStudentAttendance: (classId, studentId, sessionIndex) =>
+    body(api.post(`/clases/${classId}/asistencia/alternar`, { studentId, sessionIndex })),
+  bulkMarkSession: (classId, sessionIndex, status = 'P') =>
+    body(api.post(`/clases/${classId}/asistencia/sesion`, { sessionIndex, status })),
+  enrollStudent: (classId, studentData) => body(api.post(`/clases/${classId}/alumnos`, studentData)),
+  removeStudent: (classId, studentId) => body(api.delete(`/clases/${classId}/alumnos/${studentId}`)),
+  recordAttendance: (classId, studentId, status) =>
+    body(api.post(`/clases/${classId}/asistencia/registrar`, { studentId, status })),
+
+  getPrivateClasses: privateClasses.getAll,
+  createPrivateClass: privateClasses.create,
+  updatePrivateClass: privateClasses.update,
+  cancelPrivateClass: (id) => body(api.post(`/clases-particulares/${id}/cancelar`)),
+  deletePrivateClass: privateClasses.delete
+};
+
+const receiptsHttp = {
+  getAll: () => api.get('/recibos'),
+  getDiscounts: () => api.get('/descuentos'),
+  create: (receiptData) => api.post('/recibos', receiptData)
+};
+
+const discountsHttp = crud('/descuentos');
+
+const invoicesHttp = {
+  getAll: () => api.get('/facturas'),
+  create: (invoiceData) => api.post('/facturas', invoiceData),
+  annul: (invoiceId) => api.post(`/facturas/${invoiceId}/anular`)
+};
+
+const refundsHttp = {
+  getAll: () => api.get('/reembolsos'),
+  create: (refundData) => api.post('/reembolsos', refundData),
+  updateStatus: (refundId, status) => api.patch(`/reembolsos/${refundId}/estado`, { status })
+};
+
+const usersHttp = {
+  ...crud('/usuarios'),
+  updateDiscounts: (userId, activeDiscounts) => api.put(`/usuarios/${userId}/descuentos`, { activeDiscounts })
+};
+
+// El Modo Demo usa un token que el backend no acepta, así que esas sesiones siguen con los mocks.
+// Se decide en cada llamada porque la sesión puede cambiar sin recargar la página.
+function withBackend(mock, http) {
+  return Object.fromEntries(
+    Object.keys(mock).map(name => [
+      name,
+      (...args) => (getStoredUser()?.isDemo ? mock : http)[name](...args)
+    ])
+  );
+}
+
+export const courtsService = withBackend(courtsMock, courtsHttp);
+export const courtTypesService = withBackend(courtTypesMock, courtTypesHttp);
+export const stockService = withBackend(stockMock, stockHttp);
+export const reservationsService = withBackend(reservationsMock, reservationsHttp);
+export const tournamentsService = withBackend(tournamentsMock, tournamentsHttp);
+export const competitionTypesService = withBackend(competitionTypesMock, competitionTypesHttp);
+export const leaguesService = withBackend(leaguesMock, leaguesHttp);
+export const coachesAndClassesService = withBackend(coachesAndClassesMock, coachesAndClassesHttp);
+export const receiptsService = withBackend(receiptsMock, receiptsHttp);
+export const discountsService = withBackend(discountsMock, discountsHttp);
+export const invoicesService = withBackend(invoicesMock, invoicesHttp);
+export const refundsService = withBackend(refundsMock, refundsHttp);
+export const usersService = withBackend(usersMock, usersHttp);
 
 export default api;
