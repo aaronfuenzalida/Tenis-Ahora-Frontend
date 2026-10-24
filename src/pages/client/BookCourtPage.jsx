@@ -8,7 +8,7 @@ import ReceiptModal from '../../components/common/ReceiptModal';
 import CourtTimelineGrid from '../../components/common/CourtTimelineGrid';
 import Stepper from '../../components/common/Stepper';
 import { getSlotBlock } from '../../components/admin/CourtAvailabilityPanel';
-import { cleanDNI } from '../../utils/formatters';
+import { cleanDNI, findReservationConflict } from '../../utils/formatters';
 
 const STEPS = [
   { id: 'schedule', label: 'Cronograma' },
@@ -29,7 +29,8 @@ export default function BookCourtPage() {
   // Datos
   const [courts, setCourts] = useState([]);
   const [stock, setStock] = useState([]);
-  const [reservations, setReservations] = useState([]);
+  const [reservations, setReservations] = useState([]); // ocupación del club
+  const [myReservations, setMyReservations] = useState([]); // reservas propias, con jugadores
   const [loading, setLoading] = useState(true);
   const [clubConfig, setClubConfig] = useState(DEFAULT_CLUB_CONFIG);
   const [members, setMembers] = useState([]);
@@ -66,18 +67,20 @@ export default function BookCourtPage() {
 
   const loadData = async () => {
     setLoading(true);
-    const [cRes, sRes, rRes, cfgRes, mRes] = await Promise.all([
+    const [cRes, sRes, rRes, cfgRes, mRes, mineRes] = await Promise.all([
       courtsService.getAll(),
       stockService.getAll(),
       reservationsService.getOccupancy(),
       clubConfigService.get(),
-      usersService.getMembers()
+      usersService.getMembers(),
+      reservationsService.getAll().catch(() => ({ data: [] }))
     ]);
     setClubConfig(cfgRes.data);
     setMembers(mRes.data || []);
     setCourts(cRes.data);
     setStock(sRes.data);
     setReservations(rRes.data || []);
+    setMyReservations(mineRes.data || []);
     if (cRes.data.length > 0) setSelectedCourt(cRes.data[0]);
     setLoading(false);
   };
@@ -140,6 +143,27 @@ export default function BookCourtPage() {
   const maxDateStr = maxBookingDate(maxDays);
   const minDateStr = new Date().toISOString().split('T')[0];
 
+  // Reserva repetida: misma cancha en la misma franja, o un jugador que ya tiene reserva a esa hora.
+  const conflictMessage = (withPlayers) => {
+    const [startTime, endTime] = (selectedTimeSlot || '').split(' - ');
+    if (!selectedCourt || !startTime || !endTime) return null;
+    const known = [...reservations, ...myReservations.filter(m => !reservations.some(r => r.id === m.id))];
+    const clash = findReservationConflict(known, {
+      courtId: selectedCourt.id,
+      courtName: selectedCourt.name,
+      date: selectedDate,
+      startTime,
+      endTime,
+      participantDnis: withPlayers ? players.map(p => p.dni) : []
+    });
+    if (!clash) return null;
+    const sameCourt = clash.courtId === selectedCourt.id || clash.courtName === selectedCourt.name;
+    if (sameCourt) return `${selectedCourt.name} ya está reservada el ${clash.date} de ${clash.startTime} a ${clash.endTime}. Elegí otro turno.`;
+    const dnis = players.map(p => cleanDNI(p.dni));
+    const busy = (clash.participants || []).find(p => dnis.includes(cleanDNI(p.dni || '')));
+    return `${busy?.name || 'Un jugador'} ya tiene una reserva el ${clash.date} de ${clash.startTime} a ${clash.endTime} en ${clash.courtName}.`;
+  };
+
   // ---- Navegación entre pasos ----
   const goToPlayers = () => {
     if (selectedDate < minDateStr || selectedDate > maxDateStr) {
@@ -155,6 +179,11 @@ export default function BookCourtPage() {
       notify({ variant: 'warning', message: `El turno elegido no está disponible: ${blockReason}.` });
       return;
     }
+    const clash = conflictMessage(false);
+    if (clash) {
+      notify({ variant: 'warning', message: clash });
+      return;
+    }
     setStep(1);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -164,6 +193,11 @@ export default function BookCourtPage() {
       notify({ variant: 'warning', message: 'Seleccioná a todos los participantes del partido para continuar.' });
       return;
     }
+    const clash = conflictMessage(true);
+    if (clash) {
+      notify({ variant: 'warning', message: clash });
+      return;
+    }
     setStep(2);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -171,6 +205,11 @@ export default function BookCourtPage() {
   const handleProceedPayment = () => {
     if (!canBookWithStock) {
       notify({ variant: 'warning', message: 'No se puede reservar la cancha: no hay disponibilidad de red, pelotas o raquetas en stock.' });
+      return;
+    }
+    const clash = conflictMessage(true);
+    if (clash) {
+      notify({ variant: 'warning', message: clash });
       return;
     }
     if (paymentMethod === 'Mercado Pago (QR)') {

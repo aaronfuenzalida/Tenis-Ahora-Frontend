@@ -25,7 +25,8 @@ export default function AttendanceMatrixModal({
 
   const sessions = classItem.sessions || ['03/10', '05/10', '10/10', '12/10', '17/10', '19/10', '24/10', '26/10'];
   const students = classItem.students || [];
-  const maxCapacity = 30; // Tope estricto de 30 alumnos
+  // El cupo lo fija cada clase, sin pasar nunca el tope de 30.
+  const maxCapacity = Math.min(Number(classItem?.maxCapacity) || 30, 30);
   const isCupoLleno = students.length >= maxCapacity;
 
   // Filter students
@@ -68,12 +69,12 @@ export default function AttendanceMatrixModal({
     ? Math.round((overallPresents / overallEvaluated) * 100) 
     : 100;
 
-  const handleCreateStudent = (e) => {
+  const handleCreateStudent = async (e) => {
     e.preventDefault();
     setEnrollError('');
 
     if (isCupoLleno) {
-      setEnrollError('No es posible agregar más alumnos: el cupo reglamentario de 30 está completo.');
+      setEnrollError(`No es posible agregar más alumnos: el cupo de ${maxCapacity} está completo.`);
       return;
     }
 
@@ -87,16 +88,21 @@ export default function AttendanceMatrixModal({
       return;
     }
 
-    // Check duplicate DNI in this class
-    if (students.some(s => s.dni.replace(/\D/g, '') === newStudentDni.replace(/\D/g, ''))) {
+    // Un alumno no puede inscribirse dos veces en la misma clase (se compara el DNI sin puntos).
+    if (students.some(s => (s.dni || '').replace(/\D/g, '') === newStudentDni.replace(/\D/g, ''))) {
       setEnrollError('Este DNI ya se encuentra inscripto en esta clase.');
       return;
     }
 
-    onEnrollStudent(classItem.id, {
-      name: newStudentName.trim(),
-      dni: formatDNI(newStudentDni)
-    });
+    try {
+      await onEnrollStudent(classItem.id, {
+        name: newStudentName.trim(),
+        dni: formatDNI(newStudentDni)
+      });
+    } catch (err) {
+      setEnrollError(err?.message || 'No se pudo inscribir al alumno.');
+      return;
+    }
 
     setNewStudentName('');
     setNewStudentDni('');

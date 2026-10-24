@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import Logo from '../common/Logo';
 import Avatar from '../common/Avatar';
 import usePortalPaths from '../../hooks/usePortalPaths';
-import { Home, Calendar, Trophy, GraduationCap, Receipt } from 'lucide-react';
+import { Home, Calendar, Trophy, ListOrdered, GraduationCap, UserRound, Receipt } from 'lucide-react';
 
 export default function ClientSidebar({ isOpen, onClose, onEditProfile }) {
   const { user, isDemo, logout, switchRole } = useAuth();
@@ -13,7 +13,7 @@ export default function ClientSidebar({ isOpen, onClose, onEditProfile }) {
 
   const navItems = [
     {
-      name: 'Inicio / Mi Club',
+      name: 'Inicio',
       to: paths.appDashboard,
       icon: Home,
       exact: true
@@ -24,14 +24,24 @@ export default function ClientSidebar({ isOpen, onClose, onEditProfile }) {
       icon: Calendar
     },
     {
-      name: 'Torneos y Ligas',
+      name: 'Torneos',
       to: paths.appTorneos,
       icon: Trophy
     },
     {
-      name: 'Clases y Profesores',
+      name: 'Ligas',
+      to: paths.appLigas,
+      icon: ListOrdered
+    },
+    {
+      name: 'Clases y Entrenamientos',
       to: paths.appClases,
-      icon: GraduationCap,
+      icon: GraduationCap
+    },
+    {
+      name: 'Clases Particulares',
+      to: paths.appParticulares,
+      icon: UserRound
     },
     {
       name: 'Mis Pagos y Recibos',

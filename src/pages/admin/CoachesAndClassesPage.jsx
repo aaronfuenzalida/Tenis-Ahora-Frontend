@@ -4,6 +4,7 @@ import { Edit, Trash2 } from 'lucide-react';
 import CoachCredentialsModal from '../../components/common/CoachCredentialsModal';
 import AttendanceSheetModal from '../../components/common/AttendanceSheetModal';
 import AttendanceMatrixModal from '../../components/common/AttendanceMatrixModal';
+import { isEnrolledByDni, isValidDNI, formatDNI } from '../../utils/formatters';
 import Modal from '../../components/common/Modal';
 import CoachCertificationsReport from '../../components/admin/CoachCertificationsReport';
 import { useFeedback } from '../../context/FeedbackContext';
@@ -379,11 +380,27 @@ export default function CoachesAndClassesPage() {
     setShowStudentsModal(true);
   };
 
+  // Cupo de la clase, sin pasar nunca el tope de 30.
+  const classCapacity = (cls) => Math.min(Number(cls?.maxCapacity) || 30, 30);
+
   const handleEnrollStudentModal = async (e) => {
     e.preventDefault();
     if (!classToStudents) return;
+    if (!isValidDNI(newStudentForm.dni)) {
+      notify({ variant: 'warning', message: 'Ingresá un DNI válido de 7 u 8 dígitos.' });
+      return;
+    }
+    // Un alumno no puede inscribirse dos veces en la misma clase.
+    if (isEnrolledByDni(classToStudents.students, newStudentForm.dni)) {
+      notify({ variant: 'warning', message: `Ese DNI ya está inscripto en "${classToStudents.name}".` });
+      return;
+    }
+    if ((classToStudents.students?.length || 0) >= classCapacity(classToStudents)) {
+      notify({ variant: 'warning', message: `No es posible agregar más alumnos: el cupo de ${classCapacity(classToStudents)} está completo.` });
+      return;
+    }
     try {
-      await coachesAndClassesService.enrollStudent(classToStudents.id, newStudentForm);
+      await coachesAndClassesService.enrollStudent(classToStudents.id, { ...newStudentForm, dni: formatDNI(newStudentForm.dni) });
       setNewStudentForm({ name: '', dni: '', phone: '' });
       const clRes = await coachesAndClassesService.getClasses();
       setClasses(clRes.data);
@@ -1742,11 +1759,11 @@ export default function CoachesAndClassesPage() {
               <span className="font-semibold text-slate-700">
                 Alumnos Inscriptos: <strong className="text-slate-900">{classToStudents.students?.length || 0} / {classToStudents.maxCapacity || 30}</strong>
               </span>
-              <span className="text-[11px] text-slate-500">Tope máximo: 30 alumnos</span>
+              <span className="text-[11px] text-slate-500">Cupo: {classCapacity(classToStudents)} alumnos</span>
             </div>
 
             {/* Enroll Form */}
-            {(classToStudents.students?.length || 0) < 30 ? (
+            {(classToStudents.students?.length || 0) < classCapacity(classToStudents) ? (
               <form onSubmit={handleEnrollStudentModal} className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
                 <span className="font-bold text-slate-800 uppercase block text-[11px]">Inscribir Nuevo Alumno</span>
                 <div className="grid grid-cols-3 gap-2">
@@ -1776,7 +1793,7 @@ export default function CoachesAndClassesPage() {
               </form>
             ) : (
               <div className="p-3 bg-slate-100 border border-slate-300 rounded-xl text-slate-700 text-xs text-center font-medium">
-                Cupo máximo de 30 alumnos alcanzado. No se permiten nuevas inscripciones en esta comisión.
+                Cupo de {classCapacity(classToStudents)} alumnos completo. No se permiten nuevas inscripciones en esta comisión.
               </div>
             )}
 

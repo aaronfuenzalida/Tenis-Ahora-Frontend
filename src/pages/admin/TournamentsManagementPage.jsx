@@ -264,7 +264,12 @@ export default function TournamentsManagementPage() {
   const handleEnrollTournament = async (e) => {
     e.preventDefault();
     if (!selectedTournament) return;
-    await tournamentsService.enroll(selectedTournament.id, enrollTrnForm);
+    try {
+      await tournamentsService.enroll(selectedTournament.id, enrollTrnForm);
+    } catch (err) {
+      notify({ variant: 'warning', title: 'No se pudo inscribir', message: err.message || 'Intentá nuevamente.' });
+      return;
+    }
     setEnrollTrnForm({
       name: '',
       dni: '',
@@ -284,9 +289,14 @@ export default function TournamentsManagementPage() {
     }
   };
 
-  const handleBracketUpdate = (updatedTrn) => {
+  const handleBracketUpdate = async (updatedTrn) => {
     setSelectedTournament(updatedTrn);
     setTournaments(tournaments.map(t => t.id === updatedTrn.id ? updatedTrn : t));
+    try {
+      await tournamentsService.update(updatedTrn.id, { bracket: updatedTrn.bracket });
+    } catch (err) {
+      notify({ variant: 'error', title: 'No se pudo guardar el cuadro', message: err.message || 'Intentá nuevamente.' });
+    }
   };
 
   // ==========================================
@@ -382,7 +392,12 @@ export default function TournamentsManagementPage() {
   const handleEnrollLeague = async (e) => {
     e.preventDefault();
     if (!selectedLeague) return;
-    await leaguesService.enroll(selectedLeague.id, enrollLeagueForm);
+    try {
+      await leaguesService.enroll(selectedLeague.id, enrollLeagueForm);
+    } catch (err) {
+      notify({ variant: 'warning', title: 'No se pudo inscribir', message: err.message || 'Intentá nuevamente.' });
+      return;
+    }
     setEnrollLeagueForm({
       name: '',
       dni: '',

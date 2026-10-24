@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getStoredToken } from '../utils/jwt';
 import { isDemoPath } from '../hooks/usePortalPaths';
-import { calculateHoursUntil } from '../utils/formatters';
+import { calculateHoursUntil, isEnrolledByDni, findPrivateLessonConflict, findReservationConflict, cleanDNI } from '../utils/formatters';
 import {
   INITIAL_COURTS,
   INITIAL_STOCK,
@@ -146,6 +146,30 @@ function saveBlob(blob, name) {
   link.download = name;
   link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// Una cancha no se reserva dos veces en la misma franja, y un jugador no puede estar en dos reservas a la vez.
+function checkReservationConflict(data, excludeId) {
+  const participantDnis = (data.participants || []).map(p => p.dni);
+  const clash = findReservationConflict(reservationsStore, { ...data, participantDnis, excludeId });
+  if (!clash) return;
+  const sameCourt = (data.courtId && clash.courtId === data.courtId) || (data.courtName && clash.courtName === data.courtName);
+  if (sameCourt) {
+    throw new Error(`${clash.courtName} ya está reservada el ${clash.date} de ${clash.startTime} a ${clash.endTime}.`);
+  }
+  const dnis = participantDnis.map(cleanDNI);
+  const busy = (clash.participants || []).find(p => dnis.includes(cleanDNI(p.dni || '')));
+  throw new Error(`${busy?.name || 'Un jugador'} ya tiene una reserva el ${clash.date} de ${clash.startTime} a ${clash.endTime} en ${clash.courtName}.`);
+}
+
+// Un alumno no puede tener dos turnos particulares en el mismo día y horario, ni un docente dos alumnos a la vez.
+function checkPrivateLessonConflict({ coachId, studentDni, date, time, excludeId }) {
+  const clash = findPrivateLessonConflict(privateClassesStore, { coachId, studentDni, date, time, excludeId });
+  if (!clash) return;
+  const sameStudent = clash.studentDni && studentDni && clash.studentDni.replace(/\D/g, '') === String(studentDni).replace(/\D/g, '');
+  throw new Error(sameStudent
+    ? `Ya hay un turno particular para ese alumno el ${clash.date} a las ${clash.time}, con ${clash.coachName}.`
+    : `${clash.coachName} ya tiene un turno el ${clash.date} a las ${clash.time}.`);
 }
 
 // RD08: título habilitante completo y con documento; no se completa con datos inventados.
@@ -402,6 +426,7 @@ const reservationsMock = {
   async create(bookingData) {
     await delay();
     checkBookingWindow(bookingData.date);
+    checkReservationConflict(bookingData);
     const newId = `RES-${new Date().getFullYear()}-${String(reservationsStore.length + 1).padStart(3, '0')}`;
     const newRecId = `REC-50-${Math.floor(1000 + Math.random() * 9000)}`;
 
@@ -487,6 +512,18 @@ const reservationsMock = {
     const current = reservationsStore.find(r => r.id === reservationId);
     if (current && updatedData.date && updatedData.date !== current.date) {
       checkBookingWindow(updatedData.date);
+    }
+    if (current && (updatedData.status || current.status) !== 'cancelada') {
+      const merged = { ...current, ...updatedData };
+      const dur = Number(merged.durationHours) || 1;
+      if (updatedData.startTime || updatedData.durationHours) {
+        const [h, m] = String(merged.startTime || '08:00').split(':').map(Number);
+        const totalMin = h * 60 + (m || 0) + Math.round(dur * 60);
+        merged.endTime = `${String(Math.floor(totalMin / 60)).padStart(2, '0')}:${String(totalMin % 60).padStart(2, '0')}`;
+      }
+      // Si cambia la cancha, el nombre guardado es el de la anterior: se compara solo por id.
+      if (updatedData.courtId && updatedData.courtId !== current.courtId) delete merged.courtName;
+      checkReservationConflict(merged, reservationId);
     }
     reservationsStore = reservationsStore.map(res => {
       if (res.id !== reservationId) return res;
@@ -651,6 +688,14 @@ const tournamentsMock = {
   },
   async enroll(trnId, participantData) {
     await delay();
+    const trn = tournamentsStore.find(t => t.id === trnId);
+    if (!trn) throw new Error('El torneo no existe.');
+    if (isEnrolledByDni(trn.participants, participantData.dni) || isEnrolledByDni(trn.participants, participantData.partnerDni)) {
+      throw new Error('Ya hay una inscripción a este torneo con ese DNI.');
+    }
+    if ((trn.participants || []).length >= (Number(trn.maxParticipants) || Infinity)) {
+      throw new Error('El torneo no tiene cupos disponibles.');
+    }
     const newParticipant = {
       id: `p-${Date.now()}`,
       name: participantData.name || participantData.partnerName || 'Participante Inscripto',
@@ -806,6 +851,14 @@ const leaguesMock = {
   },
   async enroll(leagueId, participantData) {
     await delay();
+    const league = leaguesStore.find(l => l.id === leagueId);
+    if (!league) throw new Error('La liga no existe.');
+    if (isEnrolledByDni(league.participants, participantData.dni) || isEnrolledByDni(league.participants, participantData.partnerDni)) {
+      throw new Error('Ya hay una inscripción a esta liga con ese DNI.');
+    }
+    if ((league.participants || []).length >= (Number(league.maxParticipants) || Infinity)) {
+      throw new Error('La liga no tiene cupos disponibles.');
+    }
     const newParticipant = {
       id: `lp-${Date.now()}`,
       name: participantData.name,
@@ -1108,6 +1161,9 @@ const coachesAndClassesMock = {
     if ((targetClass.students?.length || 0) >= capacity) {
       throw new Error(`No es posible agregar más alumnos: el cupo de ${capacity} está completo.`);
     }
+    if (isEnrolledByDni(targetClass.students, studentData.dni)) {
+      throw new Error(`Ya hay un alumno inscripto en "${targetClass.name}" con ese DNI.`);
+    }
     const newStudent = {
       id: `std-${Date.now()}`,
       name: studentData.name,
@@ -1174,6 +1230,7 @@ const coachesAndClassesMock = {
   async createPrivateClass(data) {
     await delay();
     checkCoachQualified(data.coachId);
+    checkPrivateLessonConflict(data);
     const newPrv = {
       ...data,
       kind: data.kind || 'clase',
@@ -1188,6 +1245,9 @@ const coachesAndClassesMock = {
     const current = privateClassesStore.find(p => p.id === id);
     if (current && updatedData.coachId && updatedData.coachId !== current.coachId) {
       checkCoachQualified(updatedData.coachId);
+    }
+    if (current && (updatedData.status || current.status) !== 'cancelada') {
+      checkPrivateLessonConflict({ ...current, ...updatedData, excludeId: id });
     }
     privateClassesStore = privateClassesStore.map(p =>
       p.id === id ? { ...p, ...updatedData } : p

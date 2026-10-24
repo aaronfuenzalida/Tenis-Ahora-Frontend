@@ -22,6 +22,55 @@ export function formatDNI(val = '') {
 /**
  * Clean DNI to digits only
  */
+/**
+ * true si el DNI ya figura entre los inscriptos de un torneo o liga (como titular o como pareja).
+ */
+export function isEnrolledByDni(participants = [], dni = '') {
+  const target = cleanDNI(dni);
+  if (!target) return false;
+  return participants.some(p => cleanDNI(p.dni || '') === target || cleanDNI(p.partnerDni || '') === target);
+}
+
+const normalizeTime = (t = '') => String(t).replace(/\s+/g, '').toLowerCase();
+
+/**
+ * Devuelve el turno particular que choca con el pedido (mismo día y horario, sin cancelar):
+ * el mismo alumno con cualquier docente, o el mismo docente con cualquier alumno. Si no hay choque, null.
+ */
+export function findPrivateLessonConflict(lessons = [], { coachId, studentDni, date, time, excludeId } = {}) {
+  const dni = cleanDNI(studentDni || '');
+  const slot = normalizeTime(time);
+  return lessons.find(l =>
+    l.id !== excludeId &&
+    l.status !== 'cancelada' &&
+    l.date === date &&
+    normalizeTime(l.time) === slot &&
+    ((dni && cleanDNI(l.studentDni || '') === dni) || (coachId && l.coachId === coachId))
+  ) || null;
+}
+
+const toMinutes = (hhmm = '') => {
+  const [h, m] = String(hhmm).split(':').map(Number);
+  return (h || 0) * 60 + (m || 0);
+};
+
+/**
+ * Devuelve la reserva que choca con la pedida (mismo día y franja horaria superpuesta, sin cancelar):
+ * la misma cancha, o alguno de los jugadores ya ocupado en otra cancha. Si no hay choque, null.
+ */
+export function findReservationConflict(reservations = [], { courtId, courtName, date, startTime, endTime, participantDnis = [], excludeId } = {}) {
+  const start = toMinutes(startTime);
+  const end = toMinutes(endTime);
+  const dnis = participantDnis.map(cleanDNI).filter(Boolean);
+  return reservations.find(r => {
+    if (r.id === excludeId || r.status === 'cancelada' || r.date !== date) return false;
+    if (!(toMinutes(r.startTime) < end && start < toMinutes(r.endTime))) return false;
+    const sameCourt = (courtId && r.courtId === courtId) || (courtName && r.courtName === courtName);
+    const samePlayer = (r.participants || []).some(p => dnis.includes(cleanDNI(p.dni || '')));
+    return sameCourt || samePlayer;
+  }) || null;
+}
+
 export function cleanDNI(val = '') {
   return String(val).replace(/\D/g, '');
 }

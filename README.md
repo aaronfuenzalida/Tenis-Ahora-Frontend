@@ -73,6 +73,8 @@ recargar la página vuelven al estado inicial.
 - **Códigos QR**: carnet de socio, recibos y cobros con billetera virtual muestran QR reales
   (`qrcode.react`), con el texto codificado en `src/components/common/QRCode.jsx`.
 - **Reserva por pasos**: cronograma → jugadores → pago de la seña, cada uno en su pantalla.
+- **Portal del socio**: pantallas separadas para Torneos (`/app/torneos`), Ligas (`/app/ligas`), Clases y
+  Entrenamientos grupales (`/app/clases`) y Clases Particulares (`/app/clases-particulares`).
 - **Inscripciones**: anotarse a un torneo, liga, clase grupal o turno particular lleva al pago
   (`PaymentFlowModal`), que al acreditarse registra la inscripción y emite el recibo visible en
   *Mis Pagos y Recibos*.

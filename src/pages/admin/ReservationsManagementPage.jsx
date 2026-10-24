@@ -71,15 +71,20 @@ export default function ReservationsManagementPage() {
     if (participants.length > 0) {
       participants[0] = { ...participants[0], name: editForm.leadName, phone: editForm.leadPhone };
     }
-    await reservationsService.update(resToEdit.id, {
-      courtId: editForm.courtId,
-      date: editForm.date,
-      startTime: editForm.startTime,
-      durationHours: Number(editForm.durationHours),
-      playersType: editForm.playersType,
-      participants,
-      notes: editForm.notes
-    });
+    try {
+      await reservationsService.update(resToEdit.id, {
+        courtId: editForm.courtId,
+        date: editForm.date,
+        startTime: editForm.startTime,
+        durationHours: Number(editForm.durationHours),
+        playersType: editForm.playersType,
+        participants,
+        notes: editForm.notes
+      });
+    } catch (err) {
+      notify({ variant: 'warning', title: 'No se pudo modificar la reserva', message: err.message || 'Intentá nuevamente.' });
+      return;
+    }
     setResToEdit(null);
     setEditForm(null);
     loadReservations();

@@ -1,93 +1,75 @@
 import React, { useState, useEffect } from 'react';
-import { tournamentsService, leaguesService } from '../../services/api';
+import { tournamentsService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { useFeedback } from '../../context/FeedbackContext';
 import Modal from '../../components/common/Modal';
 import { RulesDocumentLink } from '../../components/common/RulesDocument';
 import TournamentBracketTree from '../../components/common/TournamentBracketTree';
 import PaymentFlowModal from '../../components/common/PaymentFlowModal';
-import { useFeedback } from '../../context/FeedbackContext';
+import { isEnrolledByDni } from '../../utils/formatters';
 
 export default function ClientTournamentsPage() {
   const { user } = useAuth();
   const { notify } = useFeedback();
-  // Pago de la inscripción: { kind: 'torneo' | 'liga', target, participantData }
-  const [payment, setPayment] = useState(null);
-  const [activeTab, setActiveTab] = useState('tournaments'); // 'tournaments' | 'leagues'
 
-  // Tournaments
   const [tournaments, setTournaments] = useState([]);
   const [selectedTournament, setSelectedTournament] = useState(null);
-  const [showEnrollTrnModal, setShowEnrollTrnModal] = useState(false);
-  const [enrollingTrn, setEnrollingTrn] = useState(false);
-  const [partnerNameTrn, setPartnerNameTrn] = useState('');
-  const [partnerDniTrn, setPartnerDniTrn] = useState('');
-  const [trnSubView, setTrnSubView] = useState('bracket'); // 'bracket' | 'rules'
+  const [subView, setSubView] = useState('bracket'); // 'bracket' | 'rules'
 
-  // Leagues
-  const [leagues, setLeagues] = useState([]);
-  const [selectedLeague, setSelectedLeague] = useState(null);
-  const [showEnrollLeagueModal, setShowEnrollLeagueModal] = useState(false);
-  const [enrollingLeague, setEnrollingLeague] = useState(false);
-  const [leagueSubView, setLeagueSubView] = useState('standings'); // 'standings' | 'fixtures' | 'rules'
-  const [leagueEnrollForm, setLeagueEnrollForm] = useState({
-    name: user?.name || '',
-    dni: user?.dni || '',
-    phone: user?.phone || '',
-    partnerName: '',
-    partnerDni: ''
-  });
+  const [showEnrollModal, setShowEnrollModal] = useState(false);
+  const [partnerName, setPartnerName] = useState('');
+  const [partnerDni, setPartnerDni] = useState('');
+  // Pago de la inscripción: { target, participantData }
+  const [payment, setPayment] = useState(null);
 
   useEffect(() => {
-    loadAll();
+    load();
   }, []);
 
-  const loadAll = async () => {
-    const [trnRes, leagueRes] = await Promise.all([
-      tournamentsService.getAll(),
-      leaguesService.getAll()
-    ]);
-    setTournaments(trnRes.data);
-    if (trnRes.data.length > 0) setSelectedTournament(trnRes.data[0]);
+  const load = async (keepId) => {
+    const res = await tournamentsService.getAll();
+    setTournaments(res.data);
+    setSelectedTournament(res.data.find(t => t.id === keepId) || res.data[0] || null);
+  };
 
-    setLeagues(leagueRes.data);
-    if (leagueRes.data.length > 0) setSelectedLeague(leagueRes.data[0]);
+  const alreadyEnrolled = (trn) => isEnrolledByDni(trn?.participants, user?.dni);
+  const isFull = (trn) => (trn?.participants?.length || trn?.currentEnrolled || 0) >= (Number(trn?.maxParticipants) || Infinity);
+
+  const openEnroll = (trn) => {
+    setSelectedTournament(trn);
+    if (alreadyEnrolled(trn)) {
+      notify({ variant: 'warning', message: `Ya estás inscripto en "${trn.name}".` });
+      return;
+    }
+    if (isFull(trn)) {
+      notify({ variant: 'warning', message: `"${trn.name}" no tiene cupos disponibles.` });
+      return;
+    }
+    setShowEnrollModal(true);
   };
 
   // La inscripción se concreta al acreditarse el pago del arancel.
-  const handleEnrollTournament = (e) => {
+  const handleEnroll = (e) => {
     e.preventDefault();
-    setShowEnrollTrnModal(false);
+    if (alreadyEnrolled(selectedTournament)) {
+      setShowEnrollModal(false);
+      notify({ variant: 'warning', message: `Ya estás inscripto en "${selectedTournament.name}".` });
+      return;
+    }
+    if (partnerDni && user?.dni && partnerDni.replace(/\D/g, '') === String(user.dni).replace(/\D/g, '')) {
+      notify({ variant: 'warning', message: 'El DNI de tu pareja no puede ser el tuyo.' });
+      return;
+    }
+    setShowEnrollModal(false);
     setPayment({
-      kind: 'torneo',
       target: selectedTournament,
-      participantData: {
-        name: user?.name,
-        dni: user?.dni,
-        phone: user?.phone,
-        partnerName: partnerNameTrn,
-        partnerDni: partnerDniTrn
-      }
+      participantData: { name: user?.name, dni: user?.dni, phone: user?.phone, partnerName, partnerDni }
     });
   };
 
-  const handleEnrollLeague = (e) => {
-    e.preventDefault();
-    setShowEnrollLeagueModal(false);
-    setPayment({
-      kind: 'liga',
-      target: selectedLeague,
-      participantData: { ...leagueEnrollForm }
-    });
-  };
-
-  // Se ejecuta cuando el pago queda acreditado (antes de emitir el recibo).
   const enrollAfterPayment = async () => {
     if (!payment) return null;
-    if (payment.kind === 'torneo') {
-      await tournamentsService.enroll(payment.target.id, payment.participantData);
-    } else {
-      await leaguesService.enroll(payment.target.id, payment.participantData);
-    }
+    await tournamentsService.enroll(payment.target.id, payment.participantData);
     return { relatedId: payment.target.id };
   };
 
@@ -95,474 +77,157 @@ export default function ClientTournamentsPage() {
     const paid = payment;
     setPayment(null);
     if (!receipt || !paid) return;
-    setEnrollingTrn(false);
-    setEnrollingLeague(false);
-    if (paid.kind === 'torneo') {
-      setPartnerNameTrn('');
-      setPartnerDniTrn('');
-      const res = await tournamentsService.getAll();
-      setTournaments(res.data);
-      setSelectedTournament(res.data.find(t => t.id === paid.target.id) || res.data[0]);
-      notify({ variant: 'success', title: 'Inscripción confirmada', message: `Quedaste inscripto en "${paid.target.name}". El recibo ${receipt.id} ya figura en Mis Pagos y Recibos.` });
-    } else {
-      const res = await leaguesService.getAll();
-      setLeagues(res.data);
-      setSelectedLeague(res.data.find(l => l.id === paid.target.id) || res.data[0]);
-      notify({ variant: 'success', title: 'Inscripción confirmada', message: `Quedaste inscripto en "${paid.target.name}". El recibo ${receipt.id} ya figura en Mis Pagos y Recibos.` });
-    }
+    setPartnerName('');
+    setPartnerDni('');
+    await load(paid.target.id);
+    notify({ variant: 'success', title: 'Inscripción confirmada', message: `Quedaste inscripto en "${paid.target.name}". El recibo ${receipt.id} ya figura en Mis Pagos y Recibos.` });
   };
 
   return (
     <div className="space-y-6">
-      
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-            Torneos y Ligas del Club
-          </h1>
-        </div>
-
-        {/* Switcher Tab */}
-        <div className="bg-slate-100 p-1 rounded-xl flex items-center border border-slate-200 self-start md:self-auto">
-          <button
-            type="button"
-            onClick={() => setActiveTab('tournaments')}
-            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-colors ${
-              activeTab === 'tournaments'
-                ? 'bg-white text-slate-900 shadow-sm'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            Torneos Oficiales
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('leagues')}
-            className={`px-4 py-2 rounded-lg text-xs font-semibold transition-colors ${
-              activeTab === 'leagues'
-                ? 'bg-white text-slate-900 shadow-sm'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
-          >
-            Ligas Regulares
-          </button>
-        </div>
+      <div className="pb-4 border-b border-slate-200">
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Torneos</h1>
       </div>
 
-      {/* =================================================== */}
-      {/* SECTION: TOURNAMENTS */}
-      {/* =================================================== */}
-      {activeTab === 'tournaments' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          
-          {/* Left Column: Tournaments List (4 cols) */}
-          <div className="lg:col-span-4 space-y-4">
-            <span className="block text-xs font-semibold uppercase text-slate-500">
-              Torneos Disponibles:
-            </span>
-
-            {tournaments.map(trn => {
-              const isSelected = selectedTournament?.id === trn.id;
-
-              return (
-                <div
-                  key={trn.id}
-                  onClick={() => setSelectedTournament(trn)}
-                  className={`p-4 rounded-2xl border cursor-pointer transition-all ${
-                    isSelected
-                      ? 'bg-white border-tennis-600 shadow-sm'
-                      : 'bg-white border-slate-200 hover:border-slate-300'
-                  }`}
-                >
-                  <div className="flex items-center justify-between text-xs pb-1">
-                    <span className="font-semibold text-slate-800">
-                      {trn.category} • {trn.modality}
-                    </span>
-                    <span className="text-slate-500">
-                      Superficie: {trn.surfaceRequired}
-                    </span>
-                  </div>
-
-                  <h3 className="text-sm font-bold text-slate-900 mt-1">{trn.name}</h3>
-                  <p className="text-xs text-slate-500 mt-1 line-clamp-2">{trn.description}</p>
-
-                  <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
-                    <span>Inscripción: <strong className="text-slate-900">${trn.registrationFee?.toLocaleString('es-AR')}</strong></span>
-                    <span>Cupos: <strong className="text-tennis-700">{trn.currentEnrolled || 0} / {trn.maxParticipants}</strong></span>
-                  </div>
-
-                  <div className="mt-3 pt-2">
+      {/* Lista de torneos */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {tournaments.length === 0 && (
+            <div className="md:col-span-2 xl:col-span-3 p-6 text-center text-xs text-slate-400 bg-white rounded-2xl border border-slate-200">No hay torneos con inscripción abierta.</div>
+          )}
+          {tournaments.map(trn => {
+            const isSelected = selectedTournament?.id === trn.id;
+            return (
+              <div
+                key={trn.id}
+                onClick={() => setSelectedTournament(trn)}
+                className={`p-4 rounded-2xl border cursor-pointer transition-all ${isSelected ? 'bg-white border-tennis-600 shadow-sm' : 'bg-white border-slate-200 hover:border-slate-300'}`}
+              >
+                <div className="flex items-center justify-between text-xs pb-1">
+                  <span className="font-semibold text-slate-800">{trn.category} • {trn.modality}</span>
+                  <span className="text-slate-500">{trn.surfaceRequired}</span>
+                </div>
+                <h3 className="text-sm font-bold text-slate-900 mt-1">{trn.name}</h3>
+                <p className="text-xs text-slate-500 mt-1 line-clamp-2">{trn.description}</p>
+                <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
+                  <span>Inscripción: <strong className="text-slate-900">${trn.registrationFee?.toLocaleString('es-AR')}</strong></span>
+                  <span>Cupos: <strong className="text-tennis-700">{trn.currentEnrolled || 0} / {trn.maxParticipants}</strong></span>
+                </div>
+                <div className="mt-3 pt-2">
+                  {alreadyEnrolled(trn) ? (
+                    <div className="w-full py-2 px-3 rounded-xl bg-tennis-50 text-tennis-800 font-semibold text-xs text-center border border-tennis-200">
+                      Ya estás inscripto
+                    </div>
+                  ) : isFull(trn) ? (
+                    <div className="w-full py-2 px-3 rounded-xl bg-slate-100 text-slate-500 font-semibold text-xs text-center border border-slate-200">
+                      Sin cupos
+                    </div>
+                  ) : (
                     <button
                       type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedTournament(trn);
-                        setShowEnrollTrnModal(true);
-                      }}
-                      className="w-full py-2 px-3 rounded-xl bg-tennis-50 hover:bg-tennis-100 text-tennis-800 font-semibold text-xs border border-tennis-200 flex items-center justify-center gap-1.5 transition-colors"
+                      onClick={(e) => { e.stopPropagation(); openEnroll(trn); }}
+                      className="w-full py-2 px-3 rounded-xl bg-tennis-50 hover:bg-tennis-100 text-tennis-800 font-semibold text-xs border border-tennis-200 transition-colors"
                     >
-                      Inscribirme a este Torneo
+                      Inscribirme
                     </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+      </div>
+
+      {/* Detalle: cuadro y reglamento */}
+      <div>
+          {selectedTournament ? (
+            <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-4 border-b border-slate-100">
+                <div>
+                  <h2 className="text-lg font-bold text-slate-900">{selectedTournament.name}</h2>
+                  <div className="text-xs text-slate-500 mt-1">
+                    {selectedTournament.category} • {selectedTournament.modality} • {selectedTournament.surfaceRequired}
                   </div>
                 </div>
-              );
-            })}
-          </div>
-
-          {/* Right Column: Selected Tournament Details & Bracket (8 cols) */}
-          <div className="lg:col-span-8">
-            {selectedTournament ? (
-              <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-6">
-                
-                {/* Header of selected tournament */}
-                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-4 border-b border-slate-100">
-                  <div>
-                    <span className="text-xs font-semibold text-tennis-700 uppercase tracking-wider block">
-                      Cuadro Oficial / Eliminación Directa
-                    </span>
-                    <h2 className="text-lg font-bold text-slate-900 mt-0.5">{selectedTournament.name}</h2>
-                    <div className="text-xs text-slate-500 mt-1">
-                      {selectedTournament.category} • {selectedTournament.modality} • Cancha: {selectedTournament.surfaceRequired}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2">
+                  {[['bracket', 'Cuadro'], ['rules', 'Reglamento']].map(([id, label]) => (
                     <button
+                      key={id}
                       type="button"
-                      onClick={() => setTrnSubView('bracket')}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${
-                        trnSubView === 'bracket' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'
-                      }`}
+                      onClick={() => setSubView(id)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${subView === id ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'}`}
                     >
-                      Cuadro (Fixture)
+                      {label}
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => setTrnSubView('rules')}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${
-                        trnSubView === 'rules' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'
-                      }`}
-                    >
-                      Reglamento Interno
-                    </button>
-                  </div>
+                  ))}
                 </div>
-
-                {/* SubView: Bracket */}
-                {trnSubView === 'bracket' && (
-                  <div className="space-y-4">
-                    <TournamentBracketTree
-                      tournament={selectedTournament}
-                      isAdmin={false}
-                    />
-
-                    <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600">
-                      <strong className="block font-semibold text-slate-800 mb-0.5">Sistema Oficial de Competencia:</strong>
-                      Partidos al mejor de 3 sets con tie-break oficial. Los horarios de juego son coordinados por la dirección del torneo.
-                    </div>
-                  </div>
-                )}
-
-                {/* SubView: Rules */}
-                {trnSubView === 'rules' && (
-                  <div className="space-y-4">
-                    <span className="text-xs font-semibold uppercase text-slate-800 block">
-                      Bases y Reglamento Interno del Torneo
-                    </span>
-                    <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">
-                      {selectedTournament.internalRules || 'No se ha cargado reglamento interno específico para este torneo.'}
-                    </div>
-                    <RulesDocumentLink document={selectedTournament.internalRulesDocument} />
-                  </div>
-                )}
-
               </div>
-            ) : (
-              <div className="p-12 text-center bg-white rounded-2xl border border-slate-200 text-slate-400 text-xs">
-                Seleccione un torneo para ver el cuadro de partidos.
-              </div>
-            )}
-          </div>
 
-        </div>
-      )}
+              {subView === 'bracket' && (
+                <TournamentBracketTree tournament={selectedTournament} isAdmin={false} />
+              )}
 
-      {/* =================================================== */}
-      {/* SECTION: LEAGUES */}
-      {/* =================================================== */}
-      {activeTab === 'leagues' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          
-          {/* Left Column: Leagues List (4 cols) */}
-          <div className="lg:col-span-4 space-y-4">
-            <span className="block text-xs font-semibold uppercase text-slate-500">
-              Ligas Disponibles:
-            </span>
-
-            {leagues.map(liga => {
-              const isSelected = selectedLeague?.id === liga.id;
-
-              return (
-                <div
-                  key={liga.id}
-                  onClick={() => setSelectedLeague(liga)}
-                  className={`p-4 rounded-2xl border cursor-pointer transition-all ${
-                    isSelected
-                      ? 'bg-white border-tennis-600 shadow-sm'
-                      : 'bg-white border-slate-200 hover:border-slate-300'
-                  }`}
-                >
-                  <div className="flex items-center justify-between text-xs pb-1">
-                    <span className="font-semibold text-slate-800">
-                      {liga.category} • {liga.modality}
-                    </span>
-                    <span className="text-slate-500">
-                      Superficie: {liga.surfaceRequired}
-                    </span>
+              {subView === 'rules' && (
+                <div className="space-y-4">
+                  <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">
+                    {selectedTournament.internalRules || 'Este torneo no tiene reglamento interno cargado.'}
                   </div>
-
-                  <h3 className="text-sm font-bold text-slate-900 mt-1">{liga.name}</h3>
-                  <p className="text-xs text-slate-500 mt-1 line-clamp-2">{liga.description}</p>
-
-                  <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
-                    <span>Inscripción: <strong className="text-slate-900">${liga.registrationFee?.toLocaleString('es-AR')}</strong></span>
-                    <span>Cupos: <strong className="text-tennis-700">{liga.currentEnrolled || 0} / {liga.maxParticipants}</strong></span>
-                  </div>
-
-                  <div className="mt-3 pt-2">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedLeague(liga);
-                        setShowEnrollLeagueModal(true);
-                      }}
-                      className="w-full py-2 px-3 rounded-xl bg-tennis-50 hover:bg-tennis-100 text-tennis-800 font-semibold text-xs border border-tennis-200 flex items-center justify-center gap-1.5 transition-colors"
-                    >
-                      Inscribirme a esta Liga
-                    </button>
-                  </div>
+                  <RulesDocumentLink document={selectedTournament.internalRulesDocument} />
                 </div>
-              );
-            })}
-          </div>
+              )}
+            </div>
+          ) : (
+            <div className="p-12 text-center bg-white rounded-2xl border border-slate-200 text-slate-400 text-xs">
+              Seleccioná un torneo para ver el cuadro.
+            </div>
+          )}
+      </div>
 
-          {/* Right Column: Selected League Workspace (8 cols) */}
-          <div className="lg:col-span-8">
-            {selectedLeague ? (
-              <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-6">
-                
-                {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-4 border-b border-slate-100">
-                  <div>
-                    <span className="text-xs font-semibold text-tennis-700 uppercase tracking-wider block">
-                      Liga Regular Todos contra Todos
-                    </span>
-                    <h2 className="text-lg font-bold text-slate-900 mt-0.5">{selectedLeague.name}</h2>
-                    <div className="text-xs text-slate-500 mt-1">
-                      {selectedLeague.category} • {selectedLeague.modality} • Superficie: {selectedLeague.surfaceRequired} • {selectedLeague.startDate} al {selectedLeague.endDate}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <button
-                      type="button"
-                      onClick={() => setLeagueSubView('standings')}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${
-                        leagueSubView === 'standings' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'
-                      }`}
-                    >
-                      Posiciones
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setLeagueSubView('fixtures')}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${
-                        leagueSubView === 'fixtures' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'
-                      }`}
-                    >
-                      Jornadas y Partidos
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setLeagueSubView('rules')}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold ${
-                        leagueSubView === 'rules' ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100'
-                      }`}
-                    >
-                      Reglamento Interno
-                    </button>
-                  </div>
-                </div>
-
-                {/* SubView 1: Standings */}
-                {leagueSubView === 'standings' && (
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-semibold text-slate-800">Tabla de Clasificación Oficial</span>
-                      <span className="text-slate-500">Puntos: PG (3 pts) • PP (0 pts)</span>
-                    </div>
-
-                    <div className="border border-slate-200 rounded-xl overflow-hidden">
-                      <table className="w-full text-left text-xs">
-                        <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-semibold">
-                          <tr>
-                            <th className="p-3 text-center w-12">Pos</th>
-                            <th className="p-3">Jugador / Pareja</th>
-                            <th className="p-3 text-center">PJ</th>
-                            <th className="p-3 text-center">PG</th>
-                            <th className="p-3 text-center">PP</th>
-                            <th className="p-3 text-center">SF</th>
-                            <th className="p-3 text-center">SC</th>
-                            <th className="p-3 text-center">DIF</th>
-                            <th className="p-3 text-center font-bold text-slate-900">PTS</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100">
-                          {(!selectedLeague.standings || selectedLeague.standings.length === 0) ? (
-                            <tr>
-                              <td colSpan={9} className="p-6 text-center text-slate-400">
-                                No se registran posiciones aún en esta liga.
-                              </td>
-                            </tr>
-                          ) : (
-                            selectedLeague.standings.map((s, idx) => (
-                              <tr key={idx} className="hover:bg-slate-50">
-                                <td className="p-3 text-center font-bold text-slate-700">{s.rank || idx + 1}</td>
-                                <td className="p-3 font-semibold text-slate-900">{s.name}</td>
-                                <td className="p-3 text-center text-slate-600">{s.pj || 0}</td>
-                                <td className="p-3 text-center text-slate-600">{s.pg || 0}</td>
-                                <td className="p-3 text-center text-slate-600">{s.pp || 0}</td>
-                                <td className="p-3 text-center text-slate-600">{s.sf || 0}</td>
-                                <td className="p-3 text-center text-slate-600">{s.sc || 0}</td>
-                                <td className="p-3 text-center font-medium text-slate-700">{s.dif > 0 ? `+${s.dif}` : s.dif}</td>
-                                <td className="p-3 text-center font-bold text-slate-900 bg-slate-50/50">{s.points || 0}</td>
-                              </tr>
-                            ))
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
-
-                {/* SubView 2: Fixtures */}
-                {leagueSubView === 'fixtures' && (
-                  <div className="space-y-4">
-                    {(!selectedLeague.fixtures || selectedLeague.fixtures.length === 0) ? (
-                      <div className="p-6 text-center text-slate-400 text-xs border border-slate-200 rounded-xl">
-                        No hay jornadas programadas aún.
-                      </div>
-                    ) : (
-                      selectedLeague.fixtures.map((jornada, jIdx) => (
-                        <div key={jIdx} className="border border-slate-200 rounded-xl overflow-hidden">
-                          <div className="bg-slate-50 px-4 py-2 border-b border-slate-200 font-semibold text-xs text-slate-800">
-                            {jornada.round}
-                          </div>
-                          <div className="divide-y divide-slate-100">
-                            {jornada.matches?.map((m) => (
-                              <div key={m.id} className="p-3 flex items-center justify-between text-xs hover:bg-slate-50">
-                                <div>
-                                  <div className="font-semibold text-slate-900">
-                                    {m.p1} vs {m.p2}
-                                  </div>
-                                  <div className="text-[11px] text-slate-500">
-                                    {m.court} • {m.date}
-                                  </div>
-                                </div>
-                                <div className="text-right">
-                                  <div className="font-bold text-slate-800">
-                                    {m.status === 'finalizado' ? m.score : 'Programado'}
-                                  </div>
-                                  {m.winner && (
-                                    <div className="text-[11px] text-slate-500">
-                                      Ganador: {m.winner}
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                )}
-
-                {/* SubView 3: Rules */}
-                {leagueSubView === 'rules' && (
-                  <div className="space-y-4">
-                    <span className="text-xs font-semibold uppercase text-slate-800 block">
-                      Reglamento Oficial de la Liga
-                    </span>
-                    <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">
-                      {selectedLeague.internalRules || 'No se ha cargado reglamento interno para esta liga.'}
-                    </div>
-                    <RulesDocumentLink document={selectedLeague.internalRulesDocument} />
-                  </div>
-                )}
-
-              </div>
-            ) : (
-              <div className="p-12 text-center bg-white rounded-2xl border border-slate-200 text-slate-400 text-xs">
-                Seleccione una liga para ver las posiciones y partidos.
-              </div>
-            )}
-          </div>
-
-        </div>
-      )}
-
-      {/* Pago del arancel: la inscripción se registra al acreditarse */}
+      {/* Pago del arancel */}
       <PaymentFlowModal
         isOpen={!!payment}
         onClose={handlePaymentClosed}
-        title={payment?.kind === 'liga' ? 'Pago de inscripción a la liga' : 'Pago de inscripción al torneo'}
-        concept={`Inscripción ${payment?.kind === 'liga' ? 'Liga' : 'Torneo'} - ${payment?.target?.name || ''}`}
+        title="Pago de inscripción al torneo"
+        concept={`Inscripción Torneo - ${payment?.target?.name || ''}`}
         summary={payment ? `${payment.target.category} • ${payment.target.modality}${payment.participantData?.partnerName ? ` • Pareja: ${payment.participantData.partnerName}` : ''}` : ''}
         amount={Number(payment?.target?.registrationFee) || 0}
         items={payment ? [{ description: `Arancel de inscripción - ${payment.target.name}`, amount: Number(payment.target.registrationFee) || 0 }] : []}
         client={{ name: user?.name, dni: user?.dni }}
         relatedId={payment?.target?.id}
-        kind={payment?.kind === 'liga' ? 'inscripcion-liga' : 'inscripcion-torneo'}
+        kind="inscripcion-torneo"
         onPaid={enrollAfterPayment}
       />
 
-      {/* Modal Enroll Tournament */}
+      {/* Inscripción */}
       <Modal
-        isOpen={showEnrollTrnModal}
-        onClose={() => setShowEnrollTrnModal(false)}
-        title={`Inscripción a Torneo: ${selectedTournament?.name}`}
+        isOpen={showEnrollModal}
+        onClose={() => setShowEnrollModal(false)}
+        title={`Inscripción: ${selectedTournament?.name || ''}`}
         maxWidth="max-w-md"
       >
-        <form onSubmit={handleEnrollTournament} className="space-y-4 text-xs">
+        <form onSubmit={handleEnroll} className="space-y-4 text-xs">
           <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-            <div className="font-semibold text-slate-800">
-              Modalidad: {selectedTournament?.modality} • {selectedTournament?.category}
-            </div>
+            <div className="font-semibold text-slate-800">{selectedTournament?.modality} • {selectedTournament?.category}</div>
             <div className="text-slate-500 mt-1">
-              Arancel Oficial: <strong className="text-slate-900">${selectedTournament?.registrationFee?.toLocaleString('es-AR')}</strong>
+              Arancel: <strong className="text-slate-900">${selectedTournament?.registrationFee?.toLocaleString('es-AR')}</strong>
             </div>
           </div>
 
           {selectedTournament?.modality === 'Pareja' && (
             <div className="space-y-3 border-t border-slate-100 pt-3">
-              <label className="font-semibold text-slate-700 uppercase block">Datos de la Pareja / Compañero(a) *</label>
+              <label className="font-semibold text-slate-700 uppercase block">Datos de tu pareja</label>
               <input
                 type="text"
                 required
-                placeholder="Nombre y Apellido de la Pareja"
-                value={partnerNameTrn}
-                onChange={(e) => setPartnerNameTrn(e.target.value)}
+                placeholder="Nombre y apellido"
+                value={partnerName}
+                onChange={(e) => setPartnerName(e.target.value)}
                 className="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
               />
               <input
                 type="text"
                 required
-                placeholder="DNI de la Pareja"
-                value={partnerDniTrn}
-                onChange={(e) => setPartnerDniTrn(e.target.value)}
+                placeholder="DNI"
+                value={partnerDni}
+                onChange={(e) => setPartnerDni(e.target.value)}
                 className="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
               />
             </div>
@@ -577,82 +242,10 @@ export default function ClientTournamentsPage() {
             disabled={!!payment}
             className="w-full py-2.5 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-semibold text-xs shadow-sm"
           >
-            Continuar al pago del arancel
+            Continuar al pago
           </button>
         </form>
       </Modal>
-
-      {/* Modal Enroll League */}
-      <Modal
-        isOpen={showEnrollLeagueModal}
-        onClose={() => setShowEnrollLeagueModal(false)}
-        title={`Inscripción a Liga: ${selectedLeague?.name}`}
-        maxWidth="max-w-md"
-      >
-        <form onSubmit={handleEnrollLeague} className="space-y-4 text-xs">
-          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-            <div className="font-semibold text-slate-800">
-              Modalidad: {selectedLeague?.modality} • {selectedLeague?.category}
-            </div>
-            <div className="text-slate-500 mt-1">
-              Arancel Oficial: <strong className="text-slate-900">${selectedLeague?.registrationFee?.toLocaleString('es-AR')}</strong>
-            </div>
-          </div>
-
-          <div>
-            <label className="font-semibold text-slate-700 uppercase block mb-1">Nombre y Apellido *</label>
-            <input
-              type="text"
-              required
-              value={leagueEnrollForm.name}
-              onChange={(e) => setLeagueEnrollForm({ ...leagueEnrollForm, name: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
-            />
-          </div>
-
-          <div>
-            <label className="font-semibold text-slate-700 uppercase block mb-1">DNI *</label>
-            <input
-              type="text"
-              required
-              value={leagueEnrollForm.dni}
-              onChange={(e) => setLeagueEnrollForm({ ...leagueEnrollForm, dni: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
-            />
-          </div>
-
-          {selectedLeague?.modality === 'Pareja' && (
-            <div className="space-y-3 border-t border-slate-100 pt-3">
-              <label className="font-semibold text-slate-700 uppercase block">Datos de la Pareja *</label>
-              <input
-                type="text"
-                required
-                placeholder="Nombre de la Pareja"
-                value={leagueEnrollForm.partnerName}
-                onChange={(e) => setLeagueEnrollForm({ ...leagueEnrollForm, partnerName: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
-              />
-              <input
-                type="text"
-                required
-                placeholder="DNI de la Pareja"
-                value={leagueEnrollForm.partnerDni}
-                onChange={(e) => setLeagueEnrollForm({ ...leagueEnrollForm, partnerDni: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
-              />
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={!!payment}
-            className="w-full py-2.5 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-semibold text-xs shadow-sm"
-          >
-            Continuar al pago del arancel
-          </button>
-        </form>
-      </Modal>
-
     </div>
   );
 }

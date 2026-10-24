@@ -4,11 +4,13 @@ import { useAuth } from '../../context/AuthContext';
 import { useFeedback } from '../../context/FeedbackContext';
 import { Edit } from 'lucide-react';
 import Modal from '../../components/common/Modal';
+import { findPrivateLessonConflict } from '../../utils/formatters';
 
 export default function CoachPrivateLessonsPage() {
   const { user } = useAuth();
   const { notify, confirm } = useFeedback();
   const [lessons, setLessons] = useState([]);
+  const [allLessons, setAllLessons] = useState([]);
   const [coachProfile, setCoachProfile] = useState(null);
 
   // Modals
@@ -39,6 +41,7 @@ export default function CoachPrivateLessonsPage() {
     const currentCoach = cRes.data.find(c => c.id === user?.coachId);
     setCoachProfile(currentCoach);
 
+    setAllLessons(prvRes.data || []);
     const myLessons = prvRes.data.filter(p => p.coachId === currentCoach?.id || p.coachName === currentCoach?.name);
     setLessons(myLessons);
 
@@ -50,8 +53,23 @@ export default function CoachPrivateLessonsPage() {
     }
   };
 
+  // Turno repetido: mismo día y horario, del docente con otro alumno o del alumno con cualquier docente.
+  const conflictMessage = ({ studentDni, studentName, date, time }, excludeId) => {
+    const clash = findPrivateLessonConflict(allLessons, { coachId: coachProfile?.id, studentDni, date, time, excludeId });
+    if (!clash) return null;
+    const mine = clash.coachId === coachProfile?.id || clash.coachName === coachProfile?.name;
+    return mine
+      ? `Ya tenés un turno el ${clash.date} a las ${clash.time} con ${clash.studentName}.`
+      : `${studentName || 'El alumno'} ya tiene un turno el ${clash.date} a las ${clash.time} con ${clash.coachName}.`;
+  };
+
   const handleCreateLesson = async (e) => {
     e.preventDefault();
+    const clash = conflictMessage(newLessonForm);
+    if (clash) {
+      notify({ variant: 'warning', message: clash });
+      return;
+    }
     try {
       await coachesAndClassesService.createPrivateClass({
         ...newLessonForm,
@@ -86,7 +104,19 @@ export default function CoachPrivateLessonsPage() {
   const handleSaveEdit = async (e) => {
     e.preventDefault();
     if (!lessonToEdit) return;
-    await coachesAndClassesService.updatePrivateClass(lessonToEdit.id, lessonToEdit);
+    if (lessonToEdit.status !== 'cancelada') {
+      const clash = conflictMessage(lessonToEdit, lessonToEdit.id);
+      if (clash) {
+        notify({ variant: 'warning', message: clash });
+        return;
+      }
+    }
+    try {
+      await coachesAndClassesService.updatePrivateClass(lessonToEdit.id, lessonToEdit);
+    } catch (err) {
+      notify({ variant: 'error', title: 'Error al modificar', message: err.message || 'No se pudo modificar el turno.' });
+      return;
+    }
     setShowEditModal(false);
     setLessonToEdit(null);
     await loadLessons();

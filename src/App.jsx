@@ -18,6 +18,8 @@ import DemoLandingPage from './pages/demo/DemoLandingPage';
 import ClientDashboard from './pages/client/ClientDashboard';
 import BookCourtPage from './pages/client/BookCourtPage';
 import ClientTournamentsPage from './pages/client/ClientTournamentsPage';
+import ClientLeaguesPage from './pages/client/ClientLeaguesPage';
+import ClientPrivateLessonsPage from './pages/client/ClientPrivateLessonsPage';
 import ClientClassesPage from './pages/client/ClientClassesPage';
 import ClientPaymentsPage from './pages/client/ClientPaymentsPage';
 
@@ -88,7 +90,9 @@ function portalRoutes(demo) {
         <Route path="dashboard" element={<ClientDashboard />} />
         <Route path="reservas" element={<BookCourtPage />} />
         <Route path="torneos" element={<ClientTournamentsPage />} />
+        <Route path="ligas" element={<ClientLeaguesPage />} />
         <Route path="clases" element={<ClientClassesPage />} />
+        <Route path="clases-particulares" element={<ClientPrivateLessonsPage />} />
         <Route path="mis-pagos" element={<ClientPaymentsPage />} />
       </Route>
 
