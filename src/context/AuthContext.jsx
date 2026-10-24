@@ -134,61 +134,25 @@ export function AuthProvider({ children }) {
     return demoUser;
   };
 
-  // POST /api/auth/login — si el backend no responde pero son credenciales demo, activa demo
+  // POST /api/auth/login — con credenciales nunca se cae a la demo: si la API no responde, es un error
+  // (la demo deja cambiar de rol, así que un socio terminaría viendo el panel de admin).
   const login = async (email, password) => {
-    try {
-      const data = await authService.login(email, password);
-      return guardarSesion(data);
-    } catch (err) {
-      const isConnectionError = err?.code === 'ERR_NETWORK' || err?.code === 'ECONNABORTED' || !err?.response;
-      const lowerEmail = (email || '').toLowerCase().trim();
-      if (isConnectionError && (lowerEmail === 'socio@tenisahora.com' || lowerEmail === 'admin@tenisahora.com')) {
-        const role = lowerEmail.includes('admin') ? 'admin' : 'client';
-        return loginDemo(role);
-      }
-      throw err;
-    }
+    const data = await authService.login(email, password);
+    return guardarSesion(data);
   };
 
-  // POST /api/auth/registrar — si no hay backend, crea sesión demo local
+  // POST /api/auth/registrar
   const register = async (formData) => {
-    try {
-      const data = await authService.registrar({
-        nombre: formData.nombre,
-        apellido: formData.apellido,
-        direccion: formData.address,
-        email: formData.email,
-        numeroTelefono: formData.phone,
-        dni: formData.dni,
-        password: formData.password
-      });
-      return guardarSesion(data);
-    } catch (err) {
-      const isConnectionError = err?.code === 'ERR_NETWORK' || err?.code === 'ECONNABORTED' || !err?.response;
-      if (isConnectionError) {
-        const localUser = {
-          id: `usr-${Date.now()}`,
-          name: `${formData.nombre} ${formData.apellido}`.trim() || formData.email,
-          nombre: formData.nombre,
-          apellido: formData.apellido,
-          email: formData.email,
-          phone: formData.phone,
-          address: formData.address,
-          role: 'client',
-          rolBackend: 'Socio',
-          dni: formData.dni || '00.000.000',
-          memberNumber: `TA-${Math.floor(1000 + Math.random() * 9000)}`,
-          isDemo: true
-        };
-        const mockToken = createMockToken(localUser);
-        setStoredToken(mockToken);
-        setStoredUser(localUser);
-        setToken(mockToken);
-        setUser(localUser);
-        return localUser;
-      }
-      throw err;
-    }
+    const data = await authService.registrar({
+      nombre: formData.nombre,
+      apellido: formData.apellido,
+      direccion: formData.address,
+      email: formData.email,
+      numeroTelefono: formData.phone,
+      dni: formData.dni,
+      password: formData.password
+    });
+    return guardarSesion(data);
   };
 
   const logout = () => {
