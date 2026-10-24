@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { tournamentsService, leaguesService, competitionTypesService } from '../../services/api';
+import { tournamentsService, leaguesService, competitionTypesService, documentsService } from '../../services/api';
 import { Edit, Trash2 } from 'lucide-react';
 import Modal from '../../components/common/Modal';
+import { RulesDocumentInput, RulesDocumentLink } from '../../components/common/RulesDocument';
+
+// Sube el archivo elegido y devuelve el valor de internalRulesDocument: undefined no lo cambia, null lo quita.
+const rulesDocumentFor = async (file, remove) => {
+  if (file) return (await documentsService.upload(file)).data;
+  return remove ? null : undefined;
+};
 import MatchesPanel from '../../components/admin/MatchesPanel';
 import CompetitionTypesPanel from '../../components/admin/CompetitionTypesPanel';
 import TournamentBracketTree from '../../components/common/TournamentBracketTree';
@@ -42,6 +49,9 @@ export default function TournamentsManagementPage() {
 
   const [editTrnForm, setEditTrnForm] = useState(null);
   const [rulesTrnText, setRulesTrnText] = useState('');
+  const [rulesTrnFile, setRulesTrnFile] = useState(null);
+  const [rulesTrnRemove, setRulesTrnRemove] = useState(false);
+  const [newTrnFile, setNewTrnFile] = useState(null);
   const [enrollTrnForm, setEnrollTrnForm] = useState({
     name: '',
     dni: '',
@@ -83,6 +93,9 @@ export default function TournamentsManagementPage() {
 
   const [editLeagueForm, setEditLeagueForm] = useState(null);
   const [rulesLeagueText, setRulesLeagueText] = useState('');
+  const [rulesLeagueFile, setRulesLeagueFile] = useState(null);
+  const [rulesLeagueRemove, setRulesLeagueRemove] = useState(false);
+  const [newLeagueFile, setNewLeagueFile] = useState(null);
   const [enrollLeagueForm, setEnrollLeagueForm] = useState({
     name: '',
     dni: '',
@@ -161,8 +174,18 @@ export default function TournamentsManagementPage() {
   // ==========================================
   const handleCreateTournament = async (e) => {
     e.preventDefault();
-    const res = await tournamentsService.create(newTrnForm);
+    let res;
+    try {
+      // El documento se sube primero: si falla, no queda un torneo creado a medias.
+      const rulesDocument = await rulesDocumentFor(newTrnFile, false);
+      res = await tournamentsService.create(newTrnForm);
+      if (rulesDocument) res = await tournamentsService.updateInternalRules(res.data.id, undefined, rulesDocument);
+    } catch (err) {
+      alert(err.message || 'No se pudo registrar el torneo.');
+      return;
+    }
     setShowCreateTrnModal(false);
+    setNewTrnFile(null);
     setNewTrnForm({
       competitionTypeId: '',
       name: '',
@@ -217,13 +240,21 @@ export default function TournamentsManagementPage() {
   const handleOpenRulesTournament = () => {
     if (!selectedTournament) return;
     setRulesTrnText(selectedTournament.internalRules || '');
+    setRulesTrnFile(null);
+    setRulesTrnRemove(false);
     setShowRulesTrnModal(true);
   };
 
   const handleSaveRulesTournament = async (e) => {
     e.preventDefault();
     if (!selectedTournament) return;
-    await tournamentsService.updateInternalRules(selectedTournament.id, rulesTrnText);
+    try {
+      const rulesDocument = await rulesDocumentFor(rulesTrnFile, rulesTrnRemove);
+      await tournamentsService.updateInternalRules(selectedTournament.id, rulesTrnText, rulesDocument);
+    } catch (err) {
+      alert(err.message || 'No se pudo guardar el reglamento.');
+      return;
+    }
     setShowRulesTrnModal(false);
     await loadTournaments();
   };
@@ -261,8 +292,18 @@ export default function TournamentsManagementPage() {
   // ==========================================
   const handleCreateLeague = async (e) => {
     e.preventDefault();
-    const res = await leaguesService.create(newLeagueForm);
+    let res;
+    try {
+      // El documento se sube primero: si falla, no queda una liga creada a medias.
+      const rulesDocument = await rulesDocumentFor(newLeagueFile, false);
+      res = await leaguesService.create(newLeagueForm);
+      if (rulesDocument) res = await leaguesService.updateInternalRules(res.data.id, undefined, rulesDocument);
+    } catch (err) {
+      alert(err.message || 'No se pudo registrar la liga.');
+      return;
+    }
     setShowCreateLeagueModal(false);
+    setNewLeagueFile(null);
     setNewLeagueForm({
       competitionTypeId: '',
       name: '',
@@ -317,13 +358,21 @@ export default function TournamentsManagementPage() {
   const handleOpenRulesLeague = () => {
     if (!selectedLeague) return;
     setRulesLeagueText(selectedLeague.internalRules || '');
+    setRulesLeagueFile(null);
+    setRulesLeagueRemove(false);
     setShowRulesLeagueModal(true);
   };
 
   const handleSaveRulesLeague = async (e) => {
     e.preventDefault();
     if (!selectedLeague) return;
-    await leaguesService.updateInternalRules(selectedLeague.id, rulesLeagueText);
+    try {
+      const rulesDocument = await rulesDocumentFor(rulesLeagueFile, rulesLeagueRemove);
+      await leaguesService.updateInternalRules(selectedLeague.id, rulesLeagueText, rulesDocument);
+    } catch (err) {
+      alert(err.message || 'No se pudo guardar el reglamento.');
+      return;
+    }
     setShowRulesLeagueModal(false);
     await loadLeagues();
   };
@@ -729,6 +778,7 @@ export default function TournamentsManagementPage() {
                     <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">
                       {selectedTournament.internalRules || 'No se ha cargado reglamento interno específico para este torneo.'}
                     </div>
+                    <RulesDocumentLink document={selectedTournament.internalRulesDocument} />
                   </div>
                 )}
 
@@ -1130,6 +1180,7 @@ export default function TournamentsManagementPage() {
                     <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">
                       {selectedLeague.internalRules || 'No se ha cargado reglamento interno para esta liga.'}
                     </div>
+                    <RulesDocumentLink document={selectedLeague.internalRulesDocument} />
                   </div>
                 )}
 
@@ -1263,6 +1314,8 @@ export default function TournamentsManagementPage() {
               className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
             />
           </div>
+
+          <RulesDocumentInput onFileChange={setNewTrnFile} />
 
           <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
             <button
@@ -1499,6 +1552,13 @@ export default function TournamentsManagementPage() {
             />
           </div>
 
+          <RulesDocumentInput
+            current={selectedTournament?.internalRulesDocument}
+            onFileChange={setRulesTrnFile}
+            removed={rulesTrnRemove}
+            onToggleRemove={() => setRulesTrnRemove(!rulesTrnRemove)}
+          />
+
           <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
             <button
               type="button"
@@ -1726,6 +1786,8 @@ export default function TournamentsManagementPage() {
               className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
             />
           </div>
+
+          <RulesDocumentInput onFileChange={setNewLeagueFile} />
 
           <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
             <button
@@ -1962,6 +2024,13 @@ export default function TournamentsManagementPage() {
               className="w-full p-3 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 font-mono text-[11px] leading-relaxed"
             />
           </div>
+
+          <RulesDocumentInput
+            current={selectedLeague?.internalRulesDocument}
+            onFileChange={setRulesLeagueFile}
+            removed={rulesLeagueRemove}
+            onToggleRemove={() => setRulesLeagueRemove(!rulesLeagueRemove)}
+          />
 
           <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
             <button

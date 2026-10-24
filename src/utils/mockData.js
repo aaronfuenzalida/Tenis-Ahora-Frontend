@@ -484,7 +484,7 @@ export const INITIAL_RESERVATIONS = [
     totalCost: 9600,
     depositPaid: 4800,
     depositReceiptNumber: 'REC-50-8950',
-    depositPaymentMethod: 'Efectivo',
+    depositPaymentMethod: 'Tarjeta de Débito',
     remainingBalance: 4800,
     remainingPaid: false,
     finalReceiptNumber: null,
@@ -570,7 +570,7 @@ export const INITIAL_RESERVATIONS = [
     totalCost: 9600,
     depositPaid: 4800,
     depositReceiptNumber: 'REC-50-8980',
-    depositPaymentMethod: 'Efectivo',
+    depositPaymentMethod: 'Tarjeta de Débito',
     remainingBalance: 4800,
     remainingPaid: false,
     finalReceiptNumber: null,
@@ -748,7 +748,7 @@ export const INITIAL_COACHES = [
       issueDate: '2015-11-20',
       expiryDate: '2028-12-31',
       status: 'habilitado',
-      digitalDocumentUrl: 'Certificado_Oficial_AAT_Alvarez_77492.pdf'
+      document: { id: 'doc-seed-coach-01', name: 'Certificado_Oficial_AAT_Alvarez_77492.pdf', mimeType: 'application/pdf', size: 903 }
     },
     hourlyRatePrivate: 6500,
     photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
@@ -772,7 +772,7 @@ export const INITIAL_COACHES = [
       issueDate: '2018-04-15',
       expiryDate: '2029-06-30',
       status: 'habilitado',
-      digitalDocumentUrl: 'Titulo_Habilitante_Morales_90114.pdf'
+      document: { id: 'doc-seed-coach-02', name: 'Titulo_Habilitante_Morales_90114.pdf', mimeType: 'application/pdf', size: 916 }
     },
     hourlyRatePrivate: 5800,
     photo: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80',
@@ -796,11 +796,36 @@ export const INITIAL_COACHES = [
       issueDate: '2016-09-10',
       expiryDate: '2027-12-31',
       status: 'habilitado',
-      digitalDocumentUrl: 'Certificado_Oficial_AAT_Delgado_88123.pdf'
+      document: { id: 'doc-seed-coach-03', name: 'Certificado_Oficial_AAT_Delgado_88123.pdf', mimeType: 'application/pdf', size: 876 }
     },
     hourlyRatePrivate: 6200,
     photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80',
     bio: 'Preparador físico de tenistas federados, especialista en trabajo de apoyos, aceleración y resistencia en polvo de ladrillo.'
+  }
+];
+
+// Documentos de muestra (PDF mínimos) para los títulos habilitantes de los docentes.
+export const INITIAL_DOCUMENTS = [
+  {
+    id: 'doc-seed-coach-01',
+    name: 'Certificado_Oficial_AAT_Alvarez_77492.pdf',
+    mimeType: 'application/pdf',
+    size: 903,
+    data: 'JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSA1IDAgUiA+PiA+PiAvQ29udGVudHMgNCAwIFIgPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCAzMzEgPj4Kc3RyZWFtCkJUIC9GMSAxNCBUZiA3MiA3NjAgVGQgMTggVEwgKENMVUIgVEVOSVMgQUhPUkEgLSBET0NVTUVOVE8gREUgTVVFU1RSQSkgVGogVCogKFTtdHVsbyBoYWJpbGl0YW50ZTogUHJvZmVzb3IgTmFjaW9uYWwgZGUgVGVuaXMgZGUgQWx0YSBDb21wZXRlbmNpYSkgVGogVCogKFRpdHVsYXI6IFByb2YuIFNhbnRpYWdvIMFsdmFyZXopIFRqIFQqIChJbnN0aXR1Y2nzbjogQXNvY2lhY2nzbiBBcmdlbnRpbmEgZGUgVGVuaXMgXChBQVRcKSAvIElURiBOaXZlbCAyKSBUaiBUKiAoTGljZW5jaWE6IEFBVC1MSUMtNzc0OTIpIFRqIFQqIChWZW5jaW1pZW50bzogMjAyOC0xMi0zMSkgVGogVCogRVQKZW5kc3RyZWFtCmVuZG9iago1IDAgb2JqCjw8IC9UeXBlIC9Gb250IC9TdWJ0eXBlIC9UeXBlMSAvQmFzZUZvbnQgL0hlbHZldGljYSAvRW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZyA+PgplbmRvYmoKeHJlZgowIDYKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwNTggMDAwMDAgbiAKMDAwMDAwMDExNSAwMDAwMCBuIAowMDAwMDAwMjQxIDAwMDAwIG4gCjAwMDAwMDA2MjMgMDAwMDAgbiAKdHJhaWxlcgo8PCAvU2l6ZSA2IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgo3MjAKJSVFT0YK'
+  },
+  {
+    id: 'doc-seed-coach-02',
+    name: 'Titulo_Habilitante_Morales_90114.pdf',
+    mimeType: 'application/pdf',
+    size: 916,
+    data: 'JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSA1IDAgUiA+PiA+PiAvQ29udGVudHMgNCAwIFIgPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCAzNDQgPj4Kc3RyZWFtCkJUIC9GMSAxNCBUZiA3MiA3NjAgVGQgMTggVEwgKENMVUIgVEVOSVMgQUhPUkEgLSBET0NVTUVOVE8gREUgTVVFU1RSQSkgVGogVCogKFTtdHVsbyBoYWJpbGl0YW50ZTogTGljZW5jaWFkYSBlbiBFZHVjYWNp824gRu1zaWNhIHkgRW50cmVuYWRvcmEgZGUgVGVuaXMgTml2ZWwgMSkgVGogVCogKFRpdHVsYXI6IEVudHJlbmFkb3JhIFZhbGVyaWEgTW9yYWxlcykgVGogVCogKEluc3RpdHVjafNuOiBJbnN0aXR1dG8gTmFjaW9uYWwgZGUgRWR1Y2FjafNuIEbtc2ljYSAmIEFBVCkgVGogVCogKExpY2VuY2lhOiBBQVQtTElDLTkwMTE0KSBUaiBUKiAoVmVuY2ltaWVudG86IDIwMjktMDYtMzApIFRqIFQqIEVUCmVuZHN0cmVhbQplbmRvYmoKNSAwIG9iago8PCAvVHlwZSAvRm9udCAvU3VidHlwZSAvVHlwZTEgL0Jhc2VGb250IC9IZWx2ZXRpY2EgL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcgPj4KZW5kb2JqCnhyZWYKMCA2CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAwOSAwMDAwMCBuIAowMDAwMDAwMDU4IDAwMDAwIG4gCjAwMDAwMDAxMTUgMDAwMDAgbiAKMDAwMDAwMDI0MSAwMDAwMCBuIAowMDAwMDAwNjM2IDAwMDAwIG4gCnRyYWlsZXIKPDwgL1NpemUgNiAvUm9vdCAxIDAgUiA+PgpzdGFydHhyZWYKNzMzCiUlRU9GCg=='
+  },
+  {
+    id: 'doc-seed-coach-03',
+    name: 'Certificado_Oficial_AAT_Delgado_88123.pdf',
+    mimeType: 'application/pdf',
+    size: 876,
+    data: 'JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSA1IDAgUiA+PiA+PiAvQ29udGVudHMgNCAwIFIgPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCAzMDQgPj4Kc3RyZWFtCkJUIC9GMSAxNCBUZiA3MiA3NjAgVGQgMTggVEwgKENMVUIgVEVOSVMgQUhPUkEgLSBET0NVTUVOVE8gREUgTVVFU1RSQSkgVGogVCogKFTtdHVsbyBoYWJpbGl0YW50ZTogRW50cmVuYWRvciBOYWNpb25hbCBOaXZlbCAyIEFBVCkgVGogVCogKFRpdHVsYXI6IEVudHJlbmFkb3IgTHVjYXMgRGVsZ2FkbykgVGogVCogKEluc3RpdHVjafNuOiBBc29jaWFjafNuIEFyZ2VudGluYSBkZSBUZW5pcyBcKEFBVFwpKSBUaiBUKiAoTGljZW5jaWE6IEFBVC1MSUMtODgxMjMpIFRqIFQqIChWZW5jaW1pZW50bzogMjAyNy0xMi0zMSkgVGogVCogRVQKZW5kc3RyZWFtCmVuZG9iago1IDAgb2JqCjw8IC9UeXBlIC9Gb250IC9TdWJ0eXBlIC9UeXBlMSAvQmFzZUZvbnQgL0hlbHZldGljYSAvRW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZyA+PgplbmRvYmoKeHJlZgowIDYKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwNTggMDAwMDAgbiAKMDAwMDAwMDExNSAwMDAwMCBuIAowMDAwMDAwMjQxIDAwMDAwIG4gCjAwMDAwMDA1OTYgMDAwMDAgbiAKdHJhaWxlcgo8PCAvU2l6ZSA2IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgo2OTMKJSVFT0YK'
   }
 ];
 
@@ -1120,7 +1145,7 @@ export const INITIAL_RECEIPTS = [
       { description: 'Saldo 50% Dobles Cancha 1', amount: 4800 }
     ],
     totalPaid: 4800,
-    paymentMethod: 'Efectivo',
+    paymentMethod: 'Tarjeta de Débito',
     status: 'completado',
     date: '2026-09-02 17:05',
     qrData: 'https://mpago.la/pos/tenisahora/rec_2026_1043',
@@ -1170,7 +1195,7 @@ export const INITIAL_RECEIPTS = [
       { description: 'Seña 50% Turno Noche Cancha 2', amount: 4800 }
     ],
     totalPaid: 4800,
-    paymentMethod: 'Efectivo',
+    paymentMethod: 'Tarjeta de Débito',
     status: 'completado',
     date: '2026-09-04 18:30',
     qrData: 'https://mpago.la/pos/tenisahora/rec_2026_1040',

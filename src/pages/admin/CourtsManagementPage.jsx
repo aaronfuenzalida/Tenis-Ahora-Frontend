@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { courtsService, reservationsService, courtTypesService } from '../../services/api';
+import { courtsService, reservationsService, courtTypesService, clubConfigService, DEFAULT_CLUB_CONFIG } from '../../services/api';
 import { Edit3, Trash2 } from 'lucide-react';
 import Modal from '../../components/common/Modal';
 import CourtTimelineGrid from '../../components/common/CourtTimelineGrid';
@@ -10,6 +10,7 @@ export default function CourtsManagementPage() {
   const [courts, setCourts] = useState([]);
   const [reservations, setReservations] = useState([]);
   const [courtTypes, setCourtTypes] = useState([]);
+  const [maxAdvanceBookingDays, setMaxAdvanceBookingDays] = useState(DEFAULT_CLUB_CONFIG.maxAdvanceBookingDays);
   const [selectedCourt, setSelectedCourt] = useState(null);
   const [showMaintModal, setShowMaintModal] = useState(false);
   const [maintenanceNotes, setMaintenanceNotes] = useState('');
@@ -41,11 +42,13 @@ export default function CourtsManagementPage() {
   }, []);
 
   const loadCourts = async () => {
-    const [cRes, rRes, tRes] = await Promise.all([
+    const [cRes, rRes, tRes, cfgRes] = await Promise.all([
       courtsService.getAll(),
       reservationsService.getAll(),
-      courtTypesService.getAll()
+      courtTypesService.getAll(),
+      clubConfigService.get()
     ]);
+    setMaxAdvanceBookingDays(cfgRes.data.maxAdvanceBookingDays);
     setCourts(cRes.data || []);
     setReservations(rRes.data || []);
     setCourtTypes(tRes.data || []);
@@ -214,6 +217,7 @@ export default function CourtsManagementPage() {
               alert(`Turno en Cancha ${court.name} (${court.surfaceType}): ${slot} para el día ${date}.\nTarifa: $${court.pricePerHour?.toLocaleString('es-AR')}/h.`);
             }}
             onDateChange={(d) => setSelectedDate(d)}
+            maxAdvanceBookingDays={maxAdvanceBookingDays}
             reservations={reservations}
           />
         </div>

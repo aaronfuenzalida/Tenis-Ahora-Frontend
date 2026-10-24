@@ -1,4 +1,5 @@
 import React from 'react';
+import { documentsService } from '../../services/api';
 
 const isExpired = (dateStr) => {
   if (!dateStr) return false;
@@ -76,9 +77,17 @@ export default function CoachCertificationsReport({ coaches = [], roleFilter = '
                     )}
                   </td>
                   <td className="p-3 text-slate-600">
-                    <span className="inline-flex items-center gap-1 text-[11px]">
-                      {lic.digitalDocumentUrl || 'Sin documento adjunto'}
-                    </span>
+                    {lic.document ? (
+                      <button
+                        type="button"
+                        onClick={() => documentsService.download(lic.document).catch(err => alert(err.message || 'No se pudo descargar el documento.'))}
+                        className="text-[11px] text-tennis-800 hover:underline text-left"
+                      >
+                        {lic.document.name}
+                      </button>
+                    ) : (
+                      <span className="text-[11px]">Sin documento adjunto</span>
+                    )}
                   </td>
                 </tr>
               );

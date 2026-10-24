@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Search } from 'lucide-react';
 import Modal from '../common/Modal';
-import { refundsService, reservationsService, receiptsService } from '../../services/api';
+import { refundsService, reservationsService, receiptsService, clubConfigService, DEFAULT_CLUB_CONFIG } from '../../services/api';
 
 const REFUND_METHODS = [
   'Devolución a Tarjeta de Débito',
   'Devolución a Tarjeta de Crédito',
   'Devolución a Billetera Virtual',
-  'Crédito en cuenta de socio',
-  'Efectivo en caja'
+  'Crédito en cuenta de socio'
 ];
 
 const EMPTY_FORM = {
@@ -35,17 +34,20 @@ export default function RefundsPanel() {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
+  const [clubConfig, setClubConfig] = useState(DEFAULT_CLUB_CONFIG);
 
   useEffect(() => {
     load();
   }, []);
 
   const load = async () => {
-    const [rfRes, rsRes, rcRes] = await Promise.all([
+    const [rfRes, rsRes, rcRes, cfgRes] = await Promise.all([
       refundsService.getAll(),
       reservationsService.getAll(),
-      receiptsService.getAll()
+      receiptsService.getAll(),
+      clubConfigService.get()
     ]);
+    setClubConfig(cfgRes.data);
     setRefunds(rfRes.data || []);
     setReservations(rsRes.data || []);
     setReceipts(rcRes.data || []);
@@ -128,7 +130,7 @@ export default function RefundsPanel() {
         <div>
           <h2 className="text-base font-bold text-slate-900">Reembolsos y Devoluciones</h2>
           <p className="text-xs text-slate-500">
-            Cancelaciones dentro del plazo (≥ 6 hs) generan reembolso total o parcial según la política del club; fuera de plazo se aplica cargo (RD02 - RD04).
+            Cancelaciones dentro del plazo (≥ {clubConfig.freeCancellationHours} hs) generan reembolso total de la seña; fuera de plazo se retiene el {clubConfig.lateCancellationRetentionPercent}% como cargo y el resto vuelve como crédito (RD02 - RD04).
           </p>
         </div>
         <button

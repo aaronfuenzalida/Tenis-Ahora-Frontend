@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { courtsService, stockService, reservationsService } from '../../services/api';
+import { courtsService, stockService, reservationsService, clubConfigService, DEFAULT_CLUB_CONFIG, maxBookingDate } from '../../services/api';
 import { ChevronRight } from 'lucide-react';
 import QRModal from '../../components/common/QRModal';
 import ReceiptModal from '../../components/common/ReceiptModal';
 import CourtTimelineGrid from '../../components/common/CourtTimelineGrid';
+import { getSlotBlock } from '../../components/admin/CourtAvailabilityPanel';
 import { formatDNI, formatPhone, cleanDNI, isValidDNI } from '../../utils/formatters';
 
 export default function BookCourtPage() {
@@ -15,6 +16,7 @@ export default function BookCourtPage() {
   const [stock, setStock] = useState([]);
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [clubConfig, setClubConfig] = useState(DEFAULT_CLUB_CONFIG);
 
   // View Mode: 'timeline' (Cronograma Horario) vs 'cards' (Vista Tradicional)
   const [viewMode, setViewMode] = useState('timeline');
@@ -53,11 +55,13 @@ export default function BookCourtPage() {
 
   const loadData = async () => {
     setLoading(true);
-    const [cRes, sRes, rRes] = await Promise.all([
+    const [cRes, sRes, rRes, cfgRes] = await Promise.all([
       courtsService.getAll(), 
       stockService.getAll(),
-      reservationsService.getOccupancy()
+      reservationsService.getOccupancy(),
+      clubConfigService.get()
     ]);
+    setClubConfig(cfgRes.data);
     setCourts(cRes.data);
     setStock(sRes.data);
     setReservations(rRes.data || []);
@@ -136,23 +140,29 @@ export default function BookCourtPage() {
   const hasRacketStock = racketStock ? racketStock.availableStock >= requiredRackets : false;
   const canBookWithStock = hasNetStock && hasBallStock && hasRacketStock;
 
-  // Max 30 days date limit validation 
-  const maxDate = new Date();
-  maxDate.setDate(maxDate.getDate() + 30);
-  const maxDateStr = maxDate.toISOString().split('T')[0];
+  // RD05: antelación máxima que fija el club
+  const maxDays = clubConfig.maxAdvanceBookingDays;
+  const maxDateStr = maxBookingDate(maxDays);
   const minDateStr = new Date().toISOString().split('T')[0];
 
   const handleProceedPayment = (e) => {
     e.preventDefault();
     if (selectedDate < minDateStr || selectedDate > maxDateStr) {
-      alert(`Por regla de negocio , las reservas solo pueden realizarse con un máximo de 30 días de anticipación (hasta ${maxDateStr}).`);
+      alert(`Por regla de negocio, las reservas solo pueden realizarse con un máximo de ${maxDays} días de anticipación (hasta ${maxDateStr}).`);
       return;
     }
     if (!selectedTimeSlot) {
       alert('Por favor seleccione un horario disponible.');
       return;
     }
-    
+
+    // La fecha puede cambiar después de elegir el turno, así que se revalida contra los bloqueos.
+    const blockReason = getSlotBlock(selectedCourt, selectedDate, selectedTimeSlot);
+    if (blockReason) {
+      alert(`El turno elegido no está disponible: ${blockReason}.`);
+      return;
+    }
+
     // Validate player names (Nombre y Apellido)
     const incompleteNames = players.some(p => !p.name || p.name.trim().split(/\s+/).length < 2);
     if (incompleteNames) {
@@ -230,13 +240,13 @@ export default function BookCourtPage() {
           </h1>
         </div>
 
-        {/* Date Selector (up to 30 days) */}
+        {/* Date Selector (hasta la antelación máxima del club) */}
         <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-2xl border border-slate-200 shadow-sm">
           <div className="text-xs">
             <div className="flex items-center gap-1.5">
               <span className="text-slate-400 font-medium">Fecha de Turno:</span>
               <span className="text-[10px] font-bold text-tennis-700 bg-tennis-50 px-1.5 py-0.2 rounded border border-tennis-200">
-                Máx. 30 días 
+                Máx. {maxDays} días
               </span>
             </div>
             <input
@@ -247,7 +257,7 @@ export default function BookCourtPage() {
               onChange={(e) => {
                 const val = e.target.value;
                 if (val < minDateStr || val > maxDateStr) {
-                  alert(`Por reglamento , las reservas solo pueden realizarse con un máximo de 30 días de anticipación (hasta ${maxDateStr}).`);
+                  alert(`Por reglamento, las reservas solo pueden realizarse con un máximo de ${maxDays} días de anticipación (hasta ${maxDateStr}).`);
                   return;
                 }
                 setSelectedDate(val);
@@ -348,6 +358,7 @@ export default function BookCourtPage() {
             onSelectSlot={handleSelectTimelineSlot}
             onDateChange={(d) => setSelectedDate(d)}
             reservations={reservations}
+            maxAdvanceBookingDays={maxDays}
           />
 
           {/* Form Section below the timeline */}
@@ -760,13 +771,15 @@ export default function BookCourtPage() {
                     '18:00 - 20:00',
                     '20:00 - 22:00'
                   ].map((slot, sIdx) => {
-                    const isBooked = sIdx === 1; // Example booked slot
+                    const blockReason = getSlotBlock(selectedCourt, selectedDate, slot);
+                    const isBooked = sIdx === 1 || Boolean(blockReason); // sIdx 1: Example booked slot
                     const isSelected = selectedTimeSlot === slot;
 
                     return (
                       <button
                         key={slot}
                         type="button"
+                        title={blockReason || undefined}
                         disabled={isBooked}
                         onClick={() => setSelectedTimeSlot(slot)}
                         className={`p-2.5 rounded-xl text-center text-xs font-bold border transition-all ${

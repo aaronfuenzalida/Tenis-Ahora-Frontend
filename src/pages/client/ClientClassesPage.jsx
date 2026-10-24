@@ -47,21 +47,27 @@ export default function ClientClassesPage() {
     e.preventDefault();
     if (!privateLessonCoach) return;
     setPrivateSuccess(true);
-    await coachesAndClassesService.createPrivateClass({
-      coachId: privateLessonCoach.id,
-      coachName: privateLessonCoach.name,
-      // Un profesor da clases y un entrenador, entrenamientos.
-      kind: privateLessonCoach.type === 'Entrenador' ? 'entrenamiento' : 'clase',
-      studentName: user?.name,
-      studentDni: user?.dni,
-      studentPhone: user?.phone,
-      date: privateLessonDate,
-      time: privateLessonTime,
-      courtAssigned: 'Cancha 1 (Ladrillo)',
-      hourlyRate: privateLessonCoach.hourlyRatePrivate || 6000,
-      notes: privateLessonNotes,
-      status: 'programada'
-    });
+    try {
+      await coachesAndClassesService.createPrivateClass({
+        coachId: privateLessonCoach.id,
+        coachName: privateLessonCoach.name,
+        // Un profesor da clases y un entrenador, entrenamientos.
+        kind: privateLessonCoach.type === 'Entrenador' ? 'entrenamiento' : 'clase',
+        studentName: user?.name,
+        studentDni: user?.dni,
+        studentPhone: user?.phone,
+        date: privateLessonDate,
+        time: privateLessonTime,
+        courtAssigned: 'Cancha 1 (Ladrillo)',
+        hourlyRate: privateLessonCoach.hourlyRatePrivate || 6000,
+        notes: privateLessonNotes,
+        status: 'programada'
+      });
+    } catch (err) {
+      setPrivateSuccess(false);
+      alert(err.message || 'No se pudo registrar la solicitud.');
+      return;
+    }
     setPrivateSuccess(false);
     setPrivateLessonCoach(null);
     setPrivateLessonNotes('');

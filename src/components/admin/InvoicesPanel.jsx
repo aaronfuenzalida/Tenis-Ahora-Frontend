@@ -3,7 +3,7 @@ import { Search, Trash2, Ban } from 'lucide-react';
 import Modal from '../common/Modal';
 import { invoicesService, receiptsService } from '../../services/api';
 
-const PAYMENT_METHODS = ['Tarjeta de Débito', 'Tarjeta de Crédito', 'Billetera Virtual (Mercado Pago / MODO / Cuenta DNI)', 'Efectivo'];
+const PAYMENT_METHODS = ['Tarjeta de Débito', 'Tarjeta de Crédito', 'Billetera Virtual (Mercado Pago / MODO / Cuenta DNI)'];
 
 const EMPTY_FORM = {
   type: 'B',

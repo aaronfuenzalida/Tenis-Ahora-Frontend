@@ -50,7 +50,6 @@ export default function POSDiscountCalculator({ onChargeComplete }) {
   
   const [selectedDiscountCode, setSelectedDiscountCode] = useState('LIGA20');
   const [paymentMethod, setPaymentMethod] = useState('Mercado Pago (QR)');
-  const [cashTendered, setCashTendered] = useState('');
   const [showSuccessToast, setShowSuccessToast] = useState(false);
 
   // Concept name display
@@ -75,13 +74,6 @@ export default function POSDiscountCalculator({ onChargeComplete }) {
     return Math.max(0, baseAmount - discountAmountPesos);
   }, [baseAmount, discountAmountPesos]);
 
-  // Cash change calculation
-  const cashChange = useMemo(() => {
-    if (paymentMethod !== 'Efectivo') return 0;
-    const tendered = Number(cashTendered) || 0;
-    return Math.max(0, tendered - finalAmountToCharge);
-  }, [paymentMethod, cashTendered, finalAmountToCharge]);
-
   const handleConceptChange = (presetId) => {
     setSelectedConceptPreset(presetId);
     const preset = CONCEPT_PRESETS.find(p => p.id === presetId);
@@ -90,7 +82,7 @@ export default function POSDiscountCalculator({ onChargeComplete }) {
     }
   };
 
-  const handleProcessCharge = (e) => {
+  const handleProcessCharge = async (e) => {
     e.preventDefault();
     if (!clientName.trim() || !clientDni.trim()) {
       alert('Por favor complete el nombre y DNI del socio o cliente.');
@@ -123,12 +115,12 @@ export default function POSDiscountCalculator({ onChargeComplete }) {
       qrData: `https://mpago.la/pos/tenisahora/${receiptId.toLowerCase()}`
     };
 
+    if (onChargeComplete) {
+      await onChargeComplete(newReceipt);
+    }
+
     setShowSuccessToast(true);
     setTimeout(() => setShowSuccessToast(false), 4000);
-
-    if (onChargeComplete) {
-      onChargeComplete(newReceipt);
-    }
   };
 
   return (
@@ -346,12 +338,11 @@ export default function POSDiscountCalculator({ onChargeComplete }) {
               3. Selección del Medio de Pago
             </label>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {[
                 { id: 'Mercado Pago (QR)', label: 'Mercado Pago (QR)' },
                 { id: 'Tarjeta de Débito', label: 'Débito Bancario' },
                 { id: 'Tarjeta de Crédito', label: 'Tarjeta Crédito' },
-                { id: 'Efectivo', label: 'Efectivo en Caja' },
               ].map(method => {
                 const isSelected = paymentMethod === method.id;
                 return (
@@ -372,29 +363,9 @@ export default function POSDiscountCalculator({ onChargeComplete }) {
             </div>
           </div>
 
-          {/* Cash calculator or QR preview */}
+          {/* QR preview or card terminal */}
           <div className="md:col-span-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-center">
-            {paymentMethod === 'Efectivo' ? (
-              <div className="space-y-2 text-xs">
-                <span className="text-[10px] font-extrabold uppercase text-slate-400 block">Calculadora de Vuelto</span>
-                <div className="flex items-center gap-2">
-                  <span className="text-slate-500 font-bold">Paga con $:</span>
-                  <input
-                    type="number"
-                    placeholder="Ej. 10000"
-                    value={cashTendered}
-                    onChange={(e) => setCashTendered(e.target.value)}
-                    className="w-full p-1.5 rounded-lg border border-slate-200 text-xs font-bold outline-none focus:border-tennis-600"
-                  />
-                </div>
-                <div className="flex items-center justify-between pt-1 border-t border-slate-100 font-bold">
-                  <span className="text-slate-600">Vuelto a entregar:</span>
-                  <span className="text-sm font-black text-tennis-600 font-mono">
-                    ${cashChange.toLocaleString('es-AR')}
-                  </span>
-                </div>
-              </div>
-            ) : paymentMethod === 'Mercado Pago (QR)' ? (
+            {paymentMethod === 'Mercado Pago (QR)' ? (
               <div className="flex items-center gap-3 text-xs">
                 <div>
                   <span className="font-extrabold text-slate-900 block text-xs">QR Dinámico MP</span>

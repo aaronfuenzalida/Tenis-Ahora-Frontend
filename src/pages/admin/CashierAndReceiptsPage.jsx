@@ -42,12 +42,13 @@ export default function CashierAndReceiptsPage() {
     setDiscounts(dRes.data);
   };
 
-  const handleChargeCompleted = (newReceipt) => {
-    setReceipts(prev => [newReceipt, ...prev]);
-    setSelectedReceipt(newReceipt);
+  const handleChargeCompleted = async (newReceipt) => {
+    const res = await receiptsService.create(newReceipt);
+    setReceipts(prev => [res.data, ...prev]);
+    setSelectedReceipt(res.data);
   };
 
-  const handleRegisterCharge = (e) => {
+  const handleRegisterCharge = async (e) => {
     e.preventDefault();
     const discountObj = discounts.find(d => d.code === chargeData.discountApplied);
     const discountPercent = discountObj ? discountObj.discountPercent : 0;
@@ -68,7 +69,7 @@ export default function CashierAndReceiptsPage() {
       cashierName: 'Administración General'
     };
 
-    handleChargeCompleted(newRec);
+    await handleChargeCompleted(newRec);
     setShowChargeModal(false);
   };
 
@@ -401,7 +402,6 @@ export default function CashierAndReceiptsPage() {
                 <option value="Tarjeta de Crédito">Tarjeta de Crédito</option>
                 <option value="Mercado Pago (QR)">Billetera Virtual: Mercado Pago (QR)</option>
                 <option value="Billetera Virtual (MODO / Cuenta DNI)">Billetera Virtual: MODO / Cuenta DNI / Otras</option>
-                <option value="Efectivo">Efectivo en Caja</option>
               </select>
             </div>
 

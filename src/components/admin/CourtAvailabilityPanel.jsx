@@ -14,6 +14,38 @@ export function getAvailability(court) {
   return { ...DEFAULT_COURT_AVAILABILITY, ...(court?.availability || {}) };
 }
 
+// RD06: devuelve el motivo por el que el turno ("HH:MM - HH:MM") no se puede reservar, o null si está libre de bloqueos.
+export function getSlotBlock(court, dateStr, slot) {
+  if (court?.status === 'mantenimiento') return court.maintenanceNotes || 'Cancha en mantenimiento';
+  const av = getAvailability(court);
+  const [y, m, d] = String(dateStr).split('-').map(Number);
+  const day = ALL_DAYS[(new Date(y, m - 1, d).getDay() + 6) % 7];
+  if (!av.days.includes(day)) return `Sin atención el día ${day}`;
+  const [from, to] = String(slot).split(' - ').map(toMinutes);
+  if (from < toMinutes(av.openTime) || to > toMinutes(av.closeTime)) {
+    return `Fuera de horario (${av.openTime} a ${av.closeTime})`;
+  }
+  const block = (av.blockedRanges || []).find(b =>
+    b.day === day && from < toMinutes(b.to) && to > toMinutes(b.from)
+  );
+  if (block) return block.reason || `Bloqueada de ${block.from} a ${block.to}`;
+  return null;
+}
+
+// Minutos reservables de la cancha en una fecha: horario de atención menos los bloqueos de ese día.
+export function availableMinutesOn(court, dateStr) {
+  const av = getAvailability(court);
+  const [y, m, d] = String(dateStr).split('-').map(Number);
+  const day = ALL_DAYS[(new Date(y, m - 1, d).getDay() + 6) % 7];
+  if (!av.days.includes(day)) return 0;
+  const open = toMinutes(av.openTime);
+  const close = toMinutes(av.closeTime);
+  const blocked = (av.blockedRanges || [])
+    .filter(b => b.day === day)
+    .reduce((sum, b) => sum + Math.max(0, Math.min(close, toMinutes(b.to)) - Math.max(open, toMinutes(b.from))), 0);
+  return Math.max(0, close - open - blocked);
+}
+
 export function slotsPerDay(av) {
   const span = toMinutes(av.closeTime) - toMinutes(av.openTime);
   const slot = Number(av.slotMinutes) || 60;

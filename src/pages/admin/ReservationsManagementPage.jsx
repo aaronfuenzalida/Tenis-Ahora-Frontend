@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { reservationsService, courtsService } from '../../services/api';
+import { reservationsService, courtsService, clubConfigService, DEFAULT_CLUB_CONFIG, maxBookingDate } from '../../services/api';
 import { Search, Edit3, Trash2 } from 'lucide-react';
 import ReceiptModal from '../../components/common/ReceiptModal';
 import Modal from '../../components/common/Modal';
+import ClubPolicyModal from '../../components/admin/ClubPolicyModal';
 import TablePaginationBar, { TableSortHeader } from '../../components/common/TablePaginationBar';
 import { useTablePagination } from '../../hooks/useTablePagination';
 import { calculateHoursUntil, formatHoursMinutes } from '../../utils/formatters';
@@ -21,20 +22,25 @@ export default function ReservationsManagementPage() {
 
   // Remaining balance payment modal
   const [selectedResForPayment, setSelectedResForPayment] = useState(null);
-  const [remainingPaymentMethod, setRemainingPaymentMethod] = useState('Efectivo');
+  const [remainingPaymentMethod, setRemainingPaymentMethod] = useState('Mercado Pago (QR)');
   
-  // Cancellation modal with 6-hour advance policy
+  // Cancellation modal: las horas de antelación salen del inicio del turno (RD02)
   const [selectedResForCancel, setSelectedResForCancel] = useState(null);
-  const [hoursInAdvance, setHoursInAdvance] = useState(8);
+  const [hoursInAdvance, setHoursInAdvance] = useState(0);
+
+  // RD02 - RD05: políticas del club
+  const [clubConfig, setClubConfig] = useState(DEFAULT_CLUB_CONFIG);
+  const [showPolicyModal, setShowPolicyModal] = useState(false);
 
   useEffect(() => {
     loadReservations();
   }, []);
 
   const loadReservations = async () => {
-    const [res, cRes] = await Promise.all([reservationsService.getAll(), courtsService.getAll()]);
+    const [res, cRes, cfgRes] = await Promise.all([reservationsService.getAll(), courtsService.getAll(), clubConfigService.get()]);
     setReservations(res.data);
     setCourts(cRes.data || []);
+    setClubConfig(cfgRes.data);
   };
 
   const handleOpenEdit = (res) => {
@@ -95,14 +101,14 @@ export default function ReservationsManagementPage() {
 
   const handleCancelReservation = async (e) => {
     e.preventDefault();
-    const result = await reservationsService.cancel(selectedResForCancel.id, Number(hoursInAdvance));
+    const result = await reservationsService.cancel(selectedResForCancel.id);
     setSelectedResForCancel(null);
     loadReservations();
     
     if (result.isWithinFreeWindow) {
-      alert(`Cancelación procesada (>6hs de antelación). Se generó el reembolso ${result.refund?.id || ''} por $${(result.refund?.refundAmount || 0).toLocaleString('es-AR')} (pendiente de proceso en Caja > Reembolsos).`);
+      alert(`Cancelación procesada (>= ${clubConfig.freeCancellationHours} hs de antelación). Se generó el reembolso ${result.refund?.id || ''} por $${(result.refund?.refundAmount || 0).toLocaleString('es-AR')} (pendiente de proceso en Caja > Reembolsos).`);
     } else {
-      alert(`Cancelación procesada (<6hs de antelación): fuera de plazo reglamentario. Se aplicó el cargo ${result.penaltyReceipt?.id || ''} por $${(result.penaltyReceipt?.totalPaid || 0).toLocaleString('es-AR')} y se reintegra el resto como crédito (${result.refund?.id || ''}).`);
+      alert(`Cancelación procesada (< ${clubConfig.freeCancellationHours} hs de antelación): fuera de plazo reglamentario. Se aplicó el cargo ${result.penaltyReceipt?.id || ''} por $${(result.penaltyReceipt?.totalPaid || 0).toLocaleString('es-AR')} y se reintegra el resto como crédito (${result.refund?.id || ''}).`);
     }
   };
 
@@ -170,9 +176,18 @@ export default function ReservationsManagementPage() {
         <div className="flex items-center gap-2">
           <span><strong>Reglamento de Cobro:</strong> 50% de Seña Obligatoria al reservar + 50% de Saldo Final al terminar el partido en recepción.</span>
         </div>
-        <span className="font-bold text-tennis-800">
-          Cancelaciones: ≥ 6 hs
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="font-bold text-tennis-800">
+            Cancelación sin cargo: ≥ {clubConfig.freeCancellationHours} hs · Retención fuera de plazo: {clubConfig.lateCancellationRetentionPercent}% · Reservas hasta {clubConfig.maxAdvanceBookingDays} días
+          </span>
+          <button
+            type="button"
+            onClick={() => setShowPolicyModal(true)}
+            className="px-3 py-1.5 rounded-lg bg-white hover:bg-tennis-100 text-tennis-800 font-bold border border-tennis-200 no-print"
+          >
+            Modificar Políticas
+          </button>
+        </div>
       </div>
 
       {/* Filter Toolbar */}
@@ -432,7 +447,6 @@ export default function ReservationsManagementPage() {
               onChange={(e) => setRemainingPaymentMethod(e.target.value)}
               className="w-full p-2.5 rounded-xl border border-slate-200 outline-none bg-white font-bold text-slate-800"
             >
-              <option value="Efectivo">Efectivo en Caja</option>
               <option value="Mercado Pago (QR)">Mercado Pago (QR)</option>
               <option value="Tarjeta de Débito">Tarjeta de Débito</option>
               <option value="Tarjeta de Crédito">Tarjeta de Crédito</option>
@@ -447,6 +461,13 @@ export default function ReservationsManagementPage() {
           </button>
         </form>
       </Modal>
+
+      <ClubPolicyModal
+        isOpen={showPolicyModal}
+        config={clubConfig}
+        onClose={() => setShowPolicyModal(false)}
+        onSaved={(cfg) => { setClubConfig(cfg); setShowPolicyModal(false); }}
+      />
 
       {/* Cancellation Policy Modal */}
       <Modal
@@ -463,32 +484,21 @@ export default function ReservationsManagementPage() {
           </div>
 
           <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="font-bold text-slate-700 uppercase block">
-                Horas de Antelación al Turno:
-              </label>
-              <span className="text-[10px] text-slate-400 font-mono">
-                {formatHoursMinutes(Number(hoursInAdvance))} restantes
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-slate-700 uppercase">Antelación al Turno:</span>
+              <span className="font-bold text-slate-900 font-mono">
+                {hoursInAdvance > 0 ? `${formatHoursMinutes(hoursInAdvance)} restantes` : 'El turno ya comenzó'}
               </span>
             </div>
-            <input
-              type="number"
-              step="0.5"
-              min="0"
-              max="720"
-              value={hoursInAdvance}
-              onChange={(e) => setHoursInAdvance(e.target.value)}
-              className="w-full p-2.5 rounded-xl border border-slate-200 font-bold outline-none focus:border-tennis-600"
-            />
             <span className="text-[10px] text-slate-400 block mt-1">
-              Calculado automáticamente respecto a la fecha y hora de inicio del turno.
+              Calculada respecto a la fecha y hora de inicio del turno.
             </span>
           </div>
 
-          {Number(hoursInAdvance) >= 6 ? (
+          {hoursInAdvance >= clubConfig.freeCancellationHours ? (
             <div className="p-3 bg-tennis-50 text-tennis-900 rounded-xl border border-tennis-200 space-y-1">
               <div className="font-bold flex items-center gap-1 text-tennis-800">
-                Cancelación dentro del plazo (&ge; 6 hs)
+                Cancelación dentro del plazo (&ge; {clubConfig.freeCancellationHours} hs)
               </div>
               <p className="text-[11px] text-tennis-700">
                 Corresponde <strong>reembolso total</strong> de la seña abonada (${selectedResForCancel?.depositPaid?.toLocaleString('es-AR')}) al socio.
@@ -497,10 +507,10 @@ export default function ReservationsManagementPage() {
           ) : (
             <div className="p-3 bg-slate-50 text-slate-900 rounded-xl border border-slate-200 space-y-1">
               <div className="font-bold flex items-center gap-1 text-slate-800">
-                Cancelación fuera de término (&lt; 6 hs)
+                Cancelación fuera de término (&lt; {clubConfig.freeCancellationHours} hs)
               </div>
               <p className="text-[11px] text-slate-700">
-                Se aplicará la <strong>retención del 50% de la seña</strong> (${selectedResForCancel?.depositPaid?.toLocaleString('es-AR')}) por costo operativo y lucro cesante.
+                Se aplicará la <strong>retención del {clubConfig.lateCancellationRetentionPercent}% de la seña</strong> (${Math.round((selectedResForCancel?.depositPaid || 0) * clubConfig.lateCancellationRetentionPercent / 100).toLocaleString('es-AR')}) por costo operativo y lucro cesante.
               </p>
             </div>
           )}
@@ -550,7 +560,7 @@ export default function ReservationsManagementPage() {
             <div className="grid grid-cols-3 gap-3">
               <div>
                 <label className="font-bold text-slate-700 uppercase block mb-1">Fecha *</label>
-                <input type="date" required value={editForm.date} onChange={(e) => setEditForm({ ...editForm, date: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600" />
+                <input type="date" required max={maxBookingDate(clubConfig.maxAdvanceBookingDays)} value={editForm.date} onChange={(e) => setEditForm({ ...editForm, date: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600" />
               </div>
               <div>
                 <label className="font-bold text-slate-700 uppercase block mb-1">Inicio *</label>

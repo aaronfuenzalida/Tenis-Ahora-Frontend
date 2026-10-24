@@ -1,5 +1,6 @@
 import React from 'react';
 import Modal from './Modal';
+import { documentsService } from '../../services/api';
 
 export default function CoachCredentialsModal({ isOpen, onClose, coach }) {
   if (!coach) return null;
@@ -73,16 +74,17 @@ export default function CoachCredentialsModal({ isOpen, onClose, coach }) {
           <div className="mt-4 flex items-center justify-between p-3 bg-white rounded-xl border border-slate-200">
             <div className="flex items-center gap-2.5">
               <div>
-                <div className="text-xs font-semibold text-slate-800">{license?.digitalDocumentUrl}</div>
-                <div className="text-[10px] text-slate-400">Documento PDF digitalizado firmado</div>
+                <div className="text-xs font-semibold text-slate-800">{license?.document?.name || 'Sin documento adjunto'}</div>
+                <div className="text-[10px] text-slate-400">Título habilitante digitalizado</div>
               </div>
             </div>
             <button
               type="button"
-              onClick={() => alert(`Descargando copia legalizada de: ${license?.digitalDocumentUrl}`)}
-              className="px-3 py-1.5 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-lg inline-flex items-center gap-1 transition-colors"
+              disabled={!license?.document}
+              onClick={() => documentsService.download(license.document).catch(err => alert(err.message || 'No se pudo descargar el documento.'))}
+              className="px-3 py-1.5 text-xs font-semibold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-lg inline-flex items-center gap-1 transition-colors disabled:opacity-40 disabled:cursor-not-allowed no-print"
             >
-              Ver PDF
+              Descargar
             </button>
           </div>
         </div>

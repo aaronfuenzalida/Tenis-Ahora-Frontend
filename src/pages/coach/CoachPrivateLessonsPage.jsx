@@ -50,13 +50,18 @@ export default function CoachPrivateLessonsPage() {
 
   const handleCreateLesson = async (e) => {
     e.preventDefault();
-    await coachesAndClassesService.createPrivateClass({
-      ...newLessonForm,
-      coachId: coachProfile?.id,
-      coachName: coachProfile?.name,
-      // Un profesor da clases y un entrenador, entrenamientos.
-      kind: coachProfile?.type === 'Entrenador' ? 'entrenamiento' : 'clase'
-    });
+    try {
+      await coachesAndClassesService.createPrivateClass({
+        ...newLessonForm,
+        coachId: coachProfile?.id,
+        coachName: coachProfile?.name,
+        // Un profesor da clases y un entrenador, entrenamientos.
+        kind: coachProfile?.type === 'Entrenador' ? 'entrenamiento' : 'clase'
+      });
+    } catch (err) {
+      alert(err.message || 'No se pudo registrar el turno.');
+      return;
+    }
     setShowAddModal(false);
     setNewLessonForm({
       studentName: '',

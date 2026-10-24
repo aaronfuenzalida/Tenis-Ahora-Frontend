@@ -1,13 +1,70 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { courtsService, reservationsService, stockService, coachesAndClassesService } from '../../services/api';
+import { courtsService, reservationsService, stockService, coachesAndClassesService, receiptsService } from '../../services/api';
+import { availableMinutesOn } from '../../components/admin/CourtAvailabilityPanel';
 
 // Date filter options
 const DATE_FILTERS = [
-  { id: 'semana', label: 'Semana Actual', rangeText: '29 Sep - 05 Oct 2026' },
-  { id: 'mes', label: 'Mes Actual', rangeText: 'Octubre 2026' },
-  { id: 'año', label: 'Año 2026', rangeText: 'Enero - Diciembre 2026' },
-  { id: 'todo', label: 'Todo el Histórico', rangeText: 'Histórico Acumulado' },
+  { id: 'semana', label: 'Semana Actual' },
+  { id: 'mes', label: 'Mes Actual' },
+  { id: 'año', label: 'Año Actual' },
+  { id: 'todo', label: 'Todo el Histórico' },
 ];
+
+const PAYMENT_COLORS = ['#15803d', '#4ade80', '#64748b', '#cbd5e1', '#166534', '#94a3b8'];
+
+// La semana arranca el lunes; 'todo' no tiene fecha de inicio.
+function periodStart(filterId, now = new Date()) {
+  switch (filterId) {
+    case 'semana': {
+      const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+      return monday;
+    }
+    case 'mes':
+      return new Date(now.getFullYear(), now.getMonth(), 1);
+    case 'año':
+      return new Date(now.getFullYear(), 0, 1);
+    default:
+      return null;
+  }
+}
+
+function periodEnd(filterId, now = new Date()) {
+  switch (filterId) {
+    case 'semana': {
+      const sunday = periodStart(filterId, now);
+      sunday.setDate(sunday.getDate() + 6);
+      return sunday;
+    }
+    case 'mes':
+      return new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    case 'año':
+      return new Date(now.getFullYear(), 11, 31);
+    default:
+      return null;
+  }
+}
+
+const toISODate = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+function periodText(filterId, now = new Date()) {
+  const start = periodStart(filterId, now);
+  switch (filterId) {
+    case 'semana':
+      return `${start.toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })} - ${now.toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' })}`;
+    case 'mes': {
+      const month = now.toLocaleDateString('es-AR', { month: 'long' });
+      return `${month.charAt(0).toUpperCase()}${month.slice(1)} ${now.getFullYear()}`;
+    }
+    case 'año':
+      return `Enero - Diciembre ${now.getFullYear()}`;
+    default:
+      return 'Histórico Acumulado';
+  }
+}
+
+// Los recibos guardan la fecha como 'YYYY-MM-DD HH:mm' en hora local.
+const receiptDate = (r) => new Date(String(r.date || '').replace(' ', 'T'));
 
 export default function ReportsPage() {
   const [activeTab, setActiveTab] = useState('ingresos'); // ingresos, reservas, canchas, asistencia
@@ -15,225 +72,122 @@ export default function ReportsPage() {
   const [courts, setCourts] = useState([]);
   const [reservations, setReservations] = useState([]);
   const [classes, setClasses] = useState([]);
+  const [receipts, setReceipts] = useState([]);
 
   useEffect(() => {
     Promise.all([
       courtsService.getAll(),
       reservationsService.getAll(),
-      coachesAndClassesService.getClasses()
-    ]).then(([cRes, rRes, clRes]) => {
+      coachesAndClassesService.getClasses(),
+      receiptsService.getAll()
+    ]).then(([cRes, rRes, clRes, recRes]) => {
       setCourts(cRes.data);
       setReservations(rRes.data);
       setClasses(clRes.data);
+      setReceipts(recRes.data);
     });
   }, []);
 
-  // Filter-dependent analytics dataset
-  const reportData = useMemo(() => {
-    switch (dateFilter) {
-      case 'semana':
-        return {
-          label: 'Semana Actual (29 Sep - 05 Oct 2026)',
-          totalRevenue: 38400,
-          totalBookings: 8,
-          avgOccupancy: 78,
-          surfaceStats: [
-            {
-              surface: 'Polvo de Ladrillo',
-              courts: 'Canchas 1 y 2',
-              percent: 85,
-              hoursBooked: 34,
-              totalHours: 40,
-              revenue: 163200,
-              bgColor: 'bg-slate-500',
-              status: 'Alta Demanda'
-            },
-            {
-              surface: 'Cemento / Hard Court',
-              courts: 'Canchas 3 y 4',
-              percent: 70,
-              hoursBooked: 28,
-              totalHours: 40,
-              revenue: 134400,
-              bgColor: 'bg-slate-500',
-              status: 'Torneo Activo'
-            },
-            {
-              surface: 'Césped / Pasto Natural',
-              courts: 'Cancha 5',
-              percent: 80,
-              hoursBooked: 16,
-              totalHours: 20,
-              revenue: 88000,
-              bgColor: 'bg-tennis-500',
-              status: 'Premium'
-            }
-          ],
-          paymentStats: [
-            { name: 'Mercado Pago (QR)', amount: 18432, percent: 48, count: 4, color: '#15803d' },
-            { name: 'Tarjeta de Débito', amount: 9216, percent: 24, count: 2, color: '#4ade80' },
-            { name: 'Tarjeta de Crédito', amount: 6912, percent: 18, count: 1, color: '#64748b' },
-            { name: 'Efectivo en Caja', amount: 3840, percent: 10, count: 1, color: '#cbd5e1' },
-          ]
-        };
+  // RF137: ingresos del período a partir de los recibos emitidos.
+  const income = useMemo(() => {
+    const start = periodStart(dateFilter);
+    const inPeriod = receipts.filter(r => r.status !== 'anulado' && (!start || receiptDate(r) >= start));
+    const total = inPeriod.reduce((sum, r) => sum + (Number(r.totalPaid) || 0), 0);
+    const byMethod = {};
+    inPeriod.forEach(r => {
+      const name = r.paymentMethod || 'Sin especificar';
+      byMethod[name] = byMethod[name] || { name, amount: 0, count: 0 };
+      byMethod[name].amount += Number(r.totalPaid) || 0;
+      byMethod[name].count += 1;
+    });
+    const paymentStats = Object.values(byMethod)
+      .sort((a, b) => b.amount - a.amount)
+      .map((m, i) => ({
+        ...m,
+        share: total ? m.amount / total : 0,
+        percent: total ? Math.round((m.amount / total) * 100) : 0,
+        color: PAYMENT_COLORS[i % PAYMENT_COLORS.length]
+      }));
+    return { receipts: inPeriod, total, paymentStats };
+  }, [receipts, dateFilter]);
 
-      case 'año':
-        return {
-          label: 'Año Completo 2026',
-          totalRevenue: 890400,
-          totalBookings: 186,
-          avgOccupancy: 74,
-          surfaceStats: [
-            {
-              surface: 'Polvo de Ladrillo',
-              courts: 'Canchas 1 y 2',
-              percent: 81,
-              hoursBooked: 648,
-              totalHours: 800,
-              revenue: 3110400,
-              bgColor: 'bg-slate-500',
-              status: 'Favorita Socios'
-            },
-            {
-              surface: 'Cemento / Hard Court',
-              courts: 'Canchas 3 y 4',
-              percent: 67,
-              hoursBooked: 536,
-              totalHours: 800,
-              revenue: 2572800,
-              bgColor: 'bg-slate-500',
-              status: 'Liga & Escuela'
-            },
-            {
-              surface: 'Césped / Pasto Natural',
-              courts: 'Cancha 5',
-              percent: 73,
-              hoursBooked: 292,
-              totalHours: 400,
-              revenue: 1606000,
-              bgColor: 'bg-tennis-500',
-              status: 'Cancha Estrella'
-            }
-          ],
-          paymentStats: [
-            { name: 'Mercado Pago (QR)', amount: 445200, percent: 50, count: 93, color: '#15803d' },
-            { name: 'Tarjeta de Débito', amount: 204792, percent: 23, count: 43, color: '#4ade80' },
-            { name: 'Tarjeta de Crédito', amount: 160272, percent: 18, count: 33, color: '#64748b' },
-            { name: 'Efectivo en Caja', amount: 80136, percent: 9, count: 17, color: '#cbd5e1' },
-          ]
-        };
+  // Ocupación del período: horas reservadas (sin canceladas) sobre horas habilitadas de cada cancha.
+  const occupancy = useMemo(() => {
+    const active = reservations.filter(r => r.status !== 'cancelada' && r.date);
+    const start = periodStart(dateFilter);
+    const end = periodEnd(dateFilter);
+    const dates = active.map(r => r.date).sort();
+    const from = start ? toISODate(start) : dates[0];
+    const to = end ? toISODate(end) : dates[dates.length - 1];
+    const inPeriod = from ? active.filter(r => r.date >= from && r.date <= to) : [];
 
-      case 'todo':
-        return {
-          label: 'Histórico General Acumulado',
-          totalRevenue: 1450000,
-          totalBookings: 310,
-          avgOccupancy: 75,
-          surfaceStats: [
-            {
-              surface: 'Polvo de Ladrillo',
-              courts: 'Canchas 1 y 2',
-              percent: 83,
-              hoursBooked: 1100,
-              totalHours: 1320,
-              revenue: 5280000,
-              bgColor: 'bg-slate-500',
-              status: 'Histórico Top'
-            },
-            {
-              surface: 'Cemento / Hard Court',
-              courts: 'Canchas 3 y 4',
-              percent: 68,
-              hoursBooked: 890,
-              totalHours: 1320,
-              revenue: 4272000,
-              bgColor: 'bg-slate-500',
-              status: 'Estable'
-            },
-            {
-              surface: 'Césped / Pasto Natural',
-              courts: 'Cancha 5',
-              percent: 75,
-              hoursBooked: 495,
-              totalHours: 660,
-              revenue: 2722500,
-              bgColor: 'bg-tennis-500',
-              status: 'Alta Rentabilidad'
-            }
-          ],
-          paymentStats: [
-            { name: 'Mercado Pago (QR)', amount: 710500, percent: 49, count: 152, color: '#15803d' },
-            { name: 'Tarjeta de Débito', amount: 362500, percent: 25, count: 77, color: '#4ade80' },
-            { name: 'Tarjeta de Crédito', amount: 246500, percent: 17, count: 53, color: '#64748b' },
-            { name: 'Efectivo en Caja', amount: 130500, percent: 9, count: 28, color: '#cbd5e1' },
-          ]
-        };
-
-      case 'mes':
-      default:
-        return {
-          label: 'Mes Actual (Octubre 2026)',
-          totalRevenue: 116800,
-          totalBookings: 24,
-          avgOccupancy: 76,
-          surfaceStats: [
-            {
-              surface: 'Polvo de Ladrillo',
-              courts: 'Canchas 1 y 2',
-              percent: 82,
-              hoursBooked: 82,
-              totalHours: 100,
-              revenue: 393600,
-              bgColor: 'bg-slate-500',
-              status: 'Superficie más solicitada'
-            },
-            {
-              surface: 'Cemento / Hard Court',
-              courts: 'Canchas 3 y 4',
-              percent: 65,
-              hoursBooked: 65,
-              totalHours: 100,
-              revenue: 312000,
-              bgColor: 'bg-slate-500',
-              status: 'Torneo Apertura en juego'
-            },
-            {
-              surface: 'Césped / Pasto Natural',
-              courts: 'Cancha 5',
-              percent: 74,
-              hoursBooked: 37,
-              totalHours: 50,
-              revenue: 203500,
-              bgColor: 'bg-tennis-500',
-              status: 'Cancha Premium'
-            }
-          ],
-          paymentStats: [
-            { name: 'Mercado Pago (QR)', amount: 56064, percent: 48, count: 12, color: '#15803d' },
-            { name: 'Tarjeta de Débito', amount: 28032, percent: 24, count: 6, color: '#4ade80' },
-            { name: 'Tarjeta de Crédito', amount: 21024, percent: 18, count: 4, color: '#64748b' },
-            { name: 'Efectivo en Caja', amount: 11680, percent: 10, count: 2, color: '#cbd5e1' },
-          ]
-        };
+    const days = [];
+    if (from) {
+      const [y, m, d] = from.split('-').map(Number);
+      for (let day = new Date(y, m - 1, d); toISODate(day) <= to; day.setDate(day.getDate() + 1)) {
+        days.push(toISODate(day));
+      }
     }
-  }, [dateFilter]);
+
+    const bySurface = {};
+    courts.forEach(c => {
+      bySurface[c.surfaceType] = bySurface[c.surfaceType] || { surface: c.surfaceType, courts: [], availableMinutes: 0, bookedMinutes: 0, revenue: 0 };
+      const s = bySurface[c.surfaceType];
+      s.courts.push(c.name);
+      s.availableMinutes += days.reduce((sum, day) => sum + availableMinutesOn(c, day), 0);
+    });
+    inPeriod.forEach(r => {
+      const court = courts.find(c => c.id === r.courtId);
+      const s = bySurface[court?.surfaceType || r.surfaceType];
+      if (!s) return;
+      s.bookedMinutes += (Number(r.durationHours) || 1) * 60;
+      s.revenue += Number(r.totalCost) || 0;
+    });
+
+    const toPercent = (booked, available) => (available ? Math.min(100, Math.round((booked / available) * 100)) : 0);
+    const surfaceStats = Object.values(bySurface).map(s => ({
+      ...s,
+      hoursBooked: Math.round(s.bookedMinutes / 6) / 10,
+      totalHours: Math.round(s.availableMinutes / 6) / 10,
+      percent: toPercent(s.bookedMinutes, s.availableMinutes),
+      revenuePerHour: s.bookedMinutes ? Math.round(s.revenue / (s.bookedMinutes / 60)) : 0
+    }));
+    const booked = surfaceStats.reduce((sum, s) => sum + s.bookedMinutes, 0);
+    const available = surfaceStats.reduce((sum, s) => sum + s.availableMinutes, 0);
+    return {
+      reservations: inPeriod,
+      surfaceStats,
+      totalBookings: inPeriod.length,
+      avgOccupancy: toPercent(booked, available)
+    };
+  }, [reservations, courts, dateFilter]);
+
+  const occupancySummary = useMemo(() => {
+    const used = occupancy.surfaceStats.filter(s => s.bookedMinutes > 0);
+    if (used.length === 0) return 'No hay reservas en el período seleccionado.';
+    const busiest = used.reduce((a, b) => (b.percent > a.percent ? b : a));
+    const mostProfitable = used.reduce((a, b) => (b.revenuePerHour > a.revenuePerHour ? b : a));
+    return `${busiest.surface} tiene la mayor ocupación del período (${busiest.percent}%); ${mostProfitable.surface} rinde el mayor ingreso por hora reservada ($${mostProfitable.revenuePerHour.toLocaleString('es-AR')}/h).`;
+  }, [occupancy]);
 
   // Donut SVG circumference calculation for r=70
   // C = 2 * PI * 70 = 439.82297
   const CIRCUMFERENCE = 439.82;
   const donutSlices = useMemo(() => {
-    let accumulatedPercent = 0;
-    return reportData.paymentStats.map((stat) => {
-      const sliceLength = (stat.percent / 100) * CIRCUMFERENCE;
-      const strokeDashoffset = -((accumulatedPercent / 100) * CIRCUMFERENCE);
-      accumulatedPercent += stat.percent;
+    let accumulatedShare = 0;
+    return income.paymentStats.map((stat) => {
+      const sliceLength = stat.share * CIRCUMFERENCE;
+      const strokeDashoffset = -(accumulatedShare * CIRCUMFERENCE);
+      accumulatedShare += stat.share;
       return {
         ...stat,
         strokeDasharray: `${sliceLength} ${CIRCUMFERENCE - sliceLength}`,
         strokeDashoffset
       };
     });
-  }, [reportData.paymentStats]);
+  }, [income.paymentStats]);
+
+  const leadingMethod = income.paymentStats[0];
 
   return (
     <div className="space-y-6">
@@ -279,7 +233,7 @@ export default function ReportsPage() {
               >
                 <div className="font-extrabold text-xs">{filter.label}</div>
                 <div className={`text-[10px] mt-0.5 ${isSelected ? 'text-tennis-300' : 'text-slate-400'}`}>
-                  {filter.rangeText}
+                  {periodText(filter.id)}
                 </div>
               </button>
             );
@@ -294,7 +248,7 @@ export default function ReportsPage() {
             <span className="text-[10px] font-bold uppercase tracking-wider">Ingresos Totales</span>
           </div>
           <div className="text-2xl font-black text-slate-900 font-mono">
-            ${reportData.totalRevenue.toLocaleString('es-AR')}
+            ${income.total.toLocaleString('es-AR')}
           </div>
         </div>
 
@@ -303,10 +257,10 @@ export default function ReportsPage() {
             <span className="text-[10px] font-bold uppercase tracking-wider">Ocupación Promedio</span>
           </div>
           <div className="text-2xl font-black text-slate-900 font-mono">
-            {reportData.avgOccupancy}%
+            {occupancy.avgOccupancy}%
           </div>
           <span className="text-[11px] text-slate-600 font-semibold">
-            5 Canchas activas (08 a 22 hs)
+            Horas reservadas sobre horas habilitadas de {courts.length} canchas
           </span>
         </div>
 
@@ -315,7 +269,7 @@ export default function ReportsPage() {
             <span className="text-[10px] font-bold uppercase tracking-wider">Reservas & Turnos</span>
           </div>
           <div className="text-2xl font-black text-slate-900 font-mono">
-            {reportData.totalBookings} turnos
+            {occupancy.totalBookings} turnos
           </div>
         </div>
 
@@ -324,11 +278,13 @@ export default function ReportsPage() {
             <span className="text-[10px] font-bold uppercase tracking-wider">Canal de Pago Líder</span>
           </div>
           <div className="text-2xl font-black text-slate-900 truncate">
-            Mercado Pago
+            {leadingMethod ? leadingMethod.name : 'Sin cobros'}
           </div>
-          <span className="text-[11px] text-slate-600 font-semibold">
-            48% del volumen cobrado
-          </span>
+          {leadingMethod && (
+            <span className="text-[11px] text-slate-600 font-semibold">
+              {leadingMethod.percent}% del volumen cobrado
+            </span>
+          )}
         </div>
       </div>
 
@@ -365,7 +321,7 @@ export default function ReportsPage() {
           <h2 className="text-xl font-black text-tennis-900 uppercase">CLUB TENIS AHORA — ESTADÍSTICAS OFICIALES</h2>
           <p className="text-xs text-slate-500">Informe Oficial Emitido para Dirección y Auditoría Contable</p>
           <div className="flex items-center justify-center gap-3 text-[10px] text-slate-400 mt-1 font-mono">
-            <span>Período evaluado: {reportData.label}</span>
+            <span>Período evaluado: {DATE_FILTERS.find(fl => fl.id === dateFilter).label} ({periodText(dateFilter)})</span>
             <span>•</span>
             <span>Fecha de emisión: {new Date().toLocaleString()}</span>
           </div>
@@ -417,7 +373,7 @@ export default function ReportsPage() {
                   <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Ingresos</span>
                     <span className="text-xl font-black text-slate-900 font-mono">
-                      ${reportData.totalRevenue.toLocaleString('es-AR')}
+                      ${income.total.toLocaleString('es-AR')}
                     </span>
                   </div>
                 </div>
@@ -425,7 +381,7 @@ export default function ReportsPage() {
 
               {/* Payment Methods Detail & Progress Bars */}
               <div className="lg:col-span-7 space-y-3.5">
-                {reportData.paymentStats.map((item) => {
+                {income.paymentStats.map((item) => {
                   return (
                     <div key={item.name} className="p-3.5 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-2">
                       <div className="flex items-center justify-between">
@@ -467,7 +423,7 @@ export default function ReportsPage() {
             {/* Transaction Ledger Table */}
             <div className="space-y-2">
               <h4 className="text-xs font-black uppercase text-slate-500 tracking-wider">
-                Detalle de Reservas Abonadas en el Período
+                Detalle de Recibos Cobrados en el Período
               </h4>
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
@@ -476,22 +432,27 @@ export default function ReportsPage() {
                     <th className="py-2.5 px-3">Cliente / DNI</th>
                     <th className="py-2.5 px-3">Fecha</th>
                     <th className="py-2.5 px-3">Medio de Pago</th>
-                    <th className="py-2.5 px-3 text-right">Seña Abonada (50%)</th>
+                    <th className="py-2.5 px-3 text-right">Importe Cobrado</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {reservations.map(r => (
+                  {income.receipts.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="py-4 px-3 text-center text-slate-400">No hay recibos en el período seleccionado.</td>
+                    </tr>
+                  )}
+                  {income.receipts.map(r => (
                     <tr key={r.id}>
-                      <td className="py-2.5 px-3 font-semibold text-slate-800">{r.courtName}</td>
-                      <td className="py-2.5 px-3">{r.participants[0]?.name} ({r.participants[0]?.dni})</td>
+                      <td className="py-2.5 px-3 font-semibold text-slate-800">{r.concept}</td>
+                      <td className="py-2.5 px-3">{r.clientName} ({r.clientDni})</td>
                       <td className="py-2.5 px-3 font-mono">{r.date}</td>
                       <td className="py-2.5 px-3">
                         <span className="font-semibold text-slate-700 text-[11px]">
-                          {r.depositPaymentMethod}
+                          {r.paymentMethod}
                         </span>
                       </td>
                       <td className="py-2.5 px-3 text-right font-black text-slate-900 font-mono">
-                        ${r.depositPaid?.toLocaleString('es-AR')}
+                        ${(Number(r.totalPaid) || 0).toLocaleString('es-AR')}
                       </td>
                     </tr>
                   ))}
@@ -513,18 +474,15 @@ export default function ReportsPage() {
 
             {/* COMPARATIVE PERCENTAGE BARS */}
             <div className="space-y-4">
-              {reportData.surfaceStats.map((item) => (
+              {occupancy.surfaceStats.map((item) => (
                 <div key={item.surface} className="p-4 bg-slate-50/80 rounded-3xl border border-slate-200/90 space-y-3">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div>
                       <h4 className="font-black text-sm text-slate-900">{item.surface}</h4>
-                      <span className="text-[11px] text-slate-500">{item.courts}</span>
+                      <span className="text-[11px] text-slate-500">{item.courts.join(', ')}</span>
                     </div>
 
                     <div className="flex items-center gap-3">
-                      <span className="text-xs font-semibold text-slate-500">
-                        {item.status}
-                      </span>
                       <div className="text-right">
                         <span className="text-xl font-black text-slate-900 font-mono">{item.percent}%</span>
                         <span className="text-[10px] text-slate-400 block">de ocupación</span>
@@ -554,7 +512,7 @@ export default function ReportsPage() {
               <div>
                 <span className="font-extrabold text-tennis-950 block">Conclusión Técnica de Uso de Canchas</span>
                 <span className="text-tennis-800 text-[11px]">
-                  El Polvo de Ladrillo presenta la mayor preferencia de los socios (82%), mientras que la Cancha 5 (Pasto) rinde el mayor ingreso unitario por hora.
+                  {occupancySummary}
                 </span>
               </div>
             </div>
@@ -562,7 +520,7 @@ export default function ReportsPage() {
             {/* Reservations Table */}
             <div className="space-y-2">
               <h4 className="text-xs font-black uppercase text-slate-500 tracking-wider">
-                Listado de Reservas Realizadas
+                Listado de Reservas del Período
               </h4>
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
@@ -576,7 +534,12 @@ export default function ReportsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {reservations.map(r => (
+                  {occupancy.reservations.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="py-4 px-3 text-center text-slate-400">No hay reservas en el período seleccionado.</td>
+                    </tr>
+                  )}
+                  {occupancy.reservations.map(r => (
                     <tr key={r.id}>
                       <td className="py-2.5 px-3 font-bold text-tennis-800">{r.id}</td>
                       <td className="py-2.5 px-3 font-semibold text-slate-800">{r.courtName}</td>

@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { getStoredToken, getStoredUser } from '../utils/jwt';
+import { calculateHoursUntil } from '../utils/formatters';
 import {
   INITIAL_COURTS,
   INITIAL_STOCK,
@@ -15,7 +16,8 @@ import {
   INITIAL_COURT_TYPES,
   INITIAL_COMPETITION_TYPES,
   INITIAL_INVOICES,
-  INITIAL_REFUNDS
+  INITIAL_REFUNDS,
+  INITIAL_DOCUMENTS
 } from '../utils/mockData';
 
 // Create base Axios instance
@@ -106,6 +108,102 @@ let courtTypesStore = [...INITIAL_COURT_TYPES];
 let competitionTypesStore = [...INITIAL_COMPETITION_TYPES];
 let invoicesStore = [...INITIAL_INVOICES];
 let refundsStore = [...INITIAL_REFUNDS];
+
+// RD02-RD05: valores que rigen mientras el club no guarde otros (los mismos que usa la API).
+export const DEFAULT_CLUB_CONFIG = {
+  freeCancellationHours: 6,
+  lateCancellationRetentionPercent: 50,
+  maxAdvanceBookingDays: 30
+};
+let clubConfigStore = { id: 'club', ...DEFAULT_CLUB_CONFIG };
+let documentsStore = [...INITIAL_DOCUMENTS];
+
+// Documentos adjuntos (reglamentos, títulos habilitantes): mismos límites que la API.
+const DOCUMENT_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
+const MAX_DOCUMENT_BYTES = 5 * 1024 * 1024;
+const documentRef = ({ id, name, mimeType, size }) => ({ id, name, mimeType, size });
+
+function checkFile(file) {
+  if (!DOCUMENT_TYPES.includes(file.type)) throw new Error('Solo se aceptan archivos PDF, JPG o PNG.');
+  if (file.size > MAX_DOCUMENT_BYTES) throw new Error('El archivo supera el máximo de 5 MB.');
+}
+
+// Base64 sin el prefijo `data:...;base64,`.
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).split(',')[1] || '');
+    reader.onerror = () => reject(new Error('No se pudo leer el archivo.'));
+    reader.readAsDataURL(file);
+  });
+}
+
+function saveBlob(blob, name) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = name;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// RD08: título habilitante completo y con documento; no se completa con datos inventados.
+function normalizeLicense(lic = {}) {
+  const required = [
+    ['titleName', 'la denominación del título'],
+    ['institution', 'la institución emisora'],
+    ['licenseNumber', 'el número de matrícula o licencia'],
+    ['expiryDate', 'la fecha de vencimiento']
+  ];
+  for (const [key, label] of required) {
+    if (!String(lic[key] || '').trim()) throw new Error(`Falta ${label} del título habilitante (RD08).`);
+  }
+  if (!lic.document?.id) throw new Error('Falta adjuntar el documento del título habilitante (RD08).');
+  const stored = documentsStore.find(d => d.id === lic.document.id);
+  if (!stored) throw new Error(`El documento ${lic.document.id} no existe.`);
+  const { digitalDocumentUrl, ...rest } = lic;
+  return { ...rest, status: rest.status || 'habilitado', document: documentRef(stored) };
+}
+
+// RD09: un docente sin título vigente no puede tener clases ni turnos a cargo.
+function checkCoachQualified(coachId) {
+  const coach = coachesStore.find(c => c.id === coachId);
+  if (!coach) return;
+  const lic = coach.licenseDetails || {};
+  const today = maxBookingDate(0);
+  if (!lic.document?.id) throw new Error(`${coach.name} no tiene cargado el documento del título habilitante (RD08).`);
+  if (lic.status !== 'habilitado') throw new Error(`El título habilitante de ${coach.name} no está habilitado (RD09).`);
+  if ((lic.expiryDate || '') < today) throw new Error(`El título habilitante de ${coach.name} venció el ${lic.expiryDate} (RD09).`);
+}
+
+// internalRulesDocument: undefined no lo cambia, null lo quita.
+function applyRules(item, internalRules, internalRulesDocument) {
+  const next = { ...item };
+  if (internalRules !== undefined) next.internalRules = internalRules;
+  if (internalRulesDocument === null) {
+    delete next.internalRulesDocument;
+  } else if (internalRulesDocument) {
+    const stored = documentsStore.find(d => d.id === internalRulesDocument.id);
+    if (!stored) throw new Error(`El documento ${internalRulesDocument.id} no existe.`);
+    next.internalRulesDocument = documentRef(stored);
+  }
+  return next;
+}
+
+// Último día reservable (AAAA-MM-DD en hora local) según la antelación máxima del club.
+export function maxBookingDate(maxAdvanceBookingDays) {
+  const limit = new Date();
+  limit.setDate(limit.getDate() + Number(maxAdvanceBookingDays));
+  return `${limit.getFullYear()}-${String(limit.getMonth() + 1).padStart(2, '0')}-${String(limit.getDate()).padStart(2, '0')}`;
+}
+
+function checkBookingWindow(date) {
+  const { maxAdvanceBookingDays } = clubConfigStore;
+  const limit = maxBookingDate(maxAdvanceBookingDays);
+  if (date && date > limit) {
+    throw new Error(`Las reservas se pueden hacer con hasta ${maxAdvanceBookingDays} días de antelación (hasta el ${limit}) (RD05).`);
+  }
+}
 
 const nowStamp = () => new Date().toISOString().replace('T', ' ').substring(0, 16);
 
@@ -302,6 +400,7 @@ const reservationsMock = {
   },
   async create(bookingData) {
     await delay();
+    checkBookingWindow(bookingData.date);
     const newId = `RES-${new Date().getFullYear()}-${String(reservationsStore.length + 1).padStart(3, '0')}`;
     const newRecId = `REC-50-${Math.floor(1000 + Math.random() * 9000)}`;
 
@@ -341,7 +440,7 @@ const reservationsMock = {
 
     return { data: newReservation, receipt: depositReceipt };
   },
-  async payRemainingBalance(reservationId, paymentMethod = 'Efectivo') {
+  async payRemainingBalance(reservationId, paymentMethod = 'Mercado Pago (QR)') {
     await delay();
     const finalRecId = `REC-FINAL-${Math.floor(1000 + Math.random() * 9000)}`;
     let target = null;
@@ -384,6 +483,10 @@ const reservationsMock = {
   // RF021: modificar reserva (fecha, horario, cancha, jugadores)
   async update(reservationId, updatedData) {
     await delay();
+    const current = reservationsStore.find(r => r.id === reservationId);
+    if (current && updatedData.date && updatedData.date !== current.date) {
+      checkBookingWindow(updatedData.date);
+    }
     reservationsStore = reservationsStore.map(res => {
       if (res.id !== reservationId) return res;
       const next = { ...res, ...updatedData };
@@ -414,11 +517,14 @@ const reservationsMock = {
     reservationsStore = reservationsStore.filter(r => r.id !== reservationId);
     return { success: true };
   },
-  async cancel(reservationId, hoursInAdvance) {
+  async cancel(reservationId) {
     await delay();
-    // RD02/RD03/RD04: con >= 6hs de antelación corresponde reembolso;
-    // fuera de plazo se aplica un cargo (retención del 50% de la seña).
-    const isWithinFreeWindow = hoursInAdvance >= 6;
+    // RD02/RD03/RD04: con la antelación mínima del club corresponde reembolso; fuera de plazo se
+    // aplica un cargo (retención de la seña). Las horas salen del inicio de la reserva, como en la API.
+    const { freeCancellationHours, lateCancellationRetentionPercent } = clubConfigStore;
+    const target = reservationsStore.find(r => r.id === reservationId);
+    const hoursInAdvance = target ? Math.round(calculateHoursUntil(target.date, target.startTime) * 10) / 10 : 0;
+    const isWithinFreeWindow = hoursInAdvance >= freeCancellationHours;
     let cancelledRes = null;
 
     reservationsStore = reservationsStore.map(res => {
@@ -429,9 +535,9 @@ const reservationsMock = {
           cancellationDetails: {
             cancelledAt: new Date().toISOString(),
             hoursInAdvance,
-            policyApplied: isWithinFreeWindow 
-              ? 'Cancelación anticipada (>6hs): Reembolso de seña según política.'
-              : 'Cancelación tardía (<6hs): Se aplica retención del 50% de seña por costo operativo.'
+            policyApplied: isWithinFreeWindow
+              ? `Cancelación anticipada (>=${freeCancellationHours}hs): Reembolso de seña según política.`
+              : `Cancelación tardía (<${freeCancellationHours}hs): Se aplica retención del ${lateCancellationRetentionPercent}% de seña por costo operativo.`
           }
         };
         return cancelledRes;
@@ -462,7 +568,7 @@ const reservationsMock = {
           processedBy: 'Sistema de Reservas'
         };
       } else {
-        const retained = Math.round(deposit * 0.5);
+        const retained = Math.round(deposit * lateCancellationRetentionPercent / 100);
         penaltyReceipt = {
           id: `REC-CARGO-${Math.floor(1000 + Math.random() * 9000)}`,
           reservationId: cancelledRes.id,
@@ -471,7 +577,7 @@ const reservationsMock = {
           concept: `Cargo por cancelación fuera de plazo - ${cancelledRes.courtName}`,
           items: [
             { description: `Seña abonada (${cancelledRes.id})`, amount: deposit },
-            { description: 'Retención 50% por cancelación con menos de 6 hs', amount: retained },
+            { description: `Retención ${lateCancellationRetentionPercent}% por cancelación con menos de ${freeCancellationHours} hs`, amount: retained },
             { description: 'Saldo reintegrado como crédito en cuenta', amount: deposit - retained }
           ],
           totalPaid: retained,
@@ -487,7 +593,7 @@ const reservationsMock = {
           clientDni: lead.dni || '00.000.000',
           relatedReservationId: cancelledRes.id,
           relatedReceiptId: cancelledRes.depositReceiptNumber || null,
-          reason: `Cancelación fuera de plazo (${hoursInAdvance} hs). Se retiene el 50% de la seña y se reintegra el resto.`,
+          reason: `Cancelación fuera de plazo (${hoursInAdvance} hs). Se retiene el ${lateCancellationRetentionPercent}% de la seña y se reintegra el resto.`,
           refundType: 'parcial',
           originalAmount: deposit,
           refundAmount: deposit - retained,
@@ -535,10 +641,10 @@ const tournamentsMock = {
     tournamentsStore = tournamentsStore.filter(t => t.id !== trnId);
     return { success: true };
   },
-  async updateInternalRules(trnId, internalRules) {
+  async updateInternalRules(trnId, internalRules, internalRulesDocument) {
     await delay();
     tournamentsStore = tournamentsStore.map(t =>
-      t.id === trnId ? { ...t, internalRules } : t
+      t.id === trnId ? applyRules(t, internalRules, internalRulesDocument) : t
     );
     return { data: tournamentsStore.find(t => t.id === trnId) };
   },
@@ -690,10 +796,10 @@ const leaguesMock = {
     leaguesStore = leaguesStore.filter(l => l.id !== leagueId);
     return { success: true };
   },
-  async updateInternalRules(leagueId, internalRules) {
+  async updateInternalRules(leagueId, internalRules, internalRulesDocument) {
     await delay();
     leaguesStore = leaguesStore.map(l =>
-      l.id === leagueId ? { ...l, internalRules } : l
+      l.id === leagueId ? applyRules(l, internalRules, internalRulesDocument) : l
     );
     return { data: leaguesStore.find(l => l.id === leagueId) };
   },
@@ -866,15 +972,7 @@ const coachesAndClassesMock = {
       ...coachData,
       id: `coach-${Date.now()}`,
       hasOfficialLicense: true,
-      licenseDetails: {
-        titleName: coachData.licenseDetails?.titleName || 'Profesor de Tenis Certificado',
-        institution: coachData.licenseDetails?.institution || 'Asociación Argentina de Tenis (AAT)',
-        licenseNumber: coachData.licenseDetails?.licenseNumber || `AAT-LIC-${Math.floor(10000 + Math.random() * 90000)}`,
-        issueDate: coachData.licenseDetails?.issueDate || new Date().toISOString().split('T')[0],
-        expiryDate: coachData.licenseDetails?.expiryDate || '2029-12-31',
-        status: 'habilitado',
-        digitalDocumentUrl: coachData.licenseDetails?.digitalDocumentUrl || 'Certificado_Oficial_AAT_Registrado.pdf'
-      },
+      licenseDetails: normalizeLicense(coachData.licenseDetails),
       photo: coachData.photo || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80'
     };
     coachesStore.push(newCoach);
@@ -882,8 +980,11 @@ const coachesAndClassesMock = {
   },
   async updateCoach(coachId, updatedData) {
     await delay();
+    const patch = updatedData.licenseDetails
+      ? { ...updatedData, licenseDetails: normalizeLicense(updatedData.licenseDetails), hasOfficialLicense: true }
+      : updatedData;
     coachesStore = coachesStore.map(c =>
-      c.id === coachId ? { ...c, ...updatedData } : c
+      c.id === coachId ? { ...c, ...patch } : c
     );
     return { data: coachesStore.find(c => c.id === coachId) };
   },
@@ -902,7 +1003,7 @@ const coachesAndClassesMock = {
   async updateCoachLicense(coachId, licenseDetails) {
     await delay();
     coachesStore = coachesStore.map(c =>
-      c.id === coachId ? { ...c, licenseDetails: { ...c.licenseDetails, ...licenseDetails } } : c
+      c.id === coachId ? { ...c, licenseDetails: normalizeLicense({ ...c.licenseDetails, ...licenseDetails }), hasOfficialLicense: true } : c
     );
     return { data: coachesStore.find(c => c.id === coachId) };
   },
@@ -917,6 +1018,7 @@ const coachesAndClassesMock = {
     if (classData.maxCapacity > 30) {
       throw new Error('El cupo reglamentario máximo es de hasta 30 alumnos.');
     }
+    checkCoachQualified(classData.coachId);
     const newClass = {
       ...classData,
       kind: classData.kind || 'clase',
@@ -933,6 +1035,10 @@ const coachesAndClassesMock = {
     await delay();
     if (updatedData.maxCapacity && updatedData.maxCapacity > 30) {
       throw new Error('El cupo reglamentario máximo es de hasta 30 alumnos.');
+    }
+    const currentClass = classesStore.find(c => c.id === classId);
+    if (currentClass && updatedData.coachId && updatedData.coachId !== currentClass.coachId) {
+      checkCoachQualified(updatedData.coachId);
     }
     classesStore = classesStore.map(c =>
       c.id === classId ? {
@@ -1066,6 +1172,7 @@ const coachesAndClassesMock = {
   },
   async createPrivateClass(data) {
     await delay();
+    checkCoachQualified(data.coachId);
     const newPrv = {
       ...data,
       kind: data.kind || 'clase',
@@ -1077,6 +1184,10 @@ const coachesAndClassesMock = {
   },
   async updatePrivateClass(id, updatedData) {
     await delay();
+    const current = privateClassesStore.find(p => p.id === id);
+    if (current && updatedData.coachId && updatedData.coachId !== current.coachId) {
+      checkCoachQualified(updatedData.coachId);
+    }
     privateClassesStore = privateClassesStore.map(p =>
       p.id === id ? { ...p, ...updatedData } : p
     );
@@ -1109,6 +1220,51 @@ const receiptsMock = {
     await delay();
     receiptsStore = [receiptData, ...receiptsStore];
     return { data: receiptData };
+  }
+};
+
+// ---- Documentos adjuntos (RF041, RF048, RD08) ----
+const documentsMock = {
+  async upload(file) {
+    checkFile(file);
+    const data = await fileToBase64(file);
+    await delay();
+    const stored = { id: `doc-${Date.now()}`, name: file.name, mimeType: file.type, size: file.size, data };
+    documentsStore = [stored, ...documentsStore];
+    return { data: documentRef(stored) };
+  },
+  async download(ref) {
+    await delay();
+    const stored = documentsStore.find(d => d.id === ref?.id);
+    if (!stored) throw new Error('El documento no existe.');
+    const bytes = Uint8Array.from(atob(stored.data), ch => ch.charCodeAt(0));
+    saveBlob(new Blob([bytes], { type: stored.mimeType }), stored.name);
+  }
+};
+
+// ---- Configuración del club (RD02 - RD05) ----
+const clubConfigMock = {
+  async get() {
+    await delay();
+    return { data: clubConfigStore };
+  },
+  async update(configData) {
+    await delay();
+    const next = { ...clubConfigStore };
+    Object.keys(DEFAULT_CLUB_CONFIG).forEach(k => {
+      if (configData[k] !== undefined) next[k] = Number(configData[k]);
+    });
+    if (!(next.freeCancellationHours > 0)) {
+      throw new Error('El plazo de cancelación sin cargo debe ser mayor a 0 horas.');
+    }
+    if (!(next.lateCancellationRetentionPercent >= 0 && next.lateCancellationRetentionPercent <= 100)) {
+      throw new Error('La retención por cancelación tardía debe estar entre 0% y 100%.');
+    }
+    if (!(next.maxAdvanceBookingDays >= 1) || !Number.isInteger(next.maxAdvanceBookingDays)) {
+      throw new Error('La antelación máxima de reserva debe ser un número entero de días, mínimo 1.');
+    }
+    clubConfigStore = next;
+    return { data: clubConfigStore };
   }
 };
 
@@ -1191,7 +1347,7 @@ const invoicesMock = {
       taxRate,
       taxAmount,
       total: subtotal + taxAmount,
-      paymentMethod: invoiceData.paymentMethod || 'Efectivo',
+      paymentMethod: invoiceData.paymentMethod || 'Tarjeta de Débito',
       relatedReceiptId: invoiceData.relatedReceiptId || null,
       status: 'emitida',
       date: nowStamp(),
@@ -1325,16 +1481,17 @@ const reservationsHttp = {
   // Turnos tomados de todo el club, sin datos de quién reservó (getAll solo trae las propias).
   getOccupancy: () => api.get('/reservas/ocupacion'),
   create: (bookingData) => body(api.post('/reservas', bookingData)),
-  payRemainingBalance: (reservationId, paymentMethod = 'Efectivo') =>
+  payRemainingBalance: (reservationId, paymentMethod = 'Mercado Pago (QR)') =>
     api.post(`/reservas/${reservationId}/pagar-saldo`, { paymentMethod }),
-  cancel: (reservationId, hoursInAdvance) =>
-    body(api.post(`/reservas/${reservationId}/cancelar`, { hoursInAdvance }))
+  cancel: (reservationId) => body(api.post(`/reservas/${reservationId}/cancelar`))
 };
 
 // Torneos y ligas comparten las rutas de reglamento, inscripciones y enfrentamientos.
 const competitionHttp = (path) => ({
   ...crud(path),
-  updateInternalRules: (id, internalRules) => api.put(`${path}/${id}/reglamento`, { internalRules }),
+  // internalRulesDocument undefined no viaja en el JSON (no lo cambia); null lo quita.
+  updateInternalRules: (id, internalRules, internalRulesDocument) =>
+    api.put(`${path}/${id}/reglamento`, { internalRules, internalRulesDocument }),
   enroll: (id, participantData) => body(api.post(`${path}/${id}/inscripciones`, participantData)),
   removeParticipant: (id, participantId) => body(api.delete(`${path}/${id}/inscripciones/${participantId}`)),
   addMatch: (id, round, matchData) => body(api.post(`${path}/${id}/enfrentamientos`, { ...matchData, round })),
@@ -1393,6 +1550,23 @@ const receiptsHttp = {
 
 const discountsHttp = crud('/descuentos');
 
+const documentsHttp = {
+  async upload(file) {
+    checkFile(file);
+    const data = await fileToBase64(file);
+    return api.post('/documentos', { name: file.name, data });
+  },
+  async download(ref) {
+    const res = await api.get(`/documentos/${ref.id}`, { responseType: 'blob' });
+    saveBlob(res.data, ref.name);
+  }
+};
+
+const clubConfigHttp = {
+  get: () => api.get('/configuracion'),
+  update: (configData) => api.put('/configuracion', configData)
+};
+
 const invoicesHttp = {
   getAll: () => api.get('/facturas'),
   create: (invoiceData) => api.post('/facturas', invoiceData),
@@ -1431,6 +1605,8 @@ export const leaguesService = withBackend(leaguesMock, leaguesHttp);
 export const coachesAndClassesService = withBackend(coachesAndClassesMock, coachesAndClassesHttp);
 export const receiptsService = withBackend(receiptsMock, receiptsHttp);
 export const discountsService = withBackend(discountsMock, discountsHttp);
+export const clubConfigService = withBackend(clubConfigMock, clubConfigHttp);
+export const documentsService = withBackend(documentsMock, documentsHttp);
 export const invoicesService = withBackend(invoicesMock, invoicesHttp);
 export const refundsService = withBackend(refundsMock, refundsHttp);
 export const usersService = withBackend(usersMock, usersHttp);

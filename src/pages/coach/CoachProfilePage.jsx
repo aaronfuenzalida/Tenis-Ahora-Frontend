@@ -132,8 +132,8 @@ export default function CoachProfilePage() {
               <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
                 <div className="flex items-center gap-2">
                   <div>
-                    <span className="font-semibold text-slate-800 block">{license?.digitalDocumentUrl}</span>
-                    <span className="text-[11px] text-slate-500">Documento digital legalizado</span>
+                    <span className="font-semibold text-slate-800 block">{license?.document?.name || 'Sin documento adjunto'}</span>
+                    <span className="text-[11px] text-slate-500">Título habilitante digitalizado</span>
                   </div>
                 </div>
                 <button

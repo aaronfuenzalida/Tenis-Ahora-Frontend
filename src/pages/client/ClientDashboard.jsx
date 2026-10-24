@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { reservationsService, courtsService, tournamentsService } from '../../services/api';
+import { reservationsService, courtsService, tournamentsService, clubConfigService, DEFAULT_CLUB_CONFIG } from '../../services/api';
 import ReceiptModal from '../../components/common/ReceiptModal';
 import MemberCardModal from '../../components/common/MemberCardModal';
 import Modal from '../../components/common/Modal';
@@ -15,6 +15,7 @@ export default function ClientDashboard() {
   const [selectedReceipt, setSelectedReceipt] = useState(null);
   const [showCardModal, setShowCardModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [clubConfig, setClubConfig] = useState(DEFAULT_CLUB_CONFIG);
 
   useEffect(() => {
     loadData();
@@ -24,20 +25,20 @@ export default function ClientDashboard() {
     reservationsService.getAll().then(res => setReservations(res.data));
     courtsService.getAll().then(res => setCourts(res.data));
     tournamentsService.getAll().then(res => setTournaments(res.data));
+    clubConfigService.get().then(res => setClubConfig(res.data));
   };
 
   const upcomingBooking = reservations.find(r => r.status === 'confirmada');
 
   const handleConfirmCancel = async () => {
     if (!upcomingBooking) return;
-    const hoursLeft = calculateHoursUntil(upcomingBooking.date, upcomingBooking.startTime);
-    await reservationsService.cancel(upcomingBooking.id, hoursLeft);
+    const result = await reservationsService.cancel(upcomingBooking.id);
     setShowCancelModal(false);
     loadData();
-    if (hoursLeft >= 6) {
-      alert('Reserva cancelada con más de 6 horas de antelación. Se ha gestionado el reintegro de la seña .');
+    if (result.isWithinFreeWindow) {
+      alert(`Reserva cancelada con ${clubConfig.freeCancellationHours} horas o más de antelación. Se ha gestionado el reintegro de la seña.`);
     } else {
-      alert('Reserva cancelada con menos de 6 horas de antelación. Se ha aplicado la retención de la seña.');
+      alert(`Reserva cancelada con menos de ${clubConfig.freeCancellationHours} horas de antelación. Se ha aplicado la retención del ${clubConfig.lateCancellationRetentionPercent}% de la seña.`);
     }
   };
 
@@ -217,7 +218,7 @@ export default function ClientDashboard() {
           <div className="p-4 bg-tennis-50/70 border border-tennis-200 rounded-2xl flex items-start gap-3 text-xs text-tennis-900">
             <div>
               <strong className="block font-bold">Política de Reserva y Cancelación:</strong>
-              Para confirmar una cancha se abona el 50% de seña. Las cancelaciones efectuadas con un mínimo de <strong>6 horas de antelación</strong> contemplan reembolso conforme al reglamento del club.
+              Para confirmar una cancha se abona el 50% de seña. Las cancelaciones efectuadas con un mínimo de <strong>{clubConfig.freeCancellationHours} horas de antelación</strong> contemplan reembolso conforme al reglamento del club.
             </div>
           </div>
 
@@ -285,10 +286,10 @@ export default function ClientDashboard() {
         />
       )}
 
-      {/* Cancellation Modal with Real-time 6h rule calculation */}
+      {/* Cancellation Modal: antelación en tiempo real contra el plazo del club */}
       {showCancelModal && upcomingBooking && (() => {
         const hoursLeft = calculateHoursUntil(upcomingBooking.date, upcomingBooking.startTime);
-        const isEligibleForRefund = hoursLeft >= 6;
+        const isEligibleForRefund = hoursLeft >= clubConfig.freeCancellationHours;
 
         return (
           <Modal
@@ -318,7 +319,7 @@ export default function ClientDashboard() {
                 {isEligibleForRefund ? (
                   <div className="p-2.5 bg-tennis-50 rounded-lg border border-tennis-200 text-tennis-800 space-y-1">
                     <strong className="flex items-center gap-1 font-bold">
-                      Cancelación dentro del plazo (&ge; 6 hs)
+                      Cancelación dentro del plazo (&ge; {clubConfig.freeCancellationHours} hs)
                     </strong>
                     <p className="text-[11px]">
                       Corresponde el <strong>reintegro total del 100%</strong> de la seña abonada (${upcomingBooking.depositPaid?.toLocaleString('es-AR')}) conforme a la política del club.
@@ -327,10 +328,10 @@ export default function ClientDashboard() {
                 ) : (
                   <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-200 text-slate-800 space-y-1">
                     <strong className="flex items-center gap-1 font-bold">
-                      Cancelación fuera de término (&lt;6 hs)
+                      Cancelación fuera de término (&lt; {clubConfig.freeCancellationHours} hs)
                     </strong>
                     <p className="text-[11px]">
-                      Se aplicará la <strong>retención del 50% de la seña</strong> (${upcomingBooking.depositPaid?.toLocaleString('es-AR')}) en concepto de costos operativos y penalidad por falta de preaviso.
+                      Se aplicará la <strong>retención del {clubConfig.lateCancellationRetentionPercent}% de la seña</strong> (${Math.round((upcomingBooking.depositPaid || 0) * clubConfig.lateCancellationRetentionPercent / 100).toLocaleString('es-AR')}) en concepto de costos operativos y penalidad por falta de preaviso.
                     </p>
                   </div>
                 )}

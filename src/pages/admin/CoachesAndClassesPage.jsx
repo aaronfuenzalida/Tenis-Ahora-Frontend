@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { coachesAndClassesService } from '../../services/api';
+import { coachesAndClassesService, courtTypesService, documentsService } from '../../services/api';
 import { Edit, Trash2 } from 'lucide-react';
 import CoachCredentialsModal from '../../components/common/CoachCredentialsModal';
 import AttendanceSheetModal from '../../components/common/AttendanceSheetModal';
@@ -29,6 +29,9 @@ export default function CoachesAndClassesPage() {
 
   // Forms for Coaches
   const [coachToEdit, setCoachToEdit] = useState(null);
+  // RD08: archivo del título habilitante (obligatorio en el alta, opcional para reemplazarlo)
+  const [newCoachFile, setNewCoachFile] = useState(null);
+  const [editCoachFile, setEditCoachFile] = useState(null);
   const [coachToDelete, setCoachToDelete] = useState(null);
   const [coachToAvail, setCoachToAvail] = useState(null);
   const [availHoursInput, setAvailHoursInput] = useState('');
@@ -55,6 +58,7 @@ export default function CoachesAndClassesPage() {
   // STATE: GROUP CLASSES
   // ==========================================
   const [classes, setClasses] = useState([]);
+  const [courtTypes, setCourtTypes] = useState([]);
   const [selectedClassForAttendance, setSelectedClassForAttendance] = useState(null);
   const [selectedClassForSheet, setSelectedClassForSheet] = useState(null);
 
@@ -112,14 +116,16 @@ export default function CoachesAndClassesPage() {
   }, []);
 
   const loadAllData = async () => {
-    const [cRes, clRes, prvRes] = await Promise.all([
+    const [cRes, clRes, prvRes, ctRes] = await Promise.all([
       coachesAndClassesService.getCoaches(),
       coachesAndClassesService.getClasses(),
-      coachesAndClassesService.getPrivateClasses()
+      coachesAndClassesService.getPrivateClasses(),
+      courtTypesService.getAll()
     ]);
     setCoaches(cRes.data);
     setClasses(clRes.data);
     setPrivateClasses(prvRes.data);
+    setCourtTypes(ctRes.data);
 
     if (cRes.data.length > 0) {
       if (!newClassForm.coachId) {
@@ -149,29 +155,40 @@ export default function CoachesAndClassesPage() {
       alert('Debe ingresar el número de matrícula o licencia deportiva oficial.');
       return;
     }
-    await coachesAndClassesService.createCoach({
-      name: newCoachForm.name,
-      type: newCoachForm.type,
-      dni: newCoachForm.dni,
-      phone: newCoachForm.phone,
-      email: newCoachForm.email,
-      specialty: newCoachForm.specialty,
-      experienceYears: Number(newCoachForm.experienceYears) || 1,
-      hourlyRatePrivate: Number(newCoachForm.hourlyRatePrivate) || 5000,
-      availableHours: newCoachForm.availableHours,
-      bio: newCoachForm.bio || 'Docente oficial habilitado por la institución.',
-      licenseDetails: {
-        titleName: newCoachForm.titleName,
-        institution: newCoachForm.institution,
-        licenseNumber: newCoachForm.licenseNumber,
-        issueDate: newCoachForm.issueDate,
-        expiryDate: newCoachForm.expiryDate,
-        status: 'habilitado',
-        digitalDocumentUrl: `Certificado_${newCoachForm.licenseNumber}.pdf`
-      }
-    });
+    if (!newCoachFile) {
+      alert('Debe adjuntar el documento del título habilitante (RD08).');
+      return;
+    }
+    try {
+      const docRes = await documentsService.upload(newCoachFile);
+      await coachesAndClassesService.createCoach({
+        name: newCoachForm.name,
+        type: newCoachForm.type,
+        dni: newCoachForm.dni,
+        phone: newCoachForm.phone,
+        email: newCoachForm.email,
+        specialty: newCoachForm.specialty,
+        experienceYears: Number(newCoachForm.experienceYears) || 1,
+        hourlyRatePrivate: Number(newCoachForm.hourlyRatePrivate) || 5000,
+        availableHours: newCoachForm.availableHours,
+        bio: newCoachForm.bio || 'Docente oficial habilitado por la institución.',
+        licenseDetails: {
+          titleName: newCoachForm.titleName,
+          institution: newCoachForm.institution,
+          licenseNumber: newCoachForm.licenseNumber,
+          issueDate: newCoachForm.issueDate,
+          expiryDate: newCoachForm.expiryDate,
+          status: 'habilitado',
+          document: docRes.data
+        }
+      });
+    } catch (err) {
+      alert(err.message || 'No se pudo registrar al docente.');
+      return;
+    }
 
     setShowCreateCoachModal(false);
+    setNewCoachFile(null);
     setNewCoachForm({
       name: '',
       type: 'Profesor',
@@ -210,35 +227,43 @@ export default function CoachesAndClassesPage() {
       licenseNumber: coach.licenseDetails?.licenseNumber || '',
       issueDate: coach.licenseDetails?.issueDate || '',
       expiryDate: coach.licenseDetails?.expiryDate || '',
-      status: coach.licenseDetails?.status || 'habilitado'
+      status: coach.licenseDetails?.status || 'habilitado',
+      document: coach.licenseDetails?.document || null
     });
+    setEditCoachFile(null);
     setShowEditCoachModal(true);
   };
 
   const handleSaveEditCoach = async (e) => {
     e.preventDefault();
     if (!coachToEdit) return;
-    await coachesAndClassesService.updateCoach(coachToEdit.id, {
-      name: coachToEdit.name,
-      type: coachToEdit.type,
-      dni: coachToEdit.dni,
-      phone: coachToEdit.phone,
-      email: coachToEdit.email,
-      specialty: coachToEdit.specialty,
-      experienceYears: Number(coachToEdit.experienceYears),
-      hourlyRatePrivate: Number(coachToEdit.hourlyRatePrivate),
-      availableHours: coachToEdit.availableHours,
-      bio: coachToEdit.bio,
-      licenseDetails: {
-        titleName: coachToEdit.titleName,
-        institution: coachToEdit.institution,
-        licenseNumber: coachToEdit.licenseNumber,
-        issueDate: coachToEdit.issueDate,
-        expiryDate: coachToEdit.expiryDate,
-        status: coachToEdit.status,
-        digitalDocumentUrl: `Certificado_${coachToEdit.licenseNumber}.pdf`
-      }
-    });
+    try {
+      const licenseDocument = editCoachFile ? (await documentsService.upload(editCoachFile)).data : coachToEdit.document;
+      await coachesAndClassesService.updateCoach(coachToEdit.id, {
+        name: coachToEdit.name,
+        type: coachToEdit.type,
+        dni: coachToEdit.dni,
+        phone: coachToEdit.phone,
+        email: coachToEdit.email,
+        specialty: coachToEdit.specialty,
+        experienceYears: Number(coachToEdit.experienceYears),
+        hourlyRatePrivate: Number(coachToEdit.hourlyRatePrivate),
+        availableHours: coachToEdit.availableHours,
+        bio: coachToEdit.bio,
+        licenseDetails: {
+          titleName: coachToEdit.titleName,
+          institution: coachToEdit.institution,
+          licenseNumber: coachToEdit.licenseNumber,
+          issueDate: coachToEdit.issueDate,
+          expiryDate: coachToEdit.expiryDate,
+          status: coachToEdit.status,
+          document: licenseDocument
+        }
+      });
+    } catch (err) {
+      alert(err.message || 'No se pudo modificar al docente.');
+      return;
+    }
     setShowEditCoachModal(false);
     setCoachToEdit(null);
     await loadAllData();
@@ -270,17 +295,31 @@ export default function CoachesAndClassesPage() {
   // ==========================================
   // HANDLERS: GROUP CLASSES
   // ==========================================
+  // RD10: el cupo lo fija el tipo de cancha (la superficie va entre paréntesis en courtAssigned),
+  // sin pasar nunca el tope de 30 de RD07.
+  const capacityLimitFor = (courtAssigned) => {
+    const surface = /\(([^)]+)\)/.exec(courtAssigned || '')?.[1];
+    const type = courtTypes.find(t => t.name === surface);
+    return Math.min(Number(type?.maxStudentsPerClass) || 30, 30);
+  };
+
   const handleCreateClass = async (e) => {
     e.preventDefault();
-    if (newClassForm.maxCapacity > 30) {
-      alert('Por disposición reglamentaria del club, el cupo máximo por clase no puede superar los 30 alumnos.');
+    const limit = capacityLimitFor(newClassForm.courtAssigned);
+    if (newClassForm.maxCapacity > limit) {
+      alert(`El cupo máximo para ${newClassForm.courtAssigned} es de ${limit} alumnos.`);
       return;
     }
     const coachObj = coaches.find(c => c.id === newClassForm.coachId);
-    await coachesAndClassesService.addClass({
-      ...newClassForm,
-      coachName: coachObj ? coachObj.name : 'Profesor Asignado'
-    });
+    try {
+      await coachesAndClassesService.addClass({
+        ...newClassForm,
+        coachName: coachObj ? coachObj.name : 'Profesor Asignado'
+      });
+    } catch (err) {
+      alert(err.message || 'No se pudo registrar la clase.');
+      return;
+    }
     setShowAddClassModal(false);
     await loadAllData();
   };
@@ -304,15 +343,21 @@ export default function CoachesAndClassesPage() {
   const handleSaveEditClass = async (e) => {
     e.preventDefault();
     if (!classToEdit) return;
-    if (classToEdit.maxCapacity > 30) {
-      alert('El cupo no puede exceder el límite reglamentario de 30 alumnos.');
+    const limit = capacityLimitFor(classToEdit.courtAssigned);
+    if (classToEdit.maxCapacity > limit) {
+      alert(`El cupo máximo para ${classToEdit.courtAssigned} es de ${limit} alumnos.`);
       return;
     }
     const coachObj = coaches.find(c => c.id === classToEdit.coachId);
-    await coachesAndClassesService.updateClass(classToEdit.id, {
-      ...classToEdit,
-      coachName: coachObj ? coachObj.name : classToEdit.coachName
-    });
+    try {
+      await coachesAndClassesService.updateClass(classToEdit.id, {
+        ...classToEdit,
+        coachName: coachObj ? coachObj.name : classToEdit.coachName
+      });
+    } catch (err) {
+      alert(err.message || 'No se pudo modificar la clase.');
+      return;
+    }
     setShowEditClassModal(false);
     setClassToEdit(null);
     await loadAllData();
@@ -380,10 +425,15 @@ export default function CoachesAndClassesPage() {
   const handleCreatePrivate = async (e) => {
     e.preventDefault();
     const coachObj = coaches.find(c => c.id === newPrivateForm.coachId);
-    await coachesAndClassesService.createPrivateClass({
-      ...newPrivateForm,
-      coachName: coachObj ? coachObj.name : 'Profesor Asignado'
-    });
+    try {
+      await coachesAndClassesService.createPrivateClass({
+        ...newPrivateForm,
+        coachName: coachObj ? coachObj.name : 'Profesor Asignado'
+      });
+    } catch (err) {
+      alert(err.message || 'No se pudo registrar el turno particular.');
+      return;
+    }
     setShowAddPrivateModal(false);
     setNewPrivateForm({
       kind: 'clase',
@@ -410,10 +460,15 @@ export default function CoachesAndClassesPage() {
     e.preventDefault();
     if (!privateToEdit) return;
     const coachObj = coaches.find(c => c.id === privateToEdit.coachId);
-    await coachesAndClassesService.updatePrivateClass(privateToEdit.id, {
-      ...privateToEdit,
-      coachName: coachObj ? coachObj.name : privateToEdit.coachName
-    });
+    try {
+      await coachesAndClassesService.updatePrivateClass(privateToEdit.id, {
+        ...privateToEdit,
+        coachName: coachObj ? coachObj.name : privateToEdit.coachName
+      });
+    } catch (err) {
+      alert(err.message || 'No se pudo modificar el turno particular.');
+      return;
+    }
     setShowEditPrivateModal(false);
     setPrivateToEdit(null);
     await loadAllData();
@@ -1119,6 +1174,17 @@ export default function CoachesAndClassesPage() {
                 />
               </div>
             </div>
+
+            <div>
+              <label className="font-semibold text-slate-700 block mb-1">Documento del Título (PDF, JPG o PNG, máx. 5 MB) *</label>
+              <input
+                type="file"
+                required
+                accept="application/pdf,image/jpeg,image/png"
+                onChange={(e) => setNewCoachFile(e.target.files?.[0] || null)}
+                className="w-full text-xs"
+              />
+            </div>
           </div>
 
           <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
@@ -1253,6 +1319,28 @@ export default function CoachesAndClassesPage() {
                     className="w-full p-2 rounded-lg border border-slate-200 bg-white"
                   />
                 </div>
+                <div>
+                  <label className="font-semibold text-slate-700 block mb-1">Vigencia / Vencimiento *</label>
+                  <input
+                    type="date"
+                    required
+                    value={coachToEdit.expiryDate}
+                    onChange={(e) => setCoachToEdit({ ...coachToEdit, expiryDate: e.target.value })}
+                    className="w-full p-2 rounded-lg border border-slate-200 bg-white"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="font-semibold text-slate-700 block mb-1">
+                  Documento del Título {coachToEdit.document ? `(actual: ${coachToEdit.document.name})` : '(sin documento: obligatorio)'}
+                </label>
+                <input
+                  type="file"
+                  required={!coachToEdit.document}
+                  accept="application/pdf,image/jpeg,image/png"
+                  onChange={(e) => setEditCoachFile(e.target.files?.[0] || null)}
+                  className="w-full text-xs"
+                />
               </div>
             </div>
 
@@ -1403,11 +1491,11 @@ export default function CoachesAndClassesPage() {
             </div>
 
             <div>
-              <label className="font-semibold text-slate-700 uppercase block mb-1">Cupo Máximo (≤30) *</label>
+              <label className="font-semibold text-slate-700 uppercase block mb-1">Cupo Máximo (≤{capacityLimitFor(newClassForm.courtAssigned)}) *</label>
               <input
                 type="number"
                 min={1}
-                max={30}
+                max={capacityLimitFor(newClassForm.courtAssigned)}
                 required
                 value={newClassForm.maxCapacity}
                 onChange={(e) => setNewClassForm({ ...newClassForm, maxCapacity: Number(e.target.value) })}
@@ -1529,11 +1617,11 @@ export default function CoachesAndClassesPage() {
               </div>
 
               <div>
-                <label className="font-semibold text-slate-700 uppercase block mb-1">Cupo Máximo (≤30) *</label>
+                <label className="font-semibold text-slate-700 uppercase block mb-1">Cupo Máximo (≤{capacityLimitFor(classToEdit.courtAssigned)}) *</label>
                 <input
                   type="number"
                   min={1}
-                  max={30}
+                  max={capacityLimitFor(classToEdit.courtAssigned)}
                   required
                   value={classToEdit.maxCapacity}
                   onChange={(e) => setClassToEdit({ ...classToEdit, maxCapacity: Number(e.target.value) })}

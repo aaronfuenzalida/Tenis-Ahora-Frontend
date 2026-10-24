@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { getSlotBlock } from '../admin/CourtAvailabilityPanel';
+import { DEFAULT_CLUB_CONFIG, maxBookingDate } from '../../services/api';
 
 export default function CourtTimelineGrid({
   courts = [],
@@ -8,7 +10,8 @@ export default function CourtTimelineGrid({
   selectedDate,
   onSelectSlot,
   onDateChange,
-  reservations = []
+  reservations = [],
+  maxAdvanceBookingDays = DEFAULT_CLUB_CONFIG.maxAdvanceBookingDays
 }) {
   const [surfaceFilter, setSurfaceFilter] = useState('ALL');
   const [slotDuration, setSlotDuration] = useState(2); // 1 or 2 hours
@@ -50,12 +53,10 @@ export default function CourtTimelineGrid({
     return c.surfaceType.toLowerCase() === surfaceFilter.toLowerCase();
   });
 
-  // Date calculation boundaries (Max 30 days)
+  // Date calculation boundaries (antelación máxima del club, RD05)
   const today = new Date();
   const todayStr = today.toISOString().split('T')[0];
-  const maxDate = new Date();
-  maxDate.setDate(maxDate.getDate() + 30);
-  const maxDateStr = maxDate.toISOString().split('T')[0];
+  const maxDateStr = maxBookingDate(maxAdvanceBookingDays);
 
   const handlePrevDay = () => {
     const cur = new Date(selectedDate + 'T00:00:00');
@@ -101,12 +102,12 @@ export default function CourtTimelineGrid({
       };
     }
 
-    // Specific scheduled maintenance slots (e.g. Cancha 1 maintenance 12:00-14:00 on Ladrillo)
-    if (court.surfaceType === 'Ladrillo' && slot.startsWith('12:00')) {
+    const blockReason = getSlotBlock(court, selectedDate, slot);
+    if (blockReason) {
       return {
         type: 'MAINTENANCE',
-        label: 'Mantenimiento',
-        detail: 'Riego y rolado reglamentario'
+        label: 'No disponible',
+        detail: blockReason
       };
     }
 
@@ -321,11 +322,11 @@ export default function CourtTimelineGrid({
                       <td key={court.id} className="p-1.5 border-r border-slate-100 last:border-r-0">
                         <div 
                           className="h-16 p-2 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between select-none opacity-85"
-                          title="Cancha bloqueada por mantenimiento y acondicionamiento reglamentario."
+                          title={status.detail}
                         >
                           <div className="flex items-center justify-between text-[10px] font-bold text-slate-900">
                             <span className="flex items-center gap-1">
-                              Mantenimiento
+                              {status.label}
                             </span>
                           </div>
                           <p className="text-[9px] text-slate-800 line-clamp-1">{status.detail}</p>

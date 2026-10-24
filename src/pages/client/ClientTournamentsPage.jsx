@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { tournamentsService, leaguesService } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import Modal from '../../components/common/Modal';
+import { RulesDocumentLink } from '../../components/common/RulesDocument';
 import TournamentBracketTree from '../../components/common/TournamentBracketTree';
 
 export default function ClientTournamentsPage() {
@@ -245,6 +246,7 @@ export default function ClientTournamentsPage() {
                     <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">
                       {selectedTournament.internalRules || 'No se ha cargado reglamento interno específico para este torneo.'}
                     </div>
+                    <RulesDocumentLink document={selectedTournament.internalRulesDocument} />
                   </div>
                 )}
 
@@ -470,6 +472,7 @@ export default function ClientTournamentsPage() {
                     <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">
                       {selectedLeague.internalRules || 'No se ha cargado reglamento interno para esta liga.'}
                     </div>
+                    <RulesDocumentLink document={selectedLeague.internalRulesDocument} />
                   </div>
                 )}
 
