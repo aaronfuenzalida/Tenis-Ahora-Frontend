@@ -51,14 +51,6 @@ export default function CoachDashboard() {
     if (updated) setSelectedClassForAttendance(updated);
   };
 
-  const handleBulkMark = async (classId, sessionIndex, status) => {
-    await coachesAndClassesService.bulkMarkSession(classId, sessionIndex, status);
-    const clRes = await coachesAndClassesService.getClasses();
-    setClasses(clRes.data);
-    const updated = clRes.data.find(c => c.id === classId);
-    if (updated) setSelectedClassForAttendance(updated);
-  };
-
   return (
     <div className="space-y-6">
       
@@ -266,8 +258,7 @@ export default function CoachDashboard() {
         onClose={() => setSelectedClassForAttendance(null)}
         classItem={selectedClassForAttendance}
         onToggleAttendance={handleToggleAttendance}
-        onBulkMark={handleBulkMark}
-        onEnrollStudent={async (classId, studentData) => {
+onEnrollStudent={async (classId, studentData) => {
           await coachesAndClassesService.enrollStudent(classId, studentData);
           const clRes = await coachesAndClassesService.getClasses();
           setClasses(clRes.data);

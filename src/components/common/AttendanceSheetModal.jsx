@@ -12,24 +12,10 @@ export default function AttendanceSheetModal({ isOpen, onClose, classItem }) {
   const students = classItem.students || [];
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Planilla Oficial de Asistencia (Imprimible)" maxWidth="max-w-4xl">
+    <Modal isOpen={isOpen} onClose={onClose} title="Planilla de Asistencia"maxWidth="max-w-4xl">
       <div className="space-y-4">
         
-        {/* Print Action Bar (Hidden when printing) */}
-        <div className="flex items-center justify-between p-3 bg-tennis-50 rounded-2xl border border-tennis-200 text-xs text-tennis-900 no-print">
-          <div className="flex items-center gap-2">
-            <span>Formato oficial A4 apaisado para toma manual de asistencia en cancha o archivo administrativo.</span>
-          </div>
-          <button
-            type="button"
-            onClick={handlePrint}
-            className="px-4 py-2 bg-tennis-600 hover:bg-tennis-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-sm transition-colors"
-          >
-            Imprimir Planilla A4
-          </button>
-        </div>
-
-        {/* Printable Sheet */}
+{/* Printable Sheet */}
         <div id="printable-attendance-area" className="bg-white p-6 rounded-2xl border border-slate-200 text-slate-800 print:border-none print:p-0">
           
           {/* Header */}
@@ -69,7 +55,7 @@ export default function AttendanceSheetModal({ isOpen, onClose, classItem }) {
             </div>
             <div>
               <span className="text-[10px] text-slate-400 block uppercase font-bold">Inscriptos / Cupo Máx:</span>
-              <strong className="text-tennis-800 block">{students.length} / {classItem.maxCapacity || 30} alumnos (máx 30)</strong>
+              <strong className="text-tennis-800 block">{students.length} / {classItem.maxCapacity || 30} alumnos</strong>
             </div>
           </div>
 
@@ -183,7 +169,7 @@ export default function AttendanceSheetModal({ isOpen, onClose, classItem }) {
             onClick={handlePrint}
             className="px-4 py-2 bg-tennis-600 hover:bg-tennis-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow-md transition-all"
           >
-            Imprimir Planilla A4
+            Imprimir Planilla
           </button>
         </div>
 

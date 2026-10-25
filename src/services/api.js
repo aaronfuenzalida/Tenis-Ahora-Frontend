@@ -1129,26 +1129,6 @@ const coachesAndClassesMock = {
     });
     return { success: true, classes: classesStore };
   },
-  async bulkMarkSession(classId, sessionIndex, status = 'P') {
-    await delay();
-    classesStore = classesStore.map(cls => {
-      if (cls.id === classId) {
-        return {
-          ...cls,
-          students: cls.students.map(st => {
-            const currentAtt = [...(st.attendance || [])];
-            while (currentAtt.length <= sessionIndex) {
-              currentAtt.push('-');
-            }
-            currentAtt[sessionIndex] = status;
-            return { ...st, attendance: currentAtt };
-          })
-        };
-      }
-      return cls;
-    });
-    return { success: true, classes: classesStore };
-  },
   async enrollStudent(classId, studentData) {
     await delay();
     const targetClass = classesStore.find(c => c.id === classId);
@@ -1559,8 +1539,6 @@ const coachesAndClassesHttp = {
   deleteClass: classes.delete,
   toggleStudentAttendance: (classId, studentId, sessionIndex) =>
     body(api.post(`/clases/${classId}/asistencia/alternar`, { studentId, sessionIndex })),
-  bulkMarkSession: (classId, sessionIndex, status = 'P') =>
-    body(api.post(`/clases/${classId}/asistencia/sesion`, { sessionIndex, status })),
   enrollStudent: (classId, studentData) => body(api.post(`/clases/${classId}/alumnos`, studentData)),
   removeStudent: (classId, studentId) => body(api.delete(`/clases/${classId}/alumnos/${studentId}`)),
   recordAttendance: (classId, studentId, status) =>

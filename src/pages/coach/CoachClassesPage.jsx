@@ -33,14 +33,6 @@ export default function CoachClassesPage() {
     if (updated) setSelectedClassForAttendance(updated);
   };
 
-  const handleBulkMark = async (classId, sessionIndex, status) => {
-    await coachesAndClassesService.bulkMarkSession(classId, sessionIndex, status);
-    const clRes = await coachesAndClassesService.getClasses();
-    setClasses(clRes.data);
-    const updated = clRes.data.find(c => c.id === classId);
-    if (updated) setSelectedClassForAttendance(updated);
-  };
-
   return (
     <div className="space-y-6">
       
@@ -62,7 +54,7 @@ export default function CoachClassesPage() {
       </div>
 
       {/* Classes Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div id="printable-area" className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {classes.map(cls => {
           const students = cls.students || [];
           const enrolledCount = students.length;
@@ -103,8 +95,8 @@ export default function CoachClassesPage() {
                   onClick={() => setSelectedClassForAttendance(cls)}
                   className="w-full py-2.5 px-3 bg-tennis-600 hover:bg-tennis-700 text-white font-semibold text-xs rounded-xl shadow-sm flex items-center justify-center gap-1.5 transition-colors"
                 >
-                  Tomar Asistencia (Matriz)
-                </button>
+                  Tomar Asistencia
+</button>
 
                 <div className="grid grid-cols-2 gap-2">
                   <button
@@ -135,8 +127,7 @@ export default function CoachClassesPage() {
         onClose={() => setSelectedClassForAttendance(null)}
         classItem={selectedClassForAttendance}
         onToggleAttendance={handleToggleAttendance}
-        onBulkMark={handleBulkMark}
-        onEnrollStudent={async (classId, studentData) => {
+onEnrollStudent={async (classId, studentData) => {
           await coachesAndClassesService.enrollStudent(classId, studentData);
           const clRes = await coachesAndClassesService.getClasses();
           setClasses(clRes.data);

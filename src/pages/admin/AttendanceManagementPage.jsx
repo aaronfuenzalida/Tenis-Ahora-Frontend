@@ -31,11 +31,6 @@ export default function AttendanceManagementPage() {
     await refreshOpenClass(classId);
   };
 
-  const handleBulkMark = async (classId, sessionIndex, status) => {
-    await coachesAndClassesService.bulkMarkSession(classId, sessionIndex, status);
-    await refreshOpenClass(classId);
-  };
-
   const visibleClasses = classes.filter(c => kindFilter === 'ALL' || (c.kind || 'clase') === kindFilter);
 
   return (
@@ -147,8 +142,7 @@ export default function AttendanceManagementPage() {
         onClose={() => setSelectedClassForAttendance(null)}
         classItem={selectedClassForAttendance}
         onToggleAttendance={handleToggleAttendance}
-        onBulkMark={handleBulkMark}
-        onOpenPrintSheet={(cls) => setSelectedClassForSheet(cls)}
+onOpenPrintSheet={(cls) => setSelectedClassForSheet(cls)}
       />
 
     </div>

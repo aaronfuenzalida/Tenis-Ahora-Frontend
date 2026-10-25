@@ -28,6 +28,7 @@ import CoachDashboard from './pages/coach/CoachDashboard';
 import CoachClassesPage from './pages/coach/CoachClassesPage';
 import CoachPrivateLessonsPage from './pages/coach/CoachPrivateLessonsPage';
 import CoachProfilePage from './pages/coach/CoachProfilePage';
+import CoachCertificationPage from './pages/coach/CoachCertificationPage';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -139,6 +140,7 @@ function portalRoutes(demo) {
         <Route path="clases" element={<CoachClassesPage />} />
         <Route path="particulares" element={<CoachPrivateLessonsPage />} />
         <Route path="perfil" element={<CoachProfilePage />} />
+        <Route path="certificacion" element={<CoachCertificationPage />} />
       </Route>
     </>
   );

@@ -430,14 +430,6 @@ export default function CoachesAndClassesPage() {
     if (updated) setSelectedClassForAttendance(updated);
   };
 
-  const handleBulkMark = async (classId, sessionIndex, status) => {
-    await coachesAndClassesService.bulkMarkSession(classId, sessionIndex, status);
-    const clRes = await coachesAndClassesService.getClasses();
-    setClasses(clRes.data);
-    const updated = clRes.data.find(c => c.id === classId);
-    if (updated) setSelectedClassForAttendance(updated);
-  };
-
   // ==========================================
   // HANDLERS: PRIVATE CLASSES
   // ==========================================
@@ -839,7 +831,7 @@ export default function CoachesAndClassesPage() {
                       onClick={() => setSelectedClassForAttendance(cls)}
                       className="w-full py-2 px-3 bg-tennis-600 hover:bg-tennis-700 text-white font-semibold text-xs rounded-xl shadow-sm flex items-center justify-center gap-1.5 transition-colors"
                     >
-                      Toma de Asistencia (Matriz)
+                      Tomar Asistencia
                     </button>
 
                     <div className="grid grid-cols-2 gap-2">
@@ -2147,8 +2139,7 @@ export default function CoachesAndClassesPage() {
         onClose={() => setSelectedClassForAttendance(null)}
         classItem={selectedClassForAttendance}
         onToggleAttendance={handleToggleAttendance}
-        onBulkMark={handleBulkMark}
-        onEnrollStudent={async (classId, studentData) => {
+onEnrollStudent={async (classId, studentData) => {
           await coachesAndClassesService.enrollStudent(classId, studentData);
           const clRes = await coachesAndClassesService.getClasses();
           setClasses(clRes.data);

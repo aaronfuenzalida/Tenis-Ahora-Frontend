@@ -7,8 +7,7 @@ export default function AttendanceMatrixModal({
   isOpen, 
   onClose, 
   classItem, 
-  onToggleAttendance, 
-  onBulkMark, 
+  onToggleAttendance,
   onEnrollStudent,
   onOpenPrintSheet 
 }) {
@@ -79,13 +78,13 @@ export default function AttendanceMatrixModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={`Matriz Visual de Asistencia: ${classItem.name}`}
+      title={`Tabla de Asistencia: ${classItem.name}`}
       maxWidth="max-w-6xl"
     >
       <div className="space-y-5 text-xs text-slate-700">
         
         {/* Class Overview Header */}
-        <div className="p-4 bg-slate-900 text-white rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
+        <div className="p-4 bg-slate-900 text-white rounded-2xl shadow-sm">
           <div>
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-black uppercase tracking-wider text-tennis-300">
@@ -102,23 +101,6 @@ export default function AttendanceMatrixModal({
               {classItem.scheduleDays} • {classItem.scheduleTime} • {classItem.courtAssigned}
             </p>
           </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={() => onOpenPrintSheet(classItem)}
-              className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/20 flex items-center gap-1.5 transition-colors"
-            >
-              Imprimir Planilla A4
-            </button>
-            <button
-              type="button"
-              onClick={() => onBulkMark(classItem.id, sessions.length - 1, 'P')}
-              className="px-3.5 py-2 rounded-xl bg-tennis-500 hover:bg-tennis-400 text-slate-950 font-black text-xs shadow-md transition-colors flex items-center gap-1.5"
-            >
-              Todos Presentes Hoy
-            </button>
-          </div>
         </div>
 
         {/* Cupo Maximo Control Alert  */}
@@ -128,7 +110,7 @@ export default function AttendanceMatrixModal({
               Control de Cupo Máximo Reglamentario
             </span>
             <span className={`text-xs font-black ${isCupoLleno ? 'text-slate-600' : 'text-slate-700'}`}>
-              {totalStudents} / {maxCapacity} Alumnos ({Math.round((totalStudents / maxCapacity) * 100)}%)
+              {totalStudents} / {maxCapacity} Alumnos
             </span>
           </div>
 
@@ -368,15 +350,15 @@ export default function AttendanceMatrixModal({
               onClick={() => onOpenPrintSheet(classItem)}
               className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1.5"
             >
-              Vista de Impresión
-            </button>
+              Imprimir Planilla
+</button>
             <button
               type="button"
               onClick={onClose}
               className="px-5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs"
             >
-              Cerrar Matriz
-            </button>
+              Cerrar
+</button>
           </div>
         </div>
 

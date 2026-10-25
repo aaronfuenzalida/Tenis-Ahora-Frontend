@@ -69,6 +69,11 @@
     margin: 10mm;
   }
 
+  /* El modal bloquea el scroll del body; al imprimir se libera para que salga todo el contenido */
+  body {
+    overflow: visible !important;
+  }
+
   .no-print {
     display: none !important;
   }

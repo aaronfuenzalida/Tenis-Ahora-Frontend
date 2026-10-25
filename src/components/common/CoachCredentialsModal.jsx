@@ -12,7 +12,7 @@ export default function CoachCredentialsModal({ isOpen, onClose, coach }) {
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Título Habilitante y Certificación Oficial" maxWidth="max-w-xl">
-      <div className="space-y-4">
+      <div id="printable-area" className="space-y-4">
         {/* Coach Header */}
         <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-200">
           <Avatar user={{ name: coach.name }} size="w-14 h-14" rounded="rounded-xl" textClass="text-lg" />
@@ -95,7 +95,7 @@ export default function CoachCredentialsModal({ isOpen, onClose, coach }) {
           </span>
         </div>
 
-        <div className="flex justify-between items-center pt-2 border-t border-slate-100">
+        <div className="flex justify-between items-center pt-2 border-t border-slate-100 no-print">
           <button
             type="button"
             onClick={() => window.print()}

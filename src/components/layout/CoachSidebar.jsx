@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import Logo from '../common/Logo';
 import Avatar from '../common/Avatar';
 import usePortalPaths from '../../hooks/usePortalPaths';
-import { Home, Calendar, Award, UserCheck } from 'lucide-react';
+import { Home, Calendar, Award, Clock, UserCheck } from 'lucide-react';
 
 export default function CoachSidebar({ isOpen, onClose, onEditProfile }) {
   const { user, isDemo, logout, switchRole } = useAuth();
@@ -13,7 +13,7 @@ export default function CoachSidebar({ isOpen, onClose, onEditProfile }) {
 
   const navItems = [
     {
-      name: 'Inicio / Mi Agenda',
+      name: 'Inicio',
       to: paths.coachDashboard,
       icon: Home,
       exact: true
@@ -29,8 +29,13 @@ export default function CoachSidebar({ isOpen, onClose, onEditProfile }) {
       icon: Calendar
     },
     {
-      name: 'Horarios y Certificación',
+      name: 'Horarios',
       to: `${paths.coach}/perfil`,
+      icon: Clock
+    },
+    {
+      name: 'Certificación',
+      to: `${paths.coach}/certificacion`,
       icon: Award
     }
   ];

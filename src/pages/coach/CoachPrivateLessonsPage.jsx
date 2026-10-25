@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { coachesAndClassesService, clubConfigService, DEFAULT_CLUB_CONFIG } from '../../services/api';
+import { coachesAndClassesService, clubConfigService, usersService, DEFAULT_CLUB_CONFIG } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useFeedback } from '../../context/FeedbackContext';
 import { Edit } from 'lucide-react';
@@ -12,6 +12,7 @@ export default function CoachPrivateLessonsPage() {
   const [lessons, setLessons] = useState([]);
   const [allLessons, setAllLessons] = useState([]);
   const [coachProfile, setCoachProfile] = useState(null);
+  const [members, setMembers] = useState([]);
   const [clubConfig, setClubConfig] = useState(DEFAULT_CLUB_CONFIG);
 
   // Modals
@@ -35,13 +36,15 @@ export default function CoachPrivateLessonsPage() {
   }, [user]);
 
   const loadLessons = async () => {
-    const [prvRes, cRes, cfgRes] = await Promise.all([
+    const [prvRes, cRes, cfgRes, mRes] = await Promise.all([
       coachesAndClassesService.getPrivateClasses(),
       coachesAndClassesService.getCoaches(),
-      clubConfigService.get()
+      clubConfigService.get(),
+      usersService.getMembers()
     ]);
     setClubConfig(cfgRes.data);
-    const currentCoach = cRes.data.find(c => c.id === user?.coachId);
+    setMembers(mRes.data);
+const currentCoach = cRes.data.find(c => c.id === user?.coachId);
     setCoachProfile(currentCoach);
 
     setAllLessons(prvRes.data || []);
@@ -61,9 +64,14 @@ export default function CoachPrivateLessonsPage() {
       : `${studentName || 'El alumno'} ya tiene un turno el ${clash.date} a las ${clash.time} con ${clash.coachName}.`;
   };
 
+  const handleSelectStudent = (memberId) => {
+    const member = members.find(m => String(m.id) === memberId);
+    setNewLessonForm({ ...newLessonForm, studentName: member?.name || '', studentDni: member?.dni || '' });
+  };
+
   const handleCreateLesson = async (e) => {
     e.preventDefault();
-    const clash = conflictMessage(newLessonForm);
+const clash = conflictMessage(newLessonForm);
     if (clash) {
       notify({ variant: 'warning', message: clash });
       return;
@@ -164,7 +172,10 @@ export default function CoachPrivateLessonsPage() {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div id="printable-area" className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <h2 className="hidden print:block p-3 text-sm font-bold text-slate-900">
+          Agenda de Turnos Particulares • {coachProfile?.name}
+        </h2>
         <table className="w-full text-left text-xs">
           <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-semibold">
             <tr>
@@ -249,30 +260,21 @@ export default function CoachPrivateLessonsPage() {
       >
         <form onSubmit={handleCreateLesson} className="space-y-4 text-xs">
           <div>
-            <label className="font-semibold text-slate-700 uppercase block mb-1">Nombre del Alumno *</label>
-            <input
-              type="text"
+            <label className="font-semibold text-slate-700 uppercase block mb-1">Alumno *</label>
+            <select
               required
-              placeholder="Nombre y Apellido"
-              value={newLessonForm.studentName}
-              onChange={(e) => setNewLessonForm({ ...newLessonForm, studentName: e.target.value })}
-              className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
-            />
+              value={members.find(m => m.dni === newLessonForm.studentDni)?.id ?? ''}
+              onChange={(e) => handleSelectStudent(e.target.value)}
+              className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white"
+            >
+              <option value="">Seleccionar alumno</option>
+              {members.map(m => (
+                <option key={m.id} value={m.id}>{m.name} • DNI {m.dni}</option>
+              ))}
+            </select>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="font-semibold text-slate-700 uppercase block mb-1">DNI del Alumno *</label>
-              <input
-                type="text"
-                required
-                placeholder="38.452.129"
-                value={newLessonForm.studentDni}
-                onChange={(e) => setNewLessonForm({ ...newLessonForm, studentDni: e.target.value })}
-                className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
-              />
-            </div>
-
             <div>
               <label className="font-semibold text-slate-700 uppercase block mb-1">Teléfono</label>
               <input
