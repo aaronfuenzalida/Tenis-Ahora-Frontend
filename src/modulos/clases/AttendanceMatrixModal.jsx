@@ -1,0 +1,368 @@
+import React, { useState } from 'react';
+import { Search, X } from 'lucide-react';
+import Modal from '../../ui/Modal';
+import { formatDNI, isValidDNI } from '../../utils/formatters';
+
+export default function AttendanceMatrixModal({ 
+  isOpen, 
+  onClose, 
+  classItem, 
+  onToggleAttendance,
+  onEnrollStudent,
+  onOpenPrintSheet 
+}) {
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  // New student form
+  const [showAddStudentForm, setShowAddStudentForm] = useState(false);
+  const [newStudentName, setNewStudentName] = useState('');
+  const [newStudentDni, setNewStudentDni] = useState('');
+  const [enrollError, setEnrollError] = useState('');
+
+  if (!classItem) return null;
+
+  const sessions = classItem.sessions || ['03/10', '05/10', '10/10', '12/10', '17/10', '19/10', '24/10', '26/10'];
+  const students = classItem.students || [];
+  // El cupo lo fija cada clase, sin pasar nunca el tope de 30.
+  const maxCapacity = Math.min(Number(classItem?.maxCapacity) || 30, 30);
+  const isCupoLleno = students.length >= maxCapacity;
+
+  // Búsqueda por nombre o DNI
+  const filteredStudents = students.filter(st =>
+    st.name.toLowerCase().includes(searchTerm.toLowerCase()) || st.dni.includes(searchTerm)
+  );
+
+  const totalStudents = students.length;
+
+  const handleCreateStudent = async (e) => {
+    e.preventDefault();
+    setEnrollError('');
+
+    if (isCupoLleno) {
+      setEnrollError(`No es posible agregar más alumnos: el cupo de ${maxCapacity} está completo.`);
+      return;
+    }
+
+    if (!newStudentName.trim() || newStudentName.trim().split(/\s+/).length < 2) {
+      setEnrollError('Ingrese Nombre y Apellido completo.');
+      return;
+    }
+
+    if (!isValidDNI(newStudentDni)) {
+      setEnrollError('El DNI debe tener entre 7 y 8 dígitos válidos.');
+      return;
+    }
+
+    // Un alumno no puede inscribirse dos veces en la misma clase (se compara el DNI sin puntos).
+    if (students.some(s => (s.dni || '').replace(/\D/g, '') === newStudentDni.replace(/\D/g, ''))) {
+      setEnrollError('Este DNI ya se encuentra inscripto en esta clase.');
+      return;
+    }
+
+    try {
+      await onEnrollStudent(classItem.id, {
+        name: newStudentName.trim(),
+        dni: formatDNI(newStudentDni)
+      });
+    } catch (err) {
+      setEnrollError(err?.message || 'No se pudo inscribir al alumno.');
+      return;
+    }
+
+    setNewStudentName('');
+    setNewStudentDni('');
+    setShowAddStudentForm(false);
+  };
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={`Tabla de Asistencia: ${classItem.name}`}
+      maxWidth="max-w-6xl"
+    >
+      <div className="space-y-5 text-xs text-slate-700">
+        
+        {/* Class Overview Header */}
+        <div className="p-4 bg-slate-900 text-white rounded-2xl shadow-sm">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black uppercase tracking-wider text-tennis-300">
+                Escuela de Tenis • {classItem.monthName || 'Octubre 2026'}
+              </span>
+              <span className="text-slate-400 font-medium text-[11px]">
+                Profesor: <strong className="text-white">{classItem.coachName}</strong>
+              </span>
+            </div>
+            <h3 className="text-base sm:text-lg font-black mt-1 text-white tracking-tight">
+              {classItem.name}
+            </h3>
+            <p className="text-slate-300 text-xs mt-0.5">
+              {classItem.scheduleDays} • {classItem.scheduleTime} • {classItem.courtAssigned}
+            </p>
+          </div>
+        </div>
+
+        {/* Cupo Maximo Control Alert  */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="font-extrabold uppercase tracking-wider text-[11px] text-slate-500 flex items-center gap-1.5">
+              Control de Cupo Máximo Reglamentario
+            </span>
+            <span className={`text-xs font-black ${isCupoLleno ? 'text-slate-600' : 'text-slate-700'}`}>
+              {totalStudents} / {maxCapacity} Alumnos
+            </span>
+          </div>
+
+          {/* Progress bar */}
+          <div className="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+            <div 
+              className={`h-full ${
+                isCupoLleno 
+                  ? 'bg-slate-500' 
+                  : totalStudents >= 25 
+                  ? 'bg-slate-500' 
+                  : 'bg-tennis-500'
+              }`}
+              style={{ width: `${Math.min(100, (totalStudents / maxCapacity) * 100)}%` }}
+            />
+          </div>
+
+          {/* Full capacity warning banner */}
+          {isCupoLleno ? (
+            <div className="p-3 bg-slate-50 border-2 border-slate-300 rounded-2xl text-slate-900 flex items-start gap-3 shadow-sm">
+              <div>
+                <strong className="block font-black text-xs uppercase tracking-tight text-slate-800">
+                  ALERTA DE CUPO COMPLETO — Límite de 30 Alumnos Alcanzado
+                </strong>
+                <p className="text-[11px] text-slate-700 mt-0.5">
+                  Por reglamento oficial de seguridad y calidad pedagógica del club, se inhabilitan nuevas inscripciones en esta clase. Para sumar más participantes, debe abrirse una nueva comisión o grupo horario.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between text-[11px] text-slate-500">
+              <span>Cupos disponibles para inscripción: <strong>{maxCapacity - totalStudents} lugares</strong>.</span>
+              {onEnrollStudent && (
+                <button
+                  type="button"
+                  onClick={() => setShowAddStudentForm(!showAddStudentForm)}
+                  className="text-tennis-700 font-bold hover:underline flex items-center gap-1"
+                >
+                  {showAddStudentForm ? 'Ocultar Formulario' : 'Inscribir Nuevo Alumno'}
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Quick Student Enrollment Form */}
+        {onEnrollStudent && showAddStudentForm && !isCupoLleno && (
+          <form onSubmit={handleCreateStudent} className="p-4 bg-tennis-50/60 rounded-2xl border border-tennis-200 space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="font-extrabold text-xs uppercase text-tennis-900 flex items-center gap-1.5">
+                Inscribir Alumno a la Clase
+              </h4>
+            </div>
+
+            {enrollError && (
+              <div className="p-2 bg-slate-100 border border-slate-300 text-slate-800 rounded-xl text-[11px] font-bold">
+                {enrollError}
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[10px] font-bold uppercase text-slate-600 mb-1">
+                  Nombre y Apellido *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ej: Lucas Martínez"
+                  value={newStudentName}
+                  onChange={(e) => setNewStudentName(e.target.value)}
+                  className="w-full p-2 bg-white rounded-xl border border-slate-300 outline-none focus:border-tennis-600 text-xs"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold uppercase text-slate-600 mb-1">
+                  DNI del Alumno *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ej: 39.811.234"
+                  value={newStudentDni}
+                  onChange={(e) => setNewStudentDni(formatDNI(e.target.value))}
+                  className="w-full p-2 bg-white rounded-xl border border-slate-300 outline-none focus:border-tennis-600 text-xs font-mono"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setShowAddStudentForm(false)}
+                className="px-3 py-1.5 rounded-xl text-slate-600 font-bold hover:bg-slate-200"
+              >
+                Cancelar
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-1.5 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-bold text-xs shadow-sm"
+              >
+                Confirmar Inscripción
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* Search & Legend Toolbar */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-200">
+          <div className="flex items-center gap-2 flex-1 max-w-sm bg-white px-3 py-1.5 rounded-xl border border-slate-200">
+            <Search className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+            <input
+              type="text"
+              placeholder="Buscar alumno por nombre o DNI..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full bg-transparent outline-none text-xs"
+            />
+            {searchTerm && (
+              <button type="button" onClick={() => setSearchTerm('')}>
+                <X className="w-3.5 h-3.5 text-slate-400" />
+              </button>
+            )}
+          </div>
+
+          {/* Interactive Cell Toggle Legend */}
+          <div className="flex items-center gap-2 text-[10px] font-bold">
+            <span className="text-slate-400 uppercase">1-Clic:</span>
+            <span className="text-slate-600">P: Presente</span>
+            <span className="text-slate-600">A: Ausente</span>
+          </div>
+        </div>
+
+        {/* Interactive Matrix Table */}
+        <div className="overflow-x-auto rounded-2xl border border-slate-200 shadow-sm max-h-[480px]">
+          <table className="w-full text-left text-xs border-collapse bg-white">
+            <thead className="bg-slate-100 text-slate-700 font-extrabold uppercase text-[10px] sticky top-0 z-10 shadow-sm">
+              <tr className="border-b border-slate-200">
+                <th className="py-2.5 px-3 w-10 text-center">#</th>
+                <th className="py-2.5 px-3 min-w-[170px]">Alumno / DNI</th>
+                
+                {/* Session columns */}
+                {sessions.map((sess, sIdx) => (
+                  <th key={sIdx} className="py-2 px-1 text-center w-12 border-l border-slate-200">
+                    <div className="font-mono text-[10px] text-slate-800">C{sIdx + 1}</div>
+                    <div className="text-[9px] font-normal text-slate-400">{sess}</div>
+                  </th>
+                ))}
+
+                <th className="py-2.5 px-2 text-center w-14 border-l border-slate-200 text-tennis-700">P</th>
+                <th className="py-2.5 px-2 text-center w-14 text-slate-700">A</th>
+                <th className="py-2.5 px-3 text-center min-w-[90px] border-l border-slate-200">% Asistencia</th>
+              </tr>
+            </thead>
+
+            <tbody className="divide-y divide-slate-100">
+              {filteredStudents.length === 0 ? (
+                <tr>
+                  <td colSpan={sessions.length + 5} className="py-8 text-center text-slate-400">
+                    No se encontraron alumnos con los criterios seleccionados.
+                  </td>
+                </tr>
+              ) : (
+                filteredStudents.map((student, idx) => {
+                  const attList = student.attendance || [];
+                  const pCount = attList.filter(a => a === 'P').length;
+                  const aCount = attList.filter(a => a === 'A').length;
+                  const evaluated = pCount + aCount;
+                  const percentage = evaluated > 0 ? Math.round((pCount / evaluated) * 100) : 100;
+
+                  return (
+                    <tr key={student.id} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="py-2.5 px-3 text-center text-slate-400 font-mono text-[11px]">
+                        {idx + 1}
+                      </td>
+
+                      <td className="py-2.5 px-3">
+                        <div className="font-extrabold text-slate-900">{student.name}</div>
+                        <div className="text-[10px] font-mono text-slate-400">{student.dni}</div>
+                      </td>
+
+                      {/* Interactive Session Cells */}
+                      {sessions.map((_, sIdx) => {
+                        const status = attList[sIdx] || '-';
+
+                        let cellClass = 'bg-slate-100 text-slate-400 hover:bg-slate-200 border border-slate-200';
+                        if (status === 'P') {
+                          cellClass = 'bg-tennis-500 hover:bg-tennis-600 text-white shadow-sm ring-1 ring-tennis-600/30 font-black';
+                        } else if (status === 'A') {
+                          cellClass = 'bg-slate-500 hover:bg-slate-600 text-white shadow-sm ring-1 ring-slate-600/30 font-black';
+                        }
+
+                        return (
+                          <td key={sIdx} className="py-1 px-1 text-center border-l border-slate-100">
+                            <button
+                              type="button"
+                              title={`Clic para alternar (Actual: ${status === 'P' ? 'Presente' : status === 'A' ? 'Ausente' : 'Sin registrar'})`}
+                              onClick={() => onToggleAttendance(classItem.id, student.id, sIdx)}
+                              className={`w-7 h-7 rounded-lg text-xs font-mono flex items-center justify-center mx-auto ${cellClass}`}
+                            >
+                              {status}
+                            </button>
+                          </td>
+                        );
+                      })}
+
+                      {/* Counts */}
+                      <td className="py-2.5 px-2 text-center font-black text-tennis-700 border-l border-slate-100">
+                        {pCount}
+                      </td>
+                      <td className="py-2.5 px-2 text-center font-black text-slate-700">
+                        {aCount}
+                      </td>
+
+                      {/* Percentage */}
+                      <td className="py-2.5 px-3 text-center border-l border-slate-100 font-black text-xs text-slate-800">
+                        {percentage}%
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Footer info & close */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-slate-200">
+          <div className="text-[11px] text-slate-500">
+            Los cambios de estado se guardan en tiempo real al hacer clic en cada celda.
+          </div>
+
+          <div className="flex items-center gap-2 justify-end">
+            <button
+              type="button"
+              onClick={() => onOpenPrintSheet(classItem)}
+              className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1.5"
+            >
+              Imprimir Planilla
+</button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs"
+            >
+              Cerrar
+</button>
+          </div>
+        </div>
+
+      </div>
+    </Modal>
+  );
+}

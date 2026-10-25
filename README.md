@@ -2,7 +2,7 @@
 
 SPA en React + Vite del TP **"Tenis Ahora"** (UNAJ). El **login y el registro** hablan con
 la API real ([tenis-ahora-backend](https://github.com/aaronfuenzalida/tenis-ahora-backend));
-el resto de los módulos todavía usa los datos mock de `src/utils/mockData.js`.
+el resto de los módulos también, salvo en la demo (`/demo`), que usa datos en memoria.
 
 ## Requisitos
 
@@ -27,6 +27,40 @@ Queda en `http://localhost:5173`.
 
 El archivo `.env` está en `.gitignore`: cada uno usa su copia local de `.env.example`.
 
+## Estructura del código
+
+Cada carpeta de `src/modulos` es un módulo del TP y junta todas sus pantallas, estén en el panel de
+administración, en el portal del socio o en el del profesor. Los archivos que terminan en `Page` son
+pantallas con ruta propia (ver `App.jsx`); el resto son componentes que usan esas pantallas.
+
+```
+src/
+  main.jsx            punto de entrada
+  App.jsx             rutas de la app real y de la demo, y protección por rol
+  api/                acceso a datos
+    index.js          exporta los servicios; elige entre http.js y demo.js según la URL
+    http.js           cliente axios y servicios contra la API real
+    demo.js           los mismos servicios sobre datos en memoria (demo sin backend)
+    demoData.js       datos iniciales de la demo (los genera server/seed/gen_seed.py)
+    club.js           valores fijos del club: plazos de reserva y horario por defecto
+  auth/               login, registro, sesión (AuthContext) y manejo del token JWT
+  layout/             cabecera, menú lateral y perfil de cada portal
+  ui/                 componentes genéricos: modal, avisos, paginación, QR, pasos
+  utils/              formateadores, rutas de la demo, archivos adjuntos
+  demo/               pantalla de entrada a la demo
+  modulos/
+    inicio/           pantalla inicial de cada portal
+    usuarios/         padrón de socios, carnet y descuentos por usuario
+    canchas/          canchas, tipos de cancha y horarios disponibles
+    reservas/         reserva por pasos del socio y control de reservas
+    stock/            productos y stock
+    competencias/     torneos, ligas, enfrentamientos y tipos de competencia
+    profesores/       cuerpo de profesores, certificaciones y perfil del profesor
+    clases/           clases grupales, asistencia y clases particulares
+    caja/             caja, recibos, pago, facturas, reembolsos y descuentos
+    reportes/         reportes y estadísticas
+```
+
 ## Módulos del panel de administración
 
 Cobertura de los requerimientos funcionales del TP (RF001 - RF142). Todos los módulos permiten
@@ -44,12 +78,12 @@ operaciones se indica en cada caso.
 | Caja, Facturas y Reembolsos | Recibos y cobros (débito, crédito, billetera virtual), facturas, reembolsos, políticas de descuento | RF125-142, RD11 |
 | Reportes y Estadísticas | Ingresos, ocupación, canchas, asistencia a clases y entrenamientos | RF137 |
 
-Los datos de estos módulos viven en memoria (`src/utils/mockData.js` + `src/services/api.js`); al
-recargar la página vuelven al estado inicial.
+En la demo los datos de estos módulos viven en memoria (`src/api/demo.js` + `src/api/demoData.js`);
+al recargar la página vuelven al estado inicial.
 
 ## Cómo funciona la autenticación
 
-1. `LoginPage` / `RegisterPage` llaman a `authService` (`src/services/api.js`), que hace
+1. `LoginPage` / `RegisterPage` llaman a `authService` (`src/api/http.js`), que hace
    `POST /api/auth/login` o `POST /api/auth/registrar`.
 2. La API devuelve el `AuthResponseDto`: token JWT + datos del usuario + rol.
 3. `AuthContext` traduce el rol del backend (`Socio` / `Empleado`) al del front
@@ -71,7 +105,7 @@ recargar la página vuelven al estado inicial.
 - **Mi Perfil**: socios, profesores y empleados editan nombre, teléfono y foto desde el avatar de la cabecera
   (o la tarjeta de la barra lateral). La foto se recorta en cuadrado y se guarda como data URL.
 - **Códigos QR**: carnet de socio, recibos y cobros con billetera virtual muestran QR reales
-  (`qrcode.react`), con el texto codificado en `src/components/common/QRCode.jsx`.
+  (`qrcode.react`), con el texto codificado en `src/ui/QRCode.jsx`.
 - **Reserva por pasos**: cronograma → jugadores → pago de la seña, cada uno en su pantalla.
 - **Portal del socio**: pantallas separadas para Torneos (`/app/torneos`), Ligas (`/app/ligas`), Clases y
   Entrenamientos grupales (`/app/clases`) y Clases Particulares (`/app/clases-particulares`).
@@ -79,4 +113,4 @@ recargar la página vuelven al estado inicial.
   (`PaymentFlowModal`), que al acreditarse registra la inscripción y emite el recibo visible en
   *Mis Pagos y Recibos*.
 - **Avisos**: no se usan `alert`/`confirm` del navegador; los mensajes salen como modales
-  (`useFeedback()` en `src/context/FeedbackContext.jsx`).
+  (`useFeedback()` en `src/ui/FeedbackContext.jsx`).

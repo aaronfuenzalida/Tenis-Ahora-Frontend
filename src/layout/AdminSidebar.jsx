@@ -1,0 +1,184 @@
+import React from 'react';
+import { NavLink, Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../auth/AuthContext';
+import Logo from './Logo';
+import usePortalPaths from '../utils/portalPaths';
+import {
+  LayoutDashboard, Layers, Tags, Clock, Calendar, Package,
+  Trophy, Medal, Swords, ListChecks, GraduationCap, BookOpen, ClipboardCheck, CalendarClock,
+  Receipt, FileText, RotateCcw, Percent, Users, BarChart3
+} from 'lucide-react';
+
+export default function AdminSidebar({ isOpen, onClose }) {
+  const { switchRole, isDemo, logout } = useAuth();
+  const paths = usePortalPaths();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate(paths.login);
+  };
+
+  const handleReturnToClient = () => {
+    switchRole('client');
+    navigate(paths.appDashboard);
+  };
+
+  const handleGoToCoach = () => {
+    switchRole('coach');
+    navigate(paths.coach);
+  };
+
+  const navSections = [
+    {
+      group: 'Principal',
+      items: [
+        { name: 'Dashboard General', to: paths.admin, icon: LayoutDashboard, exact: true }
+      ]
+    },
+    {
+      group: 'Canchas y Reservas',
+      items: [
+        { name: 'Canchas', to: `${paths.admin}/canchas`, icon: Layers },
+        { name: 'Tipos de Cancha', to: `${paths.admin}/tipos-cancha`, icon: Tags },
+        { name: 'Horarios Disponibles', to: `${paths.admin}/horarios`, icon: Clock },
+        { name: 'Control de Reservas', to: `${paths.admin}/reservas`, icon: Calendar }
+      ]
+    },
+    {
+      group: 'Inventario y Equipamiento',
+      items: [
+        { name: 'Gestión de Stock', to: `${paths.admin}/stock`, icon: Package }
+      ]
+    },
+    {
+      group: 'Competición',
+      items: [
+        { name: 'Torneos', to: `${paths.admin}/torneos`, icon: Trophy },
+        { name: 'Ligas', to: `${paths.admin}/ligas`, icon: Medal },
+        { name: 'Enfrentamientos', to: `${paths.admin}/enfrentamientos`, icon: Swords },
+        { name: 'Tipos de Competencia', to: `${paths.admin}/tipos-competencia`, icon: ListChecks }
+      ]
+    },
+    {
+      group: 'Enseñanza',
+      items: [
+        { name: 'Profesionales', to: `${paths.admin}/profesionales`, icon: GraduationCap },
+        { name: 'Clases y Entrenamientos', to: `${paths.admin}/clases`, icon: BookOpen },
+        { name: 'Asistencia', to: `${paths.admin}/asistencia`, icon: ClipboardCheck },
+        { name: 'Turnos Particulares', to: `${paths.admin}/turnos-particulares`, icon: CalendarClock }
+      ]
+    },
+    {
+      group: 'Caja',
+      items: [
+        { name: 'Recibos y Cobros', to: `${paths.admin}/caja`, icon: Receipt },
+        { name: 'Facturas', to: `${paths.admin}/facturas`, icon: FileText },
+        { name: 'Reembolsos', to: `${paths.admin}/reembolsos`, icon: RotateCcw },
+        { name: 'Descuentos', to: `${paths.admin}/descuentos`, icon: Percent }
+      ]
+    },
+    {
+      group: 'Administración',
+      items: [
+        { name: 'Padrón de Usuarios', to: `${paths.admin}/usuarios`, icon: Users },
+        { name: 'Reportes y Estadísticas', to: `${paths.admin}/reportes`, icon: BarChart3 }
+      ]
+    }
+  ];
+
+  return (
+    <>
+      {/* Mobile backdrop */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-900/50 z-40 lg:hidden backdrop-blur-sm transition-opacity"
+          onClick={onClose}
+        />
+      )}
+
+      <aside className={`fixed top-0 bottom-0 left-0 z-40 w-64 bg-slate-900 text-slate-300 flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+        isOpen ? 'translate-x-0' : '-translate-x-full'
+      } border-r border-slate-800`}>
+        
+        {/* Sidebar Header */}
+        <div className="h-16 flex items-center justify-between px-5 border-b border-slate-800/80 bg-slate-950/40">
+          <Link to={paths.admin} className="flex items-center">
+            <Logo variant="horizontal" theme="dark" size="sm" showSubtitle={true} />
+          </Link>
+        </div>
+
+        {/* Navigation Items (Mosaic Style) */}
+        <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
+          {navSections.map((section, sIdx) => (
+            <div key={sIdx}>
+              <div className="px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                {section.group}
+              </div>
+              <div className="space-y-1">
+                {section.items.map((item, idx) => {
+                  const Icon = item.icon;
+                  return (
+                    <NavLink
+                      key={idx}
+                      to={item.to}
+                      end={item.exact}
+                      onClick={() => onClose && onClose()}
+                      className={({ isActive }) =>
+                        `flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+                          isActive
+                            ? 'bg-tennis-600 text-white'
+                            : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
+                        }`
+                      }
+                    >
+                      {({ isActive }) => (
+                        <>
+                          <div className="flex items-center gap-2.5">
+                            <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                            <span>{item.name}</span>
+                          </div>
+                        </>
+                      )}
+                    </NavLink>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Quick Return to Client or Coach View Footer */}
+        <div className="p-3 border-t border-slate-800 bg-slate-950/40 space-y-2">
+          {isDemo && (
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={handleReturnToClient}
+                className="flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-colors border border-slate-700 cursor-pointer"
+              >
+                <span>Socio</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleGoToCoach}
+                className="flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-tennis-950/80 hover:bg-tennis-900 text-tennis-300 text-xs font-semibold transition-colors border border-tennis-800/60 cursor-pointer"
+              >
+                <span>Profesor</span>
+              </button>
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-semibold text-slate-400 hover:text-slate-100 hover:bg-slate-800/60 transition-colors"
+          >
+            Cerrar Sesión
+          </button>
+        </div>
+
+      </aside>
+    </>
+  );
+}

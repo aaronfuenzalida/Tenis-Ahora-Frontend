@@ -1,56 +1,56 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
-import { FeedbackProvider } from './context/FeedbackContext';
-import { portalPaths } from './hooks/usePortalPaths';
+import { AuthProvider, useAuth } from './auth/AuthContext';
+import { FeedbackProvider } from './ui/FeedbackContext';
+import { portalPaths } from './utils/portalPaths';
 
 // Layouts
-import ClientLayout from './components/layout/ClientLayout';
-import AdminLayout from './components/layout/AdminLayout';
-import CoachLayout from './components/layout/CoachLayout';
+import ClientLayout from './layout/ClientLayout';
+import AdminLayout from './layout/AdminLayout';
+import CoachLayout from './layout/CoachLayout';
 
 // Auth Pages
-import LoginPage from './pages/auth/LoginPage';
-import RegisterPage from './pages/auth/RegisterPage';
-import DemoLandingPage from './pages/demo/DemoLandingPage';
+import LoginPage from './auth/LoginPage';
+import RegisterPage from './auth/RegisterPage';
+import DemoLandingPage from './demo/DemoLandingPage';
 
 // Client Pages
-import ClientDashboard from './pages/client/ClientDashboard';
-import BookCourtPage from './pages/client/BookCourtPage';
-import ClientTournamentsPage from './pages/client/ClientTournamentsPage';
-import ClientLeaguesPage from './pages/client/ClientLeaguesPage';
-import ClientPrivateLessonsPage from './pages/client/ClientPrivateLessonsPage';
-import ClientClassesPage from './pages/client/ClientClassesPage';
-import ClientPaymentsPage from './pages/client/ClientPaymentsPage';
+import ClientDashboard from './modulos/inicio/ClientDashboard';
+import BookCourtPage from './modulos/reservas/BookCourtPage';
+import ClientTournamentsPage from './modulos/competencias/ClientTournamentsPage';
+import ClientLeaguesPage from './modulos/competencias/ClientLeaguesPage';
+import ClientPrivateLessonsPage from './modulos/clases/ClientPrivateLessonsPage';
+import ClientClassesPage from './modulos/clases/ClientClassesPage';
+import ClientPaymentsPage from './modulos/caja/ClientPaymentsPage';
 
 // Coach Pages
-import CoachDashboard from './pages/coach/CoachDashboard';
-import CoachClassesPage from './pages/coach/CoachClassesPage';
-import CoachPrivateLessonsPage from './pages/coach/CoachPrivateLessonsPage';
-import CoachProfilePage from './pages/coach/CoachProfilePage';
-import CoachCertificationPage from './pages/coach/CoachCertificationPage';
+import CoachDashboard from './modulos/inicio/CoachDashboard';
+import CoachClassesPage from './modulos/clases/CoachClassesPage';
+import CoachPrivateLessonsPage from './modulos/clases/CoachPrivateLessonsPage';
+import CoachProfilePage from './modulos/profesores/CoachProfilePage';
+import CoachCertificationPage from './modulos/profesores/CoachCertificationPage';
 
 // Admin Pages
-import AdminDashboard from './pages/admin/AdminDashboard';
-import CourtsManagementPage from './pages/admin/CourtsManagementPage';
-import CourtTypesPage from './pages/admin/CourtTypesPage';
-import CourtAvailabilityPage from './pages/admin/CourtAvailabilityPage';
-import ReservationsManagementPage from './pages/admin/ReservationsManagementPage';
-import StockManagementPage from './pages/admin/StockManagementPage';
-import TournamentsManagementPage from './pages/admin/TournamentsManagementPage';
-import LeaguesManagementPage from './pages/admin/LeaguesManagementPage';
-import MatchesManagementPage from './pages/admin/MatchesManagementPage';
-import CompetitionTypesPage from './pages/admin/CompetitionTypesPage';
-import CoachesManagementPage from './pages/admin/CoachesManagementPage';
-import ClassesManagementPage from './pages/admin/ClassesManagementPage';
-import AttendanceManagementPage from './pages/admin/AttendanceManagementPage';
-import PrivateLessonsManagementPage from './pages/admin/PrivateLessonsManagementPage';
-import CashierAndReceiptsPage from './pages/admin/CashierAndReceiptsPage';
-import InvoicesPage from './pages/admin/InvoicesPage';
-import RefundsPage from './pages/admin/RefundsPage';
-import DiscountsPage from './pages/admin/DiscountsPage';
-import UsersManagementPage from './pages/admin/UsersManagementPage';
-import ReportsPage from './pages/admin/ReportsPage';
+import AdminDashboard from './modulos/inicio/AdminDashboard';
+import CourtsManagementPage from './modulos/canchas/CourtsManagementPage';
+import CourtTypesPage from './modulos/canchas/CourtTypesPage';
+import CourtAvailabilityPage from './modulos/canchas/CourtAvailabilityPage';
+import ReservationsManagementPage from './modulos/reservas/ReservationsManagementPage';
+import StockManagementPage from './modulos/stock/StockManagementPage';
+import TournamentsManagementPage from './modulos/competencias/TournamentsManagementPage';
+import LeaguesManagementPage from './modulos/competencias/LeaguesManagementPage';
+import MatchesManagementPage from './modulos/competencias/MatchesManagementPage';
+import CompetitionTypesPage from './modulos/competencias/CompetitionTypesPage';
+import CoachesManagementPage from './modulos/profesores/CoachesManagementPage';
+import ClassesManagementPage from './modulos/clases/ClassesManagementPage';
+import AttendanceManagementPage from './modulos/clases/AttendanceManagementPage';
+import PrivateLessonsManagementPage from './modulos/clases/PrivateLessonsManagementPage';
+import CashierAndReceiptsPage from './modulos/caja/CashierAndReceiptsPage';
+import InvoicesPage from './modulos/caja/InvoicesPage';
+import RefundsPage from './modulos/caja/RefundsPage';
+import DiscountsPage from './modulos/caja/DiscountsPage';
+import UsersManagementPage from './modulos/usuarios/UsersManagementPage';
+import ReportsPage from './modulos/reportes/ReportsPage';
 
 const ROLE_OF_PORTAL = { app: 'client', coach: 'coach', admin: 'admin' };
 

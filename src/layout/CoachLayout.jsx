@@ -1,0 +1,107 @@
+import React, { useState } from 'react';
+import { Outlet, useNavigate } from 'react-router-dom';
+import CoachSidebar from './CoachSidebar';
+import { Menu } from 'lucide-react';
+import { useAuth } from '../auth/AuthContext';
+import usePortalPaths from '../utils/portalPaths';
+import Logo from './Logo';
+import Avatar from './Avatar';
+import ProfileModal from './ProfileModal';
+
+export default function CoachLayout() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const { user, isDemo, switchRole } = useAuth();
+  const paths = usePortalPaths();
+  const navigate = useNavigate();
+
+  const handleToggleToClient = () => {
+    switchRole('client');
+    navigate(paths.appDashboard);
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 flex">
+
+      {/* Coach Lateral Sidebar */}
+      <CoachSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} onEditProfile={() => setShowProfile(true)} />
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col lg:pl-64 min-w-0">
+
+        {/* Top Minimal Bar */}
+        <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-200 px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between shadow-sm">
+
+          {/* Mobile hamburger & brand */}
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setSidebarOpen(true)}
+              className="lg:hidden p-2 rounded-xl text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+
+            <div className="lg:hidden flex items-center">
+              <Logo variant="horizontal" theme="light" size="sm" />
+            </div>
+
+            <div className="hidden lg:flex items-center gap-2">
+              <span className="text-xs font-semibold text-slate-700">Complejo Deportivo</span>
+              <span className="text-slate-300">•</span>
+              <span className="text-xs text-slate-500">Horario operativo: 08:00 a 22:00 hs</span>
+            </div>
+          </div>
+
+          {/* Right Header Actions */}
+          <div className="flex items-center gap-3">
+            {isDemo && (
+              <span className="text-xs text-slate-400">Modo demo</span>
+            )}
+
+            {isDemo && (
+              <button
+                type="button"
+                onClick={handleToggleToClient}
+                title="Cambiar a vista de socio"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold border border-slate-200 transition-all shadow-sm"
+              >
+                <span className="hidden sm:inline">Vista</span> Socio
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setShowProfile(true)}
+              title="Editar mi perfil"
+              className="flex items-center gap-2 pl-2 border-l border-slate-200 group"
+            >
+              <Avatar user={user} rounded="rounded-lg" className={user?.photo ? '' : '!bg-tennis-700'} />
+              <div className="hidden md:block text-left">
+                <div className="text-xs font-bold text-slate-900 leading-tight group-hover:text-tennis-700">{user?.name || 'Profesor'}</div>
+                <div className="text-[11px] text-slate-500 font-medium">{user?.rolBackend || 'Profesor'} • N° {user?.memberNumber || '—'}</div>
+              </div>
+            </button>
+          </div>
+
+        </header>
+
+        {/* Dynamic Page Outlet */}
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+          <Outlet />
+        </main>
+
+        {/* Footer */}
+        <footer className="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500 mt-auto">
+          <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+            <span className="font-semibold text-slate-700">Club Tenis Ahora — Portal de Profesores y Entrenadores</span>
+            <span className="text-[11px] text-slate-400">Sistema Oficial de Gestión Deportiva y Registro de Asistencias</span>
+          </div>
+        </footer>
+
+      </div>
+
+      <ProfileModal isOpen={showProfile} onClose={() => setShowProfile(false)} />
+    </div>
+  );
+}
