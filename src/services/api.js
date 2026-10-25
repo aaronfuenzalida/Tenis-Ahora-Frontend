@@ -1,5 +1,11 @@
 import axios from 'axios';
-import { getStoredToken } from '../utils/jwt';
+import { getStoredToken, getStoredRefreshToken } from '../utils/jwt';
+import {
+  isSupabaseAuthConfigured,
+  signInWithSupabasePassword,
+  signUpWithSupabase,
+  refreshSupabaseSession
+} from '../auth/supabaseClient';
 import { isDemoPath } from '../hooks/usePortalPaths';
 import { calculateHoursUntil, isEnrolledByDni, findPrivateLessonConflict, findReservationConflict, cleanDNI } from '../utils/formatters';
 import {
@@ -21,20 +27,21 @@ import {
   INITIAL_DOCUMENTS
 } from '../utils/mockData';
 
-// Create base Axios instance
+// Create base Axios instance pointing to TenisAhora.Api (.NET 8)
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5090/api',
-  timeout: 10000,
+  timeout: 12000,
   headers: {
     'Content-Type': 'application/json'
   }
 });
 
-// Axios Request Interceptor: Attach JWT Token
+// Axios Request Interceptor: Inyecta automáticamente Authorization: Bearer <Supabase_JWT>
 api.interceptors.request.use(
   (config) => {
     const token = getStoredToken();
     if (token) {
+      config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
@@ -42,44 +49,77 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Axios Response Interceptor: Handle auth expired errors
+// Axios Response Interceptor: Maneja refresh de sesión Supabase en 401 y normaliza errores del backend C#
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response && error.response.status === 401) {
-      console.warn('Session expired or unauthorized token.');
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (
+      error.response &&
+      error.response.status === 401 &&
+      originalRequest &&
+      !originalRequest._retry &&
+      getStoredRefreshToken()
+    ) {
+      originalRequest._retry = true;
+      const newToken = await refreshSupabaseSession();
+      if (newToken) {
+        originalRequest.headers = originalRequest.headers || {};
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        return api(originalRequest);
+      }
     }
-    // Las pantallas muestran err.message (como con los errores del mock); usamos el del backend.
-    if (error.response?.data?.error) {
-      error.message = error.response.data.error;
+
+    const backendErrorMsg =
+      error.response?.data?.error ||
+      error.response?.data?.detail ||
+      error.response?.data?.title;
+
+    if (backendErrorMsg) {
+      error.message = backendErrorMsg;
     }
+
     return Promise.reject(error);
   }
 );
 
 /**
  * Traduce un error de axios al mensaje que mostramos en pantalla.
- * El backend responde { "error": "..." } desde ManejoErroresMiddleware.
  */
 export function mensajeDeError(err, fallback = 'Ocurrió un error inesperado.') {
   if (err?.response?.data?.error) return err.response.data.error;
-  if (err?.response?.status === 401) return 'Credenciales inválidas.';
+  if (err?.response?.data?.detail) return err.response.data.detail;
+  if (err?.response?.status === 401) return 'Credenciales inválidas o sesión expirada.';
   if (err?.code === 'ERR_NETWORK' || err?.code === 'ECONNABORTED') {
-    return 'No se pudo conectar con el servidor. Verificá que la API esté levantada.';
+    return 'No se pudo conectar con el servidor. Verificá que la API (.NET 8) esté levantada.';
   }
+  if (err?.message && err.message !== 'Network Error') return err.message;
   return fallback;
 }
 
-// ---- Auth: siempre contra el backend (el Modo Demo no pasa por acá) ----
+// ---- Auth: soporta Supabase Auth directo (JWT Bearer) o fallback al endpoint del backend ----
 export const authService = {
-  // POST /api/auth/login -> AuthResponseDto
   async login(email, password) {
+    if (isSupabaseAuthConfigured()) {
+      return signInWithSupabasePassword(email, password);
+    }
     const { data } = await api.post('/auth/login', { email, password });
     return data;
   },
 
-  // POST /api/auth/registrar -> AuthResponseDto
   async registrar({ nombre, apellido, direccion, email, numeroTelefono, dni, password }) {
+    if (isSupabaseAuthConfigured()) {
+      return signUpWithSupabase({
+        nombre,
+        apellido,
+        direccion,
+        email,
+        numeroTelefono,
+        dni,
+        password
+      });
+    }
     const { data } = await api.post('/auth/registrar', {
       nombre,
       apellido,
@@ -439,6 +479,10 @@ const reservationsMock = {
 
     reservationsStore.unshift(newReservation);
 
+    const mpPreferenceId = `MP-PREF-${newId}-${Date.now()}`;
+    const mpPaymentUrl = `https://sandbox.mercadopago.com.ar/checkout/v1/redirect?pref_id=${mpPreferenceId}`;
+    const mpQrData = `https://mpago.la/pos/tenisahora/${newRecId.toLowerCase()}?pref_id=${mpPreferenceId}`;
+
     // Auto-generate deposit receipt
     const depositReceipt = {
       id: newRecId,
@@ -456,12 +500,25 @@ const reservationsMock = {
       paymentMethod: bookingData.depositPaymentMethod || 'Mercado Pago (QR)',
       status: 'completado',
       date: new Date().toISOString().replace('T', ' ').substring(0, 16),
-      qrData: `https://mpago.la/pos/tenisahora/${newRecId.toLowerCase()}`,
+      qrData: mpQrData,
+      paymentUrl: mpPaymentUrl,
+      mpPreferenceId,
       cashierName: 'Cobro Digital Online'
     };
     receiptsStore.unshift(depositReceipt);
 
-    return { data: newReservation, receipt: depositReceipt };
+    const paymentPreference = {
+      preferenceId: mpPreferenceId,
+      externalReference: newId,
+      initPoint: mpPaymentUrl,
+      sandboxInitPoint: mpPaymentUrl,
+      paymentUrl: mpPaymentUrl,
+      qrData: mpQrData,
+      amount: bookingData.depositPaid,
+      status: 'created'
+    };
+
+    return { data: newReservation, receipt: depositReceipt, paymentPreference };
   },
   async payRemainingBalance(reservationId, paymentMethod = 'Mercado Pago (QR)') {
     await delay();
@@ -1487,11 +1544,58 @@ const stockHttp = {
   updateStock: (itemId, totalStock) => api.patch(`/stock/${itemId}/ajuste`, { totalStock })
 };
 
+function normalizeReservationCreateResponse(payload) {
+  if (!payload) return payload;
+  const pref = payload.paymentPreference || null;
+  const receipt = payload.receipt
+    ? {
+        ...payload.receipt,
+        qrData:
+          payload.receipt.qrData ||
+          pref?.qrData ||
+          pref?.sandboxInitPoint ||
+          pref?.initPoint ||
+          '',
+        paymentUrl:
+          payload.receipt.paymentUrl ||
+          pref?.sandboxInitPoint ||
+          pref?.initPoint ||
+          '',
+        mpPreferenceId:
+          payload.receipt.mpPreferenceId ||
+          pref?.preferenceId ||
+          null
+      }
+    : null;
+
+  return {
+    ...payload,
+    receipt,
+    paymentPreference: pref
+      ? {
+          ...pref,
+          paymentUrl: pref.sandboxInitPoint || pref.initPoint || pref.qrData || ''
+        }
+      : receipt
+      ? {
+          preferenceId: receipt.mpPreferenceId || `MP-PREF-${receipt.id}`,
+          initPoint: receipt.paymentUrl || receipt.qrData || '',
+          sandboxInitPoint: receipt.paymentUrl || receipt.qrData || '',
+          qrData: receipt.qrData || '',
+          paymentUrl: receipt.paymentUrl || receipt.qrData || '',
+          amount: receipt.totalPaid,
+          status: 'created'
+        }
+      : null
+  };
+}
+
 const reservationsHttp = {
   ...crud('/reservas'),
   // Turnos tomados de todo el club, sin datos de quién reservó (getAll solo trae las propias).
   getOccupancy: () => api.get('/reservas/ocupacion'),
-  create: (bookingData) => body(api.post('/reservas', bookingData)),
+  create: (bookingData) =>
+    api.post('/reservas', bookingData).then((res) => normalizeReservationCreateResponse(res.data)),
   payRemainingBalance: (reservationId, paymentMethod = 'Mercado Pago (QR)') =>
     api.post(`/reservas/${reservationId}/pagar-saldo`, { paymentMethod }),
   cancel: (reservationId) => body(api.post(`/reservas/${reservationId}/cancelar`))
