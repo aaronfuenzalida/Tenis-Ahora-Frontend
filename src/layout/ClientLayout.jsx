@@ -116,11 +116,7 @@ export default function ClientLayout() {
 
         {/* Footer */}
         <footer className="bg-white border-t border-slate-200/80 py-5 text-center text-xs text-slate-500 mt-auto">
-          <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-            <div className="flex items-center gap-2 font-semibold">
-              <span className="text-tennis-700 font-extrabold">TENIS AHORA</span>
-              <span>— Alquiler de canchas, torneos y clases</span>
-            </div>
+          <div className="max-w-7xl mx-auto px-4 flex items-center justify-center">
             <div className="text-slate-400">
               © {new Date().getFullYear()} Club Tenis Ahora
             </div>

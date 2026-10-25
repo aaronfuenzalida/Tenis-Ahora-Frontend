@@ -25,7 +25,8 @@ export default function ClientClassesPage() {
     setClasses(res.data);
   };
 
-  const alreadyIn = (cls) => isEnrolledByDni(cls?.students, user?.dni);
+  // La API no le manda la lista de alumnos al socio, solo `enrolled`; el Modo Demo sí trae la lista.
+  const alreadyIn = (cls) => !!cls?.enrolled || isEnrolledByDni(cls?.students, user?.dni);
 
   const startEnrollment = (cls) => {
     if (alreadyIn(cls)) {
