@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ExternalLink } from 'lucide-react';
 import Modal from './Modal';
 import QRCode, { qrPayloads } from './QRCode';
 import ReceiptModal from './ReceiptModal';
@@ -24,26 +23,8 @@ export function newReceiptId() {
 /**
  * Arma el recibo oficial de un pago hecho desde el portal (inscripciones, clases, turnos).
  */
-export function buildReceipt({
-  concept,
-  items,
-  amount,
-  paymentMethod,
-  client,
-  relatedId,
-  kind,
-  cashierName,
-  qrData,
-  paymentUrl,
-  mpPreferenceId
-}) {
+export function buildReceipt({ concept, items, amount, paymentMethod, client, relatedId, kind, cashierName }) {
   const id = newReceiptId();
-  const defaultPrefId = mpPreferenceId || `MP-PREF-${id}`;
-  const defaultPayUrl =
-    paymentUrl || `https://sandbox.mercadopago.com.ar/checkout/v1/redirect?pref_id=${encodeURIComponent(defaultPrefId)}`;
-  const defaultQrData =
-    qrData || `https://mpago.la/pos/tenisahora/${id.toLowerCase()}?pref_id=${encodeURIComponent(defaultPrefId)}`;
-
   return {
     id,
     reservationId: null,
@@ -57,16 +38,17 @@ export function buildReceipt({
     paymentMethod,
     status: 'completado',
     date: nowStamp(),
-    qrData: defaultQrData,
-    paymentUrl: defaultPayUrl,
-    mpPreferenceId: defaultPrefId,
     cashierName: cashierName || 'Portal del socio'
   };
 }
 
 /**
  * Flujo de pago en pasos para inscripciones a torneos, ligas, clases y turnos particulares:
- *   1) elegir medio de pago  2) pagar (QR Mercado Pago / Link de Pago o tarjeta)  3) comprobante emitido.
+ *   1) elegir medio de pago  2) pagar (QR real o tarjeta)  3) comprobante emitido.
+ *
+ * `onPaid(paymentMethod)` se ejecuta al acreditarse el pago, antes de emitir el recibo
+ * (ahí el padre hace la inscripción). Si lanza un error, no se emite recibo y se muestra el mensaje.
+ * `onCompleted(receipt)` se llama cuando el recibo quedó registrado.
  */
 export default function PaymentFlowModal({
   isOpen,
@@ -80,9 +62,6 @@ export default function PaymentFlowModal({
   kind,
   summary,
   cashierName,
-  qrData,
-  paymentUrl,
-  preferenceId,
   onPaid,
   onCompleted
 }) {
@@ -101,22 +80,8 @@ export default function PaymentFlowModal({
     }
   }, [isOpen]);
 
-  const reference = useMemo(
-    () => preferenceId || `${(kind || 'PAGO').toUpperCase()}-${Date.now()}`,
-    [isOpen, kind, preferenceId] // eslint-disable-line react-hooks/exhaustive-deps
-  );
-
-  const qrPayload = useMemo(
-    () => qrData || paymentUrl || qrPayloads.payment({ concept, amount, reference }),
-    [qrData, paymentUrl, concept, amount, reference]
-  );
-
-  const mpCheckoutLink = useMemo(
-    () =>
-      paymentUrl ||
-      `https://sandbox.mercadopago.com.ar/checkout/v1/redirect?pref_id=${encodeURIComponent(reference)}`,
-    [paymentUrl, reference]
-  );
+  const reference = useMemo(() => `${(kind || 'PAGO').toUpperCase()}-${Date.now()}`, [isOpen, kind]); // eslint-disable-line react-hooks/exhaustive-deps
+  const qrPayload = useMemo(() => qrPayloads.payment({ concept, amount, reference }), [concept, amount, reference]);
 
   const settle = async () => {
     setStep('processing');
@@ -131,10 +96,7 @@ export default function PaymentFlowModal({
         client,
         relatedId: extra?.relatedId || relatedId,
         kind,
-        cashierName,
-        qrData: extra?.qrData || qrData,
-        paymentUrl: extra?.paymentUrl || paymentUrl || mpCheckoutLink,
-        mpPreferenceId: extra?.preferenceId || preferenceId || reference
+        cashierName
       });
       await receiptsService.create(rec);
       setReceipt(rec);
@@ -174,20 +136,12 @@ export default function PaymentFlowModal({
           <ol className="flex items-center gap-2">
             {steps.map((s, idx) => (
               <li key={s.id} className="flex items-center gap-2 flex-1">
-                <span
-                  className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[11px] shrink-0 ${
-                    idx < stepIndex
-                      ? 'bg-tennis-600 text-white'
-                      : idx === stepIndex
-                      ? 'bg-slate-900 text-white'
-                      : 'bg-slate-100 text-slate-400'
-                  }`}
-                >
+                <span className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[11px] shrink-0 ${
+                  idx < stepIndex ? 'bg-tennis-600 text-white' : idx === stepIndex ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-400'
+                }`}>
                   {idx + 1}
                 </span>
-                <span className={`font-bold truncate ${idx === stepIndex ? 'text-slate-900' : 'text-slate-400'}`}>
-                  {s.label}
-                </span>
+                <span className={`font-bold truncate ${idx === stepIndex ? 'text-slate-900' : 'text-slate-400'}`}>{s.label}</span>
                 {idx < steps.length - 1 && <span className="flex-1 border-t border-slate-200" />}
               </li>
             ))}
@@ -199,9 +153,7 @@ export default function PaymentFlowModal({
             {summary && <div className="text-slate-500">{summary}</div>}
             <div className="flex items-center justify-between pt-2 border-t border-slate-200 mt-2">
               <span className="font-bold text-slate-600">Total a pagar:</span>
-              <span className="text-lg font-extrabold text-tennis-700">
-                ${Number(amount || 0).toLocaleString('es-AR')} ARS
-              </span>
+              <span className="text-lg font-extrabold text-tennis-700">${Number(amount || 0).toLocaleString('es-AR')} ARS</span>
             </div>
           </div>
 
@@ -215,7 +167,7 @@ export default function PaymentFlowModal({
               <div>
                 <label className="font-bold text-slate-700 uppercase block mb-2">Elegí cómo pagar</label>
                 <div className="grid grid-cols-1 gap-2">
-                  {PAYMENT_METHODS.map((m) => {
+                  {PAYMENT_METHODS.map(m => {
                     const active = paymentMethod === m.id;
                     return (
                       <button
@@ -261,32 +213,15 @@ export default function PaymentFlowModal({
             </div>
           )}
 
-          {/* Paso 2: QR real + Link de Pago de Mercado Pago */}
+          {/* Paso 2: QR real */}
           {step === 'qr' && (
             <div className="text-center space-y-3">
-              <p className="text-slate-600">
-                Escaneá el código QR con tu app de Mercado Pago o abrí el link de pago directo.
-              </p>
-              <div className="inline-block p-3 bg-white rounded-2xl border-2 border-dashed border-sky-300">
+              <p className="text-slate-600">Escaneá el código con tu billetera virtual.</p>
+              <div className="inline-block p-3 bg-white rounded-2xl border-2 border-dashed border-slate-300">
                 <div className="w-48 h-48">
                   <QRCode value={qrPayload} size={192} />
                 </div>
               </div>
-
-              {mpCheckoutLink && (
-                <div>
-                  <a
-                    href={mpCheckoutLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full py-2.5 px-4 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 font-bold text-xs inline-flex items-center justify-center gap-2 transition-colors"
-                  >
-                    <ExternalLink className="w-3.5 h-3.5" />
-                    Abrir Link de Pago en Mercado Pago
-                  </a>
-                </div>
-              )}
-
               <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
                 <button
                   type="button"
@@ -313,15 +248,9 @@ export default function PaymentFlowModal({
                 <h4 className="text-base font-extrabold text-slate-900">Pago acreditado</h4>
                 <p className="text-slate-600 mt-1">
                   Se emitió el recibo <strong className="font-mono">{receipt.id}</strong>.{' '}
-                  {kind === 'mostrador' ? (
-                    <>
-                      Quedó registrado en <strong>Recibos y Cobros</strong>.
-                    </>
-                  ) : (
-                    <>
-                      Lo vas a encontrar en <strong>Mis Pagos y Recibos</strong>.
-                    </>
-                  )}
+                  {kind === 'mostrador'
+                    ? <>Quedó registrado en <strong>Recibos y Cobros</strong>.</>
+                    : <>Lo vas a encontrar en <strong>Mis Pagos y Recibos</strong>.</>}
                 </p>
               </div>
               <div className="flex justify-center gap-2 pt-2 border-t border-slate-100">

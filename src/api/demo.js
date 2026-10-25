@@ -317,10 +317,6 @@ export const reservationsMock = {
 
     reservationsStore.unshift(newReservation);
 
-    const mpPreferenceId = `MP-PREF-${newId}-${Date.now()}`;
-    const mpPaymentUrl = `https://sandbox.mercadopago.com.ar/checkout/v1/redirect?pref_id=${mpPreferenceId}`;
-    const mpQrData = `https://mpago.la/pos/tenisahora/${newRecId.toLowerCase()}?pref_id=${mpPreferenceId}`;
-
     // Auto-generate deposit receipt
     const depositReceipt = {
       id: newRecId,
@@ -338,25 +334,12 @@ export const reservationsMock = {
       paymentMethod: bookingData.depositPaymentMethod || 'Mercado Pago (QR)',
       status: 'completado',
       date: new Date().toISOString().replace('T', ' ').substring(0, 16),
-      qrData: mpQrData,
-      paymentUrl: mpPaymentUrl,
-      mpPreferenceId,
+      qrData: `https://mpago.la/pos/tenisahora/${newRecId.toLowerCase()}`,
       cashierName: 'Cobro Digital Online'
     };
     receiptsStore.unshift(depositReceipt);
 
-    const paymentPreference = {
-      preferenceId: mpPreferenceId,
-      externalReference: newId,
-      initPoint: mpPaymentUrl,
-      sandboxInitPoint: mpPaymentUrl,
-      paymentUrl: mpPaymentUrl,
-      qrData: mpQrData,
-      amount: bookingData.depositPaid,
-      status: 'created'
-    };
-
-    return { data: newReservation, receipt: depositReceipt, paymentPreference };
+    return { data: newReservation, receipt: depositReceipt };
   },
   async payRemainingBalance(reservationId, paymentMethod = 'Mercado Pago (QR)') {
     await delay();

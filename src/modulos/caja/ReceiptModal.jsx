@@ -1,8 +1,6 @@
 import React from 'react';
-import { ExternalLink } from 'lucide-react';
 import Modal from '../../ui/Modal';
 import Logo from '../../layout/Logo';
-import QRCode, { qrPayloads } from '../../ui/QRCode';
 
 export default function ReceiptModal({ isOpen, onClose, receipt }) {
   if (!receipt) return null;
@@ -11,22 +9,13 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
     window.print();
   };
 
-  const qrValue =
-    receipt.qrData ||
-    receipt.paymentUrl ||
-    qrPayloads.payment({
-      concept: receipt.concept,
-      amount: receipt.totalPaid,
-      reference: receipt.id
-    });
-
-  const paymentLink = receipt.paymentUrl || (receipt.qrData?.startsWith('http') ? receipt.qrData : '');
-
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Comprobante Oficial de Pago" maxWidth="max-w-xl">
       <div className="space-y-4">
+        
         {/* Printable Area */}
         <div id="printable-receipt-area" className="bg-white p-4 rounded-xl text-slate-800 print:p-0">
+          
           {/* Header with tennis club branding & fiscal data */}
           <div className="text-center pb-4 border-b-2 border-slate-900">
             <div className="flex justify-center mb-1">
@@ -36,10 +25,8 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
               Club Tenis Ahora — Asociación Civil Deportiva
             </h2>
             <p className="text-[11px] text-slate-500">CUIT: 30-71889922-4</p>
-            <p className="text-[11px] text-slate-400">
-              Sede Social: Av. San Martín 1420, Quilmes, Buenos Aires | Tel: +54 11 4892-1234
-            </p>
-
+            <p className="text-[11px] text-slate-400">Sede Social: Av. San Martín 1420, Quilmes, Buenos Aires | Tel: +54 11 4892-1234</p>
+            
             <div className="mt-3 text-xs font-bold text-slate-800">
               Recibo Oficial de Pago N°: <span className="font-mono">{receipt.id}</span>
             </div>
@@ -50,18 +37,12 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
             <div>
               <span className="text-[10px] text-slate-400 block uppercase font-bold">Cliente / Socio Titular:</span>
               <span className="font-extrabold text-slate-900 text-sm block">{receipt.clientName}</span>
-              <span className="text-slate-600 font-mono text-[11px]">
-                DNI: <strong>{receipt.clientDni}</strong>
-              </span>
+              <span className="text-slate-600 font-mono text-[11px]">DNI: <strong>{receipt.clientDni}</strong></span>
             </div>
             <div className="text-right">
               <span className="text-[10px] text-slate-400 block uppercase font-bold">Fecha y Hora de Emisión:</span>
-              <span className="font-bold text-slate-900 block font-mono text-[11px]">
-                {receipt.date || new Date().toLocaleString()}
-              </span>
-              <span className="text-slate-600 text-[11px]">
-                Medio de Pago: <strong className="text-tennis-800">{receipt.paymentMethod}</strong>
-              </span>
+              <span className="font-bold text-slate-900 block font-mono text-[11px]">{receipt.date || new Date().toLocaleString()}</span>
+              <span className="text-slate-600 text-[11px]">Medio de Pago: <strong className="text-tennis-800">{receipt.paymentMethod}</strong></span>
             </div>
           </div>
 
@@ -70,7 +51,7 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
             <div className="text-[11px] font-bold uppercase text-slate-500 mb-2">
               Concepto: <strong className="text-slate-800">{receipt.concept}</strong>
             </div>
-
+            
             <table className="w-full text-left text-xs border-collapse border border-slate-200">
               <thead>
                 <tr className="border-b border-slate-300 text-slate-600 font-bold uppercase bg-slate-50 text-[10px]">
@@ -85,17 +66,19 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
                   const isFree = item.amount === 0 || item.description.includes('incluido');
 
                   return (
-                    <tr
-                      key={idx}
+                    <tr 
+                      key={idx} 
                       className={
-                        isDeposit
-                          ? 'font-extrabold text-tennis-900 bg-tennis-50/50'
+                        isDeposit 
+                          ? 'font-extrabold text-tennis-900 bg-tennis-50/50' 
                           : isTotal
                           ? 'font-bold text-slate-800 bg-slate-50/60'
                           : 'text-slate-700'
                       }
                     >
-                      <td className="py-2 px-3 border-r border-slate-200">{item.description}</td>
+                      <td className="py-2 px-3 border-r border-slate-200">
+                        {item.description}
+                      </td>
                       <td className="py-2 px-3 text-right font-mono">
                         {isFree ? (
                           <span className="text-tennis-700 font-bold">Incluido</span>
@@ -121,43 +104,8 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
               </span>
             </div>
             <div className="text-2xl font-black text-white print:text-slate-900">
-              ${receipt.totalPaid?.toLocaleString('es-AR')}{' '}
-              <span className="text-xs font-normal text-slate-400 print:text-slate-600">ARS</span>
+              ${receipt.totalPaid?.toLocaleString('es-AR')} <span className="text-xs font-normal text-slate-400 print:text-slate-600">ARS</span>
             </div>
-          </div>
-
-          {/* Bloque de Verificación QR y Link de Pago de Mercado Pago */}
-          <div className="my-3 p-3.5 bg-sky-50/70 rounded-xl border border-sky-200 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3 text-left">
-              <div className="p-2 bg-white rounded-xl border border-sky-200 shrink-0">
-                <div className="w-20 h-20">
-                  <QRCode value={qrValue} size={80} level="M" />
-                </div>
-              </div>
-              <div className="space-y-1 text-xs">
-                <div className="font-extrabold text-slate-900">Código QR Mercado Pago</div>
-                <p className="text-[11px] text-slate-600">
-                  Verificación digital de la transacción y comprobante de seña / liquidación.
-                </p>
-                {receipt.mpPreferenceId && (
-                  <p className="text-[10px] font-mono text-slate-500">
-                    Pref. MP: <strong>{receipt.mpPreferenceId}</strong>
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {paymentLink && (
-              <a
-                href={paymentLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="no-print shrink-0 px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-sm transition-colors"
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-                Link de Pago MP
-              </a>
-            )}
           </div>
 
           {/* Operador y firma */}
@@ -175,6 +123,7 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
               <span className="text-[9px] text-slate-400 block uppercase">Firma / Sello Recepción</span>
             </div>
           </div>
+
         </div>
 
         {/* Modal Actions (No Print) */}
@@ -191,9 +140,10 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
             onClick={handlePrint}
             className="px-5 py-2 text-xs font-bold text-white bg-tennis-600 hover:bg-tennis-700 rounded-xl shadow-md inline-flex items-center gap-1.5 transition-all"
           >
-            Imprimir Comprobante
+            Imprimir Comprobante 
           </button>
         </div>
+
       </div>
     </Modal>
   );

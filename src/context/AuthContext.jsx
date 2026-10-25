@@ -8,53 +8,46 @@ import {
   removeStoredToken,
   getDemoUser,
   setDemoUser,
-  removeDemoUser,
-  extractSupabaseUserClaims
+  removeDemoUser
 } from '../utils/jwt';
-import {
-  isSupabaseAuthConfigured,
-  refreshSupabaseSession,
-  signOutFromSupabase
-} from '../auth/supabaseClient';
 import { authService, usersService, coachesAndClassesService } from '../services/api';
 import { isDemoPath } from '../hooks/usePortalPaths';
 
 const AuthContext = createContext(null);
 
+// El front usa 'client' / 'admin' / 'coach'; el tipo de profesional queda en rolBackend.
 const ROL_BACKEND_A_FRONT = {
   Socio: 'client',
-  client: 'client',
   Empleado: 'admin',
-  admin: 'admin',
   Profesor: 'coach',
-  Entrenador: 'coach',
-  coach: 'coach'
+  Entrenador: 'coach'
 };
 
+/**
+ * Adapta el AuthResponseDto de la API a la forma de usuario que consumen las páginas.
+ */
 function mapearUsuario(data) {
-  const token = data.token || data.access_token;
-  const claims = extractSupabaseUserClaims(token || data);
   const nombreCompleto = `${data.nombre ?? ''} ${data.apellido ?? ''}`.trim();
-  const rawRol = data.rol || claims.role || 'Socio';
 
   return {
-    id: String(data.id || claims.sub || 'usr-01'),
-    name: nombreCompleto || data.name || data.email || claims.email || 'Socio Tenis Ahora',
-    nombre: data.nombre || '',
-    apellido: data.apellido || '',
-    email: data.email || claims.email || '',
-    phone: data.numeroTelefono ?? data.phone ?? '',
-    address: data.direccion ?? data.address ?? '',
+    id: String(data.id),
+    name: nombreCompleto || data.email,
+    nombre: data.nombre,
+    apellido: data.apellido,
+    email: data.email,
+    phone: data.numeroTelefono ?? '',
+    address: data.direccion ?? '',
     photo: data.photo ?? '',
-    role: ROL_BACKEND_A_FRONT[rawRol] ?? 'client',
-    rolBackend: rawRol,
-    coachId: data.coachId || claims.coachId || undefined,
-    dni: data.dni || claims.dni || '',
+    role: ROL_BACKEND_A_FRONT[data.rol] ?? 'client',
+    rolBackend: data.rol,
+    coachId: data.coachId || undefined,
+    dni: data.dni ?? '',
     memberNumber: data.memberNumber ?? '',
     isDemo: false
   };
 }
 
+/** Usuarios de la demo (coinciden con los datos de ejemplo de src/utils/mockData.js). */
 const DEMO_USERS = {
   admin: {
     id: 'usr-admin',
@@ -108,44 +101,34 @@ export function AuthProvider({ children }) {
   const { pathname } = useLocation();
   const isDemo = isDemoPath(pathname);
 
+  // Sesión real (token del backend, localStorage) y sesión demo (sessionStorage) viven separadas:
+  // la demo en URL/demo/... nunca pisa la sesión de un usuario real.
   const [token, setToken] = useState(null);
   const [realUser, setRealUser] = useState(null);
   const [demoUser, setDemoUserState] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let mounted = true;
-    async function initSession() {
-      let savedToken = getStoredToken();
-      if (!savedToken && isSupabaseAuthConfigured()) {
-        savedToken = await refreshSupabaseSession();
-      }
-      const savedUser = getStoredUser();
+    const savedToken = getStoredToken();
+    const savedUser = getStoredUser();
 
-      if (!mounted) return;
-      if (savedToken && savedUser) {
-        setToken(savedToken);
-        setRealUser(savedUser);
-      } else {
-        removeStoredToken();
-        setToken(null);
-        setRealUser(null);
-      }
-      setDemoUserState(getDemoUser());
-      setLoading(false);
+    if (savedToken && savedUser) {
+      setToken(savedToken);
+      setRealUser(savedUser);
+    } else {
+      removeStoredToken();
+      setToken(null);
+      setRealUser(null);
     }
-    initSession();
-    return () => {
-      mounted = false;
-    };
+    setDemoUserState(getDemoUser());
+    setLoading(false);
   }, []);
 
   const guardarSesion = (data) => {
-    const resolvedToken = data.token || data.access_token;
     const usuario = mapearUsuario(data);
-    setStoredToken(resolvedToken, data.refreshToken || data.refresh_token);
+    setStoredToken(data.token);
     setStoredUser(usuario);
-    setToken(resolvedToken);
+    setToken(data.token);
     setRealUser(usuario);
     return usuario;
   };
@@ -156,18 +139,24 @@ export function AuthProvider({ children }) {
     return usuario;
   };
 
+  /**
+   * Inicio de sesión en la demo (sin backend). Solo se usa bajo URL/demo.
+   */
   const loginDemo = (role = 'client') => {
     const base = DEMO_USERS[role] || DEMO_USERS.client;
+    // Si ya había una demo del mismo rol se conservan los datos editados (nombre, foto, etc.).
     const current = getDemoUser();
     if (current && current.role === base.role) return guardarDemo(current);
     return guardarDemo({ ...base });
   };
 
+  // POST /api/auth/login — con credenciales nunca se cae a la demo: si la API no responde, es un error.
   const login = async (email, password) => {
     const data = await authService.login(email, password);
     return guardarSesion(data);
   };
 
+  // POST /api/auth/registrar
   const register = async (formData) => {
     const data = await authService.registrar({
       nombre: formData.nombre,
@@ -187,12 +176,15 @@ export function AuthProvider({ children }) {
       setDemoUserState(null);
       return;
     }
-    signOutFromSupabase();
     removeStoredToken();
     setToken(null);
     setRealUser(null);
   };
 
+  /**
+   * Alterna la vista socio/profesor/admin. Solo en la demo: el rol de un usuario real lo
+   * define el backend y no se puede cambiar desde el front.
+   */
   const switchRole = (newRole) => {
     if (!isDemo) return null;
     return guardarDemo({ ...(DEMO_USERS[newRole] || DEMO_USERS.client) });
@@ -200,6 +192,10 @@ export function AuthProvider({ children }) {
 
   const user = isDemo ? demoUser : realUser;
 
+  /**
+   * Actualiza nombre, teléfono y foto del usuario logueado (socio, profesional o empleado).
+   * Persiste en el padrón (y en la ficha del profesor si corresponde) y en la sesión local.
+   */
   const updateProfile = async ({ name, phone, photo }) => {
     if (!user) throw new Error('No hay una sesión activa.');
     const cleanName = String(name ?? user.name).trim();
@@ -213,6 +209,7 @@ export function AuthProvider({ children }) {
     const [nombre, ...resto] = cleanName.split(' ');
     const apellido = resto.join(' ');
 
+    // Ficha del padrón de usuarios (en la demo el padrón de la administración refleja el cambio).
     if (user.role !== 'coach' || isDemo) {
       try {
         await usersService.update(user.id, { ...changes, nombre, apellido });
@@ -220,6 +217,7 @@ export function AuthProvider({ children }) {
         if (!isDemo) throw err;
       }
     }
+    // Ficha pública del profesor o entrenador.
     if (user.role === 'coach' && user.coachId) {
       await coachesAndClassesService.updateCoach(user.coachId, changes);
     }

@@ -2,9 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useFeedback } from '../../context/FeedbackContext';
 import { courtsService, stockService, reservationsService, clubConfigService, usersService, DEFAULT_CLUB_CONFIG, maxBookingDate } from '../../services/api';
-import { ChevronRight, ChevronLeft, ExternalLink, QrCode as QrCodeIcon } from 'lucide-react';
+import { ChevronRight, ChevronLeft } from 'lucide-react';
 import QRModal from '../../components/common/QRModal';
-import QRCode, { qrPayloads } from '../../components/common/QRCode';
 import ReceiptModal from '../../components/common/ReceiptModal';
 import CourtTimelineGrid from '../../components/common/CourtTimelineGrid';
 import Stepper from '../../components/common/Stepper';
@@ -59,7 +58,6 @@ export default function BookCourtPage() {
   const [showQRModal, setShowQRModal] = useState(false);
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [generatedReceipt, setGeneratedReceipt] = useState(null);
-  const [paymentPreference, setPaymentPreference] = useState(null);
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -246,18 +244,6 @@ export default function BookCourtPage() {
     try {
       const res = await reservationsService.create(bookingPayload);
       setGeneratedReceipt(res.receipt);
-      setPaymentPreference(
-        res.paymentPreference ||
-          (res.receipt
-            ? {
-                preferenceId: res.receipt.mpPreferenceId || `MP-PREF-${res.receipt.id}`,
-                qrData: res.receipt.qrData,
-                paymentUrl: res.receipt.paymentUrl || res.receipt.qrData,
-                sandboxInitPoint: res.receipt.paymentUrl || res.receipt.qrData,
-                amount: res.receipt.totalPaid
-              }
-            : null)
-      );
       setBookingSuccess(true);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
@@ -270,7 +256,6 @@ export default function BookCourtPage() {
   const resetFlow = () => {
     setBookingSuccess(false);
     setGeneratedReceipt(null);
-    setPaymentPreference(null);
     setSelectedTimeSlot('');
     setStep(0);
     loadData();
@@ -284,25 +269,10 @@ export default function BookCourtPage() {
 
   // ======================= Pantalla de éxito =======================
   if (bookingSuccess) {
-    const mpQrData =
-      paymentPreference?.qrData ||
-      generatedReceipt?.qrData ||
-      qrPayloads.payment({
-        concept: generatedReceipt?.concept || `Seña 50% - ${selectedCourt?.name}`,
-        amount: deposit50,
-        reference: generatedReceipt?.id || 'RES'
-      });
-    const mpPaymentLink =
-      paymentPreference?.sandboxInitPoint ||
-      paymentPreference?.initPoint ||
-      paymentPreference?.paymentUrl ||
-      generatedReceipt?.paymentUrl ||
-      (generatedReceipt?.qrData?.startsWith('http') ? generatedReceipt.qrData : '');
-
     return (
       <div className="space-y-6">
         <PageHeader />
-        <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm text-center max-w-2xl mx-auto space-y-5">
+        <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm text-center max-w-2xl mx-auto space-y-4">
           <h2 className="text-2xl font-extrabold text-slate-900">¡Reserva confirmada!</h2>
           <p className="text-sm text-slate-600">
             Se registró el pago de la seña del 50%: <strong>${deposit50.toLocaleString('es-AR')}</strong>. El saldo de ${remaining50.toLocaleString('es-AR')} se abona en administración al terminar el partido.
@@ -315,47 +285,7 @@ export default function BookCourtPage() {
             <div className="flex justify-between font-bold text-tennis-700 pt-2 border-t border-slate-200"><span>Comprobante:</span> <span>{generatedReceipt?.id}</span></div>
           </div>
 
-          {/* Tarjeta Mercado Pago (Código QR + Link de Pago de Seña 50%) */}
-          <div className="p-4 bg-sky-50/80 rounded-2xl border border-sky-200 text-left flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3.5">
-              <div className="p-2.5 bg-white rounded-2xl border border-sky-200 shadow-sm shrink-0">
-                <div className="w-24 h-24">
-                  <QRCode value={mpQrData} size={96} level="M" />
-                </div>
-              </div>
-              <div className="space-y-1 text-xs">
-                <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-sky-100 text-sky-900 font-extrabold text-[10px] uppercase">
-                  <QrCodeIcon className="w-3 h-3" />
-                  Mercado Pago • Seña 50%
-                </div>
-                <div className="font-extrabold text-slate-900 text-sm">
-                  Código QR y Link de Pago Oficial
-                </div>
-                <p className="text-[11px] text-slate-600">
-                  Presentá este código QR en recepción o consultá tu operación en Mercado Pago.
-                </p>
-                {(paymentPreference?.preferenceId || generatedReceipt?.mpPreferenceId) && (
-                  <p className="text-[10px] font-mono text-slate-500">
-                    Preferencia MP: <strong>{paymentPreference?.preferenceId || generatedReceipt?.mpPreferenceId}</strong>
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {mpPaymentLink && (
-              <a
-                href={mpPaymentLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full sm:w-auto shrink-0 px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs inline-flex items-center justify-center gap-1.5 shadow-sm transition-colors"
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-                Abrir Link de Pago MP
-              </a>
-            )}
-          </div>
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
             <button
               type="button"
               onClick={() => setShowReceiptModal(true)}
@@ -722,9 +652,6 @@ export default function BookCourtPage() {
         amount={deposit50}
         concept={`Seña 50% - ${selectedCourt?.name}, ${selectedDate} ${selectedTimeSlot}`}
         reference={`RES-${selectedCourt?.id}-${selectedDate}-${(selectedTimeSlot || '').split(' - ')[0]}`}
-        qrData={paymentPreference?.qrData}
-        paymentUrl={paymentPreference?.sandboxInitPoint || paymentPreference?.initPoint || paymentPreference?.paymentUrl}
-        preferenceId={paymentPreference?.preferenceId}
         onPaymentSuccess={executeReservation}
       />
     </div>
