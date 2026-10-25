@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { coachesAndClassesService, clubConfigService, usersService, DEFAULT_CLUB_CONFIG } from '../../api';
+import { coachesAndClassesService, clubConfigService, DEFAULT_CLUB_CONFIG } from '../../api';
+import MemberSelect from '../../ui/MemberSelect';
 import { useAuth } from '../../auth/AuthContext';
 import { useFeedback } from '../../ui/FeedbackContext';
 import { Edit } from 'lucide-react';
@@ -12,7 +13,6 @@ export default function CoachPrivateLessonsPage() {
   const [lessons, setLessons] = useState([]);
   const [allLessons, setAllLessons] = useState([]);
   const [coachProfile, setCoachProfile] = useState(null);
-  const [members, setMembers] = useState([]);
   const [clubConfig, setClubConfig] = useState(DEFAULT_CLUB_CONFIG);
 
   // Modals
@@ -36,14 +36,12 @@ export default function CoachPrivateLessonsPage() {
   }, [user]);
 
   const loadLessons = async () => {
-    const [prvRes, cRes, cfgRes, mRes] = await Promise.all([
+    const [prvRes, cRes, cfgRes] = await Promise.all([
       coachesAndClassesService.getPrivateClasses(),
       coachesAndClassesService.getCoaches(),
-      clubConfigService.get(),
-      usersService.getMembers()
+      clubConfigService.get()
     ]);
     setClubConfig(cfgRes.data);
-    setMembers(mRes.data);
 const currentCoach = cRes.data.find(c => c.id === user?.coachId);
     setCoachProfile(currentCoach);
 
@@ -64,8 +62,7 @@ const currentCoach = cRes.data.find(c => c.id === user?.coachId);
       : `${studentName || 'El alumno'} ya tiene un turno el ${clash.date} a las ${clash.time} con ${clash.coachName}.`;
   };
 
-  const handleSelectStudent = (memberId) => {
-    const member = members.find(m => String(m.id) === memberId);
+  const handleSelectStudent = (member) => {
     setNewLessonForm({ ...newLessonForm, studentName: member?.name || '', studentDni: member?.dni || '' });
   };
 
@@ -261,17 +258,7 @@ const clash = conflictMessage(newLessonForm);
         <form onSubmit={handleCreateLesson} className="space-y-4 text-xs">
           <div>
             <label className="font-semibold text-slate-700 uppercase block mb-1">Alumno *</label>
-            <select
-              required
-              value={members.find(m => m.dni === newLessonForm.studentDni)?.id ?? ''}
-              onChange={(e) => handleSelectStudent(e.target.value)}
-              className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white"
-            >
-              <option value="">Seleccionar alumno</option>
-              {members.map(m => (
-                <option key={m.id} value={m.id}>{m.name} • DNI {m.dni}</option>
-              ))}
-            </select>
+            <MemberSelect value={newLessonForm.studentDni} placeholder="Seleccionar alumno" onSelect={handleSelectStudent} />
           </div>
 
           <div className="grid grid-cols-2 gap-3">

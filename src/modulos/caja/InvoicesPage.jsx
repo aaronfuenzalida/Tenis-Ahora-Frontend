@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Search, Trash2 } from 'lucide-react';
 import Modal from '../../ui/Modal';
+import MemberSelect from '../../ui/MemberSelect';
 import { invoicesService, receiptsService } from '../../api';
 import { useFeedback } from '../../ui/FeedbackContext';
 
@@ -210,15 +211,9 @@ function InvoicesPanel() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="font-semibold text-slate-700 block mb-1">Cliente *</label>
-              <input type="text" required value={form.clientName} onChange={(e) => setForm({ ...form, clientName: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600" />
-            </div>
-            <div>
-              <label className="font-semibold text-slate-700 block mb-1">DNI / CUIT *</label>
-              <input type="text" required value={form.clientDni} onChange={(e) => setForm({ ...form, clientDni: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600" />
-            </div>
+          <div>
+            <label className="font-semibold text-slate-700 block mb-1">Cliente *</label>
+            <MemberSelect value={form.clientDni} onSelect={(m) => setForm({ ...form, clientName: m?.name || '', clientDni: m?.dni || '' })} />
           </div>
 
           <div>

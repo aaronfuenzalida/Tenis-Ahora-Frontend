@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { coachesAndClassesService, clubConfigService, DEFAULT_CLUB_CONFIG } from '../../api';
 import Modal from '../../ui/Modal';
+import MemberSelect from '../../ui/MemberSelect';
 import { useFeedback } from '../../ui/FeedbackContext';
 
 export default function PrivateLessonsManagementPage() {
@@ -320,26 +321,11 @@ export default function PrivateLessonsManagementPage() {
             </div>
 
             <div>
-              <label className="font-semibold text-slate-700 uppercase block mb-1">Nombre del Alumno *</label>
-              <input
-                type="text"
-                required
-                placeholder="Nombre y Apellido"
-                value={newPrivateForm.studentName}
-                onChange={(e) => setNewPrivateForm({ ...newPrivateForm, studentName: e.target.value })}
-                className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
-              />
-            </div>
-
-            <div>
-              <label className="font-semibold text-slate-700 uppercase block mb-1">DNI del Alumno *</label>
-              <input
-                type="text"
-                required
-                placeholder="38.452.129"
+              <label className="font-semibold text-slate-700 uppercase block mb-1">Alumno *</label>
+              <MemberSelect
                 value={newPrivateForm.studentDni}
-                onChange={(e) => setNewPrivateForm({ ...newPrivateForm, studentDni: e.target.value })}
-                className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
+                placeholder="Seleccionar alumno"
+                onSelect={(m) => setNewPrivateForm({ ...newPrivateForm, studentName: m?.name || '', studentDni: m?.dni || '' })}
               />
             </div>
 

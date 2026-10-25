@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { leaguesService, competitionTypesService, documentsService } from '../../api';
 import { Trash2 } from 'lucide-react';
 import Modal from '../../ui/Modal';
+import MemberSelect from '../../ui/MemberSelect';
 import { RulesDocumentInput, RulesDocumentLink } from './RulesDocument';
 import { useFeedback } from '../../ui/FeedbackContext';
 
@@ -1073,26 +1074,12 @@ export default function LeaguesManagementPage() {
       >
         <form onSubmit={handleEnrollLeague} className="space-y-4 text-xs">
           <div>
-            <label className="font-semibold text-slate-700 uppercase block mb-1">Nombre y Apellido del Jugador *</label>
-            <input
-              type="text"
-              required
-              placeholder="Carlos Alcaraz"
-              value={enrollLeagueForm.name}
-              onChange={(e) => setEnrollLeagueForm({ ...enrollLeagueForm, name: e.target.value })}
-              className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
-            />
-          </div>
-
-          <div>
-            <label className="font-semibold text-slate-700 uppercase block mb-1">DNI del Jugador *</label>
-            <input
-              type="text"
-              required
-              placeholder="38.765.432"
+            <label className="font-semibold text-slate-700 uppercase block mb-1">Jugador *</label>
+            <MemberSelect
               value={enrollLeagueForm.dni}
-              onChange={(e) => setEnrollLeagueForm({ ...enrollLeagueForm, dni: e.target.value })}
-              className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
+              placeholder="Seleccionar jugador"
+              excludeDnis={[enrollLeagueForm.partnerDni]}
+              onSelect={(m) => setEnrollLeagueForm({ ...enrollLeagueForm, name: m?.name || '', dni: m?.dni || '' })}
             />
           </div>
 
@@ -1110,28 +1097,12 @@ export default function LeaguesManagementPage() {
           {selectedLeague?.modality === 'Pareja' && (
             <div className="space-y-3 pt-2 border-t border-slate-100">
               <span className="font-bold text-slate-800 uppercase block">Datos de la Pareja</span>
-              <div>
-                <label className="font-semibold text-slate-700 uppercase block mb-1">Nombre Pareja *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Rafael Nadal"
-                  value={enrollLeagueForm.partnerName}
-                  onChange={(e) => setEnrollLeagueForm({ ...enrollLeagueForm, partnerName: e.target.value })}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
-                />
-              </div>
-              <div>
-                <label className="font-semibold text-slate-700 uppercase block mb-1">DNI Pareja *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="34.567.890"
-                  value={enrollLeagueForm.partnerDni}
-                  onChange={(e) => setEnrollLeagueForm({ ...enrollLeagueForm, partnerDni: e.target.value })}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
-                />
-              </div>
+              <MemberSelect
+                value={enrollLeagueForm.partnerDni}
+                placeholder="Seleccionar pareja"
+                excludeDnis={[enrollLeagueForm.dni]}
+                onSelect={(m) => setEnrollLeagueForm({ ...enrollLeagueForm, partnerName: m?.name || '', partnerDni: m?.dni || '' })}
+              />
             </div>
           )}
 
@@ -1262,29 +1233,24 @@ export default function LeaguesManagementPage() {
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="font-semibold text-slate-700 uppercase block mb-1">Jugador 1 *</label>
-              <input
-                type="text"
-                required
-                placeholder="Nombre Jugador 1"
-                value={addMatchForm.p1}
-                onChange={(e) => setAddMatchForm({ ...addMatchForm, p1: e.target.value })}
-                className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
-              />
-            </div>
-
-            <div>
-              <label className="font-semibold text-slate-700 uppercase block mb-1">Jugador 2 *</label>
-              <input
-                type="text"
-                required
-                placeholder="Nombre Jugador 2"
-                value={addMatchForm.p2}
-                onChange={(e) => setAddMatchForm({ ...addMatchForm, p2: e.target.value })}
-                className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
-              />
-            </div>
+            {['p1', 'p2'].map((key, idx) => (
+              <div key={key}>
+                <label className="font-semibold text-slate-700 uppercase block mb-1">Jugador {idx + 1} *</label>
+                <select
+                  required
+                  value={addMatchForm[key]}
+                  onChange={(e) => setAddMatchForm({ ...addMatchForm, [key]: e.target.value })}
+                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white"
+                >
+                  <option value="">Seleccionar inscripto</option>
+                  {(selectedLeague?.participants || [])
+                    .filter(p => p.name !== addMatchForm[key === 'p1' ? 'p2' : 'p1'])
+                    .map(p => (
+                      <option key={p.id || p.dni} value={p.name}>{p.partnerName ? `${p.name} / ${p.partnerName}` : p.name}</option>
+                    ))}
+                </select>
+              </div>
+            ))}
           </div>
 
           <div className="grid grid-cols-2 gap-3">

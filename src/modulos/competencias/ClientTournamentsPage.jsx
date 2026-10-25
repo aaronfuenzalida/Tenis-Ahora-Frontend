@@ -3,6 +3,7 @@ import { tournamentsService } from '../../api';
 import { useAuth } from '../../auth/AuthContext';
 import { useFeedback } from '../../ui/FeedbackContext';
 import Modal from '../../ui/Modal';
+import MemberSelect from '../../ui/MemberSelect';
 import { RulesDocumentLink } from './RulesDocument';
 import TournamentBracketTree from './TournamentBracketTree';
 import PaymentFlowModal from '../caja/PaymentFlowModal';
@@ -213,22 +214,13 @@ export default function ClientTournamentsPage() {
 
           {selectedTournament?.modality === 'Pareja' && (
             <div className="space-y-3 border-t border-slate-100 pt-3">
-              <label className="font-semibold text-slate-700 uppercase block">Datos de tu pareja</label>
-              <input
-                type="text"
-                required
-                placeholder="Nombre y apellido"
-                value={partnerName}
-                onChange={(e) => setPartnerName(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
-              />
-              <input
-                type="text"
-                required
-                placeholder="DNI"
+              <label className="font-semibold text-slate-700 uppercase block">Tu pareja</label>
+              <MemberSelect
                 value={partnerDni}
-                onChange={(e) => setPartnerDni(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
+                placeholder="Seleccionar pareja"
+                excludeDnis={[user?.dni]}
+                onSelect={(m) => { setPartnerName(m?.name || ''); setPartnerDni(m?.dni || ''); }}
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white"
               />
             </div>
           )}

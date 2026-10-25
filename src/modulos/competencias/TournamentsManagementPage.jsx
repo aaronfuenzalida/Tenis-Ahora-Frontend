@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { tournamentsService, competitionTypesService, documentsService } from '../../api';
 import { Trash2 } from 'lucide-react';
 import Modal from '../../ui/Modal';
+import MemberSelect from '../../ui/MemberSelect';
 import { RulesDocumentInput, RulesDocumentLink } from './RulesDocument';
 import TournamentBracketTree from './TournamentBracketTree';
 import { useFeedback } from '../../ui/FeedbackContext';
@@ -869,26 +870,12 @@ export default function TournamentsManagementPage() {
       >
         <form onSubmit={handleEnrollTournament} className="space-y-4 text-xs">
           <div>
-            <label className="font-semibold text-slate-700 uppercase block mb-1">Nombre y Apellido del Jugador *</label>
-            <input
-              type="text"
-              required
-              placeholder="Juan Pérez"
-              value={enrollTrnForm.name}
-              onChange={(e) => setEnrollTrnForm({ ...enrollTrnForm, name: e.target.value })}
-              className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
-            />
-          </div>
-
-          <div>
-            <label className="font-semibold text-slate-700 uppercase block mb-1">DNI del Jugador *</label>
-            <input
-              type="text"
-              required
-              placeholder="35.123.456"
+            <label className="font-semibold text-slate-700 uppercase block mb-1">Jugador *</label>
+            <MemberSelect
               value={enrollTrnForm.dni}
-              onChange={(e) => setEnrollTrnForm({ ...enrollTrnForm, dni: e.target.value })}
-              className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
+              placeholder="Seleccionar jugador"
+              excludeDnis={[enrollTrnForm.partnerDni]}
+              onSelect={(m) => setEnrollTrnForm({ ...enrollTrnForm, name: m?.name || '', dni: m?.dni || '' })}
             />
           </div>
 
@@ -906,28 +893,12 @@ export default function TournamentsManagementPage() {
           {selectedTournament?.modality === 'Pareja' && (
             <div className="space-y-3 pt-2 border-t border-slate-100">
               <span className="font-bold text-slate-800 uppercase block">Datos de la Pareja</span>
-              <div>
-                <label className="font-semibold text-slate-700 uppercase block mb-1">Nombre Pareja *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Pedro González"
-                  value={enrollTrnForm.partnerName}
-                  onChange={(e) => setEnrollTrnForm({ ...enrollTrnForm, partnerName: e.target.value })}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
-                />
-              </div>
-              <div>
-                <label className="font-semibold text-slate-700 uppercase block mb-1">DNI Pareja *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="36.987.654"
-                  value={enrollTrnForm.partnerDni}
-                  onChange={(e) => setEnrollTrnForm({ ...enrollTrnForm, partnerDni: e.target.value })}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
-                />
-              </div>
+              <MemberSelect
+                value={enrollTrnForm.partnerDni}
+                placeholder="Seleccionar pareja"
+                excludeDnis={[enrollTrnForm.dni]}
+                onSelect={(m) => setEnrollTrnForm({ ...enrollTrnForm, partnerName: m?.name || '', partnerDni: m?.dni || '' })}
+              />
             </div>
           )}
 

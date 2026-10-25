@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useAuth } from '../../auth/AuthContext';
 import { useFeedback } from '../../ui/FeedbackContext';
 import PaymentFlowModal from './PaymentFlowModal';
+import MemberSelect from '../../ui/MemberSelect';
 
 const EMPTY_FORM = { clientName: '', clientDni: '', concept: '', amount: '', discountCode: '' };
 
@@ -27,8 +28,8 @@ export default function CounterChargeForm({ discounts = [], onChargeComplete }) 
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!form.clientName.trim() || !form.clientDni.trim()) {
-      notify({ variant: 'warning', message: 'Completá el nombre y el DNI del socio o cliente.' });
+    if (!form.clientDni) {
+      notify({ variant: 'warning', message: 'Seleccioná el socio al que se le cobra.' });
       return;
     }
     if (!form.concept.trim()) {
@@ -47,7 +48,7 @@ export default function CounterChargeForm({ discounts = [], onChargeComplete }) 
         { description: concept, amount: base },
         ...(discount ? [{ description: `Descuento ${discount.name} (${discount.discountPercent}%)`, amount: -discountAmount }] : [])
       ],
-      client: { name: form.clientName.trim(), dni: form.clientDni.trim() }
+      client: { name: form.clientName, dni: form.clientDni }
     });
   };
 
@@ -65,27 +66,12 @@ export default function CounterChargeForm({ discounts = [], onChargeComplete }) 
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div>
-            <label className="font-semibold text-slate-700 block mb-1">Socio / Cliente *</label>
-            <input
-              type="text"
-              required
-              value={form.clientName}
-              onChange={(e) => set({ clientName: e.target.value })}
-              className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
-            />
-          </div>
-          <div>
-            <label className="font-semibold text-slate-700 block mb-1">DNI *</label>
-            <input
-              type="text"
-              required
-              value={form.clientDni}
-              onChange={(e) => set({ clientDni: e.target.value })}
-              className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 font-mono"
-            />
-          </div>
+        <div>
+          <label className="font-semibold text-slate-700 block mb-1">Socio *</label>
+          <MemberSelect
+            value={form.clientDni}
+            onSelect={(m) => set({ clientName: m?.name || '', clientDni: m?.dni || '' })}
+          />
         </div>
 
         <div>

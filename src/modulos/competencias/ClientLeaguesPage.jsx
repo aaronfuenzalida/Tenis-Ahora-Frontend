@@ -3,6 +3,7 @@ import { leaguesService } from '../../api';
 import { useAuth } from '../../auth/AuthContext';
 import { useFeedback } from '../../ui/FeedbackContext';
 import Modal from '../../ui/Modal';
+import MemberSelect from '../../ui/MemberSelect';
 import { RulesDocumentLink } from './RulesDocument';
 import PaymentFlowModal from '../caja/PaymentFlowModal';
 import { isEnrolledByDni } from '../../utils/formatters';
@@ -284,46 +285,15 @@ export default function ClientLeaguesPage() {
             </div>
           </div>
 
-          <div>
-            <label className="font-semibold text-slate-700 uppercase block mb-1">Nombre y apellido</label>
-            <input
-              type="text"
-              required
-              value={enrollForm.name}
-              onChange={(e) => setEnrollForm({ ...enrollForm, name: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
-            />
-          </div>
-
-          <div>
-            <label className="font-semibold text-slate-700 uppercase block mb-1">DNI</label>
-            <input
-              type="text"
-              required
-              value={enrollForm.dni}
-              onChange={(e) => setEnrollForm({ ...enrollForm, dni: e.target.value })}
-              className="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
-            />
-          </div>
-
           {selectedLeague?.modality === 'Pareja' && (
             <div className="space-y-3 border-t border-slate-100 pt-3">
-              <label className="font-semibold text-slate-700 uppercase block">Datos de tu pareja</label>
-              <input
-                type="text"
-                required
-                placeholder="Nombre y apellido"
-                value={enrollForm.partnerName}
-                onChange={(e) => setEnrollForm({ ...enrollForm, partnerName: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
-              />
-              <input
-                type="text"
-                required
-                placeholder="DNI"
+              <label className="font-semibold text-slate-700 uppercase block">Tu pareja</label>
+              <MemberSelect
                 value={enrollForm.partnerDni}
-                onChange={(e) => setEnrollForm({ ...enrollForm, partnerDni: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
+                placeholder="Seleccionar pareja"
+                excludeDnis={[enrollForm.dni]}
+                onSelect={(m) => setEnrollForm({ ...enrollForm, partnerName: m?.name || '', partnerDni: m?.dni || '' })}
+                className="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white"
               />
             </div>
           )}
