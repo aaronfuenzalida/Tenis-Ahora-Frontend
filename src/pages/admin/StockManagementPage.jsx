@@ -16,7 +16,6 @@ export default function StockManagementPage() {
     description: '',
     totalStock: 10,
     inUseStock: 0,
-    minAlertThreshold: 3,
     unit: 'unidades'
   });
 
@@ -51,7 +50,6 @@ export default function StockManagementPage() {
       description: '',
       totalStock: 10,
       inUseStock: 0,
-      minAlertThreshold: 3,
       unit: 'unidades'
     });
     loadStock();
@@ -62,7 +60,6 @@ export default function StockManagementPage() {
       ...item,
       totalStock: item.totalStock,
       inUseStock: item.inUseStock,
-      minAlertThreshold: item.minAlertThreshold,
       unit: item.unit || 'unidades'
     });
     setShowEditModal(true);
@@ -193,7 +190,6 @@ export default function StockManagementPage() {
                 <th className="py-3 px-3 text-center">Stock Total</th>
                 <th className="py-3 px-3 text-center">En Uso</th>
                 <th className="py-3 px-3 text-center">Disponible</th>
-                <th className="py-3 px-3 text-center">Mínimo Alerta</th>
                 <th className="py-3 px-3 text-center">Estado</th>
                 <th className="py-3 px-3 text-right no-print">Acciones</th>
               </tr>
@@ -201,13 +197,13 @@ export default function StockManagementPage() {
             <tbody className="divide-y divide-slate-100">
               {filteredStock.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-8 text-center text-slate-400 font-medium">
+                  <td colSpan={7} className="py-8 text-center text-slate-400 font-medium">
                     No se encontraron productos de stock con el criterio ingresado.
                   </td>
                 </tr>
               ) : (
                 filteredStock.map(item => {
-                  const isLow = item.availableStock <= item.minAlertThreshold;
+                  const isOut = item.availableStock <= 0;
 
                   return (
                     <tr key={item.id} className="hover:bg-slate-50/70 transition-colors">
@@ -229,18 +225,14 @@ export default function StockManagementPage() {
                       </td>
 
                       <td className="py-3 px-3 text-center font-bold text-slate-900">
-                        <span className={isLow ? 'text-slate-700' : 'text-slate-900'}>
+                        <span className={isOut ? 'text-slate-700' : 'text-slate-900'}>
                           {item.availableStock} {item.unit}
                         </span>
                       </td>
 
-                      <td className="py-3 px-3 text-center text-slate-500">
-                        {item.minAlertThreshold} {item.unit}
-                      </td>
-
                       <td className="py-3 px-3 text-center font-medium">
-                        <span className={isLow ? 'text-slate-700' : 'text-slate-600'}>
-                          {isLow ? 'Stock Bajo' : 'Normal'}
+                        <span className={isOut ? 'text-slate-700' : 'text-slate-600'}>
+                          {isOut ? 'Agotado' : 'Disponible'}
                         </span>
                       </td>
 
@@ -342,18 +334,6 @@ export default function StockManagementPage() {
                 className="w-full p-2.5 rounded-lg border border-slate-200 outline-none focus:border-tennis-600 text-xs"
               />
             </div>
-
-            <div>
-              <label className="font-semibold text-slate-700 block mb-1">Umbral Mínimo de Alerta *</label>
-              <input
-                type="number"
-                min="0"
-                required
-                value={newItem.minAlertThreshold}
-                onChange={(e) => setNewItem({ ...newItem, minAlertThreshold: Number(e.target.value) })}
-                className="w-full p-2.5 rounded-lg border border-slate-200 outline-none focus:border-tennis-600 text-xs"
-              />
-            </div>
           </div>
 
           <div>
@@ -445,18 +425,6 @@ export default function StockManagementPage() {
                   required
                   value={itemToEdit.totalStock}
                   onChange={(e) => setItemToEdit({ ...itemToEdit, totalStock: Number(e.target.value) })}
-                  className="w-full p-2.5 rounded-lg border border-slate-200 outline-none focus:border-tennis-600 text-xs"
-                />
-              </div>
-
-              <div>
-                <label className="font-semibold text-slate-700 block mb-1">Umbral Mínimo Alerta *</label>
-                <input
-                  type="number"
-                  min="0"
-                  required
-                  value={itemToEdit.minAlertThreshold}
-                  onChange={(e) => setItemToEdit({ ...itemToEdit, minAlertThreshold: Number(e.target.value) })}
                   className="w-full p-2.5 rounded-lg border border-slate-200 outline-none focus:border-tennis-600 text-xs"
                 />
               </div>

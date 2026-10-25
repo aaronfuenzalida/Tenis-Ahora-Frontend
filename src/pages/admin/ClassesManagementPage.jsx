@@ -263,16 +263,6 @@ export default function ClassesManagementPage() {
               const capacity = Math.min(cls.maxCapacity || 30, 30);
               const isFull = enrolledCount >= capacity;
 
-              // Regularity count (presents >= 75%)
-              const regularCount = studentsList.filter(st => {
-                const att = st.attendance || [];
-                const p = att.filter(a => a === 'P').length;
-                const evalCount = att.filter(a => a === 'P' || a === 'A' || a === 'J').length;
-                return evalCount > 0 ? (p / evalCount) >= 0.75 : true;
-              }).length;
-
-              const regularityPct = enrolledCount > 0 ? Math.round((regularCount / enrolledCount) * 100) : 100;
-
               return (
                 <div key={cls.id} className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between space-y-4">
                   
@@ -295,14 +285,9 @@ export default function ClassesManagementPage() {
                       <div>Cuota Mensual: <strong className="text-slate-900">${cls.monthlyFee?.toLocaleString('es-AR')}</strong></div>
                     </div>
 
-                    {isFull ? (
+                    {isFull && (
                       <div className="p-2.5 bg-slate-100 border border-slate-300 rounded-xl text-slate-700 text-xs font-semibold text-center">
                         Cupo completo ({enrolledCount}/{capacity} alumnos). Nuevas inscripciones inhabilitadas.
-                      </div>
-                    ) : (
-                      <div className="p-2 bg-slate-50 rounded-xl text-[11px] text-slate-500 flex items-center justify-between border border-slate-100">
-                        <span>Alumnos Regulares (≥75%):</span>
-                        <strong className="text-slate-800">{regularCount} de {enrolledCount} ({regularityPct}%)</strong>
                       </div>
                     )}
                   </div>

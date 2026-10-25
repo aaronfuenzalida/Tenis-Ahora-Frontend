@@ -1,6 +1,5 @@
 import React from 'react';
 import Modal from './Modal';
-import QRCode, { qrPayloads } from './QRCode';
 
 export default function MemberCardModal({ isOpen, onClose, member }) {
   if (!member) return null;
@@ -83,11 +82,6 @@ export default function MemberCardModal({ isOpen, onClose, member }) {
                   <div className="text-[11px] text-tennis-200 font-mono mt-0.5">DNI: <strong className="text-white font-bold">{member.dni}</strong></div>
                   <div className="text-[10px] text-slate-300 truncate mt-0.5">N° Socio: <strong className="text-slate-300 font-mono">{memberNumber}</strong></div>
                   <div className="text-[9px] text-slate-400 mt-0.5">Alta: {memberSince}</div>
-                </div>
-
-                {/* QR Code */}
-                <div className="w-14 h-14 bg-white p-1 rounded-lg shrink-0 shadow-md flex items-center justify-center">
-                  <QRCode value={qrPayloads.member({ ...member, memberNumber })} size={56} level="L" />
                 </div>
               </div>
 

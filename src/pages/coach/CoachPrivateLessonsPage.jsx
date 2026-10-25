@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { coachesAndClassesService } from '../../services/api';
+import { coachesAndClassesService, clubConfigService, DEFAULT_CLUB_CONFIG } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useFeedback } from '../../context/FeedbackContext';
 import { Edit } from 'lucide-react';
@@ -12,6 +12,7 @@ export default function CoachPrivateLessonsPage() {
   const [lessons, setLessons] = useState([]);
   const [allLessons, setAllLessons] = useState([]);
   const [coachProfile, setCoachProfile] = useState(null);
+  const [clubConfig, setClubConfig] = useState(DEFAULT_CLUB_CONFIG);
 
   // Modals
   const [showAddModal, setShowAddModal] = useState(false);
@@ -34,10 +35,12 @@ export default function CoachPrivateLessonsPage() {
   }, [user]);
 
   const loadLessons = async () => {
-    const [prvRes, cRes] = await Promise.all([
+    const [prvRes, cRes, cfgRes] = await Promise.all([
       coachesAndClassesService.getPrivateClasses(),
-      coachesAndClassesService.getCoaches()
+      coachesAndClassesService.getCoaches(),
+      clubConfigService.get()
     ]);
+    setClubConfig(cfgRes.data);
     const currentCoach = cRes.data.find(c => c.id === user?.coachId);
     setCoachProfile(currentCoach);
 
@@ -45,12 +48,7 @@ export default function CoachPrivateLessonsPage() {
     const myLessons = prvRes.data.filter(p => p.coachId === currentCoach?.id || p.coachName === currentCoach?.name);
     setLessons(myLessons);
 
-    if (currentCoach) {
-      setNewLessonForm(prev => ({
-        ...prev,
-        hourlyRate: currentCoach.hourlyRatePrivate || 6500
-      }));
-    }
+    setNewLessonForm(prev => ({ ...prev, hourlyRate: cfgRes.data.privateLessonHourlyRate }));
   };
 
   // Turno repetido: mismo día y horario, del docente con otro alumno o del alumno con cualquier docente.
@@ -90,7 +88,7 @@ export default function CoachPrivateLessonsPage() {
       date: '2026-10-22',
       time: '11:00 - 12:00',
       courtAssigned: 'Cancha 1 (Ladrillo)',
-      hourlyRate: coachProfile?.hourlyRatePrivate || 6500,
+      hourlyRate: clubConfig.privateLessonHourlyRate,
       notes: ''
     });
     await loadLessons();

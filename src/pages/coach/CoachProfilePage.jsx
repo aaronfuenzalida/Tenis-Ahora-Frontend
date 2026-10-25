@@ -17,10 +17,8 @@ export default function CoachProfilePage() {
 
   // Form states
   const [availableHoursInput, setAvailableHoursInput] = useState('');
-  const [hourlyRateInput, setHourlyRateInput] = useState(6500);
   const [phoneInput, setPhoneInput] = useState('');
   const [emailInput, setEmailInput] = useState('');
-  const [bioInput, setBioInput] = useState('');
 
   useEffect(() => {
     loadProfile();
@@ -32,10 +30,8 @@ export default function CoachProfilePage() {
     if (currentCoach) {
       setCoachProfile(currentCoach);
       setAvailableHoursInput(currentCoach.availableHours || 'Lunes a Viernes 08:00 - 13:00, 16:00 - 21:00');
-      setHourlyRateInput(currentCoach.hourlyRatePrivate || 6500);
       setPhoneInput(currentCoach.phone || '');
       setEmailInput(currentCoach.email || '');
-      setBioInput(currentCoach.bio || '');
     }
   };
 
@@ -44,11 +40,8 @@ export default function CoachProfilePage() {
     if (!coachProfile) return;
     setSavingAvail(true);
     await coachesAndClassesService.updateCoachAvailability(coachProfile.id, availableHoursInput);
-    await coachesAndClassesService.updateCoach(coachProfile.id, {
-      hourlyRatePrivate: Number(hourlyRateInput)
-    });
     setSavingAvail(false);
-    notify({ variant: 'success', title: 'Datos guardados', message: 'Disponibilidad horaria y tarifa particular actualizadas con éxito.' });
+    notify({ variant: 'success', title: 'Datos guardados', message: 'Disponibilidad horaria actualizada con éxito.' });
     await loadProfile();
   };
 
@@ -58,11 +51,10 @@ export default function CoachProfilePage() {
     setSavingProfile(true);
     await coachesAndClassesService.updateCoach(coachProfile.id, {
       phone: phoneInput,
-      email: emailInput,
-      bio: bioInput
+      email: emailInput
     });
     setSavingProfile(false);
-    notify({ variant: 'success', title: 'Datos guardados', message: 'Información de contacto y reseña profesional actualizadas con éxito.' });
+    notify({ variant: 'success', title: 'Datos guardados', message: 'Información de contacto actualizada con éxito.' });
     await loadProfile();
   };
 
@@ -91,7 +83,7 @@ export default function CoachProfilePage() {
       {/* Identidad: nombre, teléfono y foto (editables desde Mi Perfil) */}
       <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4 no-print">
         <div className="flex items-center gap-4">
-          <Avatar user={{ ...user, photo: user?.photo || coachProfile?.photo }} size="w-16 h-16" rounded="rounded-2xl" textClass="text-xl" />
+          <Avatar user={user} size="w-16 h-16" rounded="rounded-2xl" textClass="text-xl" />
           <div>
             <h2 className="text-base font-bold text-slate-900">{user?.name}</h2>
             <p className="text-xs text-slate-500">{user?.rolBackend || 'Profesor'} • N° {user?.memberNumber || '—'}</p>
@@ -177,12 +169,12 @@ export default function CoachProfilePage() {
 
         </div>
 
-        {/* Right Column: Gestión de Horarios Disponibles y Arancel (6 cols) */}
+        {/* Right Column: Horarios Disponibles (6 cols) */}
         <div className="lg:col-span-6 space-y-6">
           
           <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
             <div className="pb-3 border-b border-slate-100">
-              <h2 className="text-base font-bold text-slate-900">Manejo de Horarios Disponibles y Tarifas</h2>
+              <h2 className="text-base font-bold text-slate-900">Horarios Disponibles</h2>
               <p className="text-xs text-slate-500 mt-0.5">
                 Defina los días y franjas horarias en las que los socios pueden agendar turnos particulares con usted.
               </p>
@@ -202,34 +194,21 @@ export default function CoachProfilePage() {
                 />
               </div>
 
-              <div>
-                <label className="font-semibold text-slate-700 uppercase block mb-1">
-                  Tarifa por Hora de Clase Particular (ARS) *
-                </label>
-                <input
-                  type="number"
-                  required
-                  value={hourlyRateInput}
-                  onChange={(e) => setHourlyRateInput(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 font-bold"
-                />
-              </div>
-
               <button
                 type="submit"
                 disabled={savingAvail}
                 className="w-full py-2.5 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-semibold text-xs shadow-sm transition-colors"
               >
-                {savingAvail ? 'Guardando...' : 'Guardar Horarios y Tarifa'}
+                {savingAvail ? 'Guardando...' : 'Guardar Horarios'}
               </button>
             </form>
           </div>
 
-          {/* Contact Details & Bio */}
+          {/* Contact Details */}
           <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
             <div className="pb-3 border-b border-slate-100">
-              <h2 className="text-base font-bold text-slate-900">Datos de Contacto y Reseña</h2>
-              <p className="text-xs text-slate-500 mt-0.5">Información visible para socios y administración del complejo.</p>
+              <h2 className="text-base font-bold text-slate-900">Datos de Contacto</h2>
+              <p className="text-xs text-slate-500 mt-0.5">Información visible para la administración del club.</p>
             </div>
 
             <form onSubmit={handleSaveContactInfo} className="space-y-4 text-xs">
@@ -254,16 +233,6 @@ export default function CoachProfilePage() {
                     className="w-full p-2 rounded-xl border border-slate-200"
                   />
                 </div>
-              </div>
-
-              <div>
-                <label className="font-semibold text-slate-700 uppercase block mb-1">Reseña Profesional</label>
-                <textarea
-                  rows={2}
-                  value={bioInput}
-                  onChange={(e) => setBioInput(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 text-xs"
-                />
               </div>
 
               <button

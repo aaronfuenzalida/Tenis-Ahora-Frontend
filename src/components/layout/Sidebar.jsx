@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import Logo from '../common/Logo';
 import usePortalPaths from '../../hooks/usePortalPaths';
 import {
-  LayoutDashboard, Layers, Tags, Clock, Calendar, SlidersHorizontal, Package,
+  LayoutDashboard, Layers, Tags, Clock, Calendar, Package,
   Trophy, Medal, Swords, ListChecks, GraduationCap, BookOpen, ClipboardCheck, CalendarClock,
   Receipt, FileText, RotateCcw, Percent, Users, BarChart3
 } from 'lucide-react';
@@ -42,8 +42,7 @@ export default function Sidebar({ isOpen, onClose }) {
         { name: 'Canchas', to: `${paths.admin}/canchas`, icon: Layers },
         { name: 'Tipos de Cancha', to: `${paths.admin}/tipos-cancha`, icon: Tags },
         { name: 'Horarios Disponibles', to: `${paths.admin}/horarios`, icon: Clock },
-        { name: 'Control de Reservas', to: `${paths.admin}/reservas`, icon: Calendar },
-        { name: 'Políticas de Reserva', to: `${paths.admin}/politicas`, icon: SlidersHorizontal }
+        { name: 'Control de Reservas', to: `${paths.admin}/reservas`, icon: Calendar }
       ]
     },
     {

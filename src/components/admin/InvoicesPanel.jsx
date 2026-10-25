@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Search, Trash2, Ban } from 'lucide-react';
+import { Search, Trash2 } from 'lucide-react';
 import Modal from '../common/Modal';
 import { invoicesService, receiptsService } from '../../services/api';
 import { useFeedback } from '../../context/FeedbackContext';
@@ -7,13 +7,11 @@ import { useFeedback } from '../../context/FeedbackContext';
 const PAYMENT_METHODS = ['Tarjeta de Débito', 'Tarjeta de Crédito', 'Billetera Virtual (Mercado Pago / MODO / Cuenta DNI)'];
 
 const EMPTY_FORM = {
-  type: 'B',
   clientName: '',
   clientDni: '',
   clientAddress: '',
   concept: '',
   paymentMethod: 'Tarjeta de Débito',
-  taxRate: 21,
   relatedReceiptId: '',
   items: [{ description: '', quantity: 1, unitPrice: 0 }]
 };
@@ -24,7 +22,7 @@ const money = (n) => `$${Number(n || 0).toLocaleString('es-AR')}`;
  * RF125 - RF127: registro, consulta e impresión de facturas.
  */
 export default function InvoicesPanel() {
-  const { notify, confirm } = useFeedback();
+  const { notify } = useFeedback();
   const [invoices, setInvoices] = useState([]);
   const [receipts, setReceipts] = useState([]);
   const [search, setSearch] = useState('');
@@ -43,7 +41,6 @@ export default function InvoicesPanel() {
   };
 
   const subtotal = form.items.reduce((acc, it) => acc + (Number(it.quantity) || 0) * (Number(it.unitPrice) || 0), 0);
-  const tax = Math.round(subtotal * (Number(form.taxRate) / 100));
 
   const updateItem = (idx, patch) => {
     setForm(prev => ({ ...prev, items: prev.items.map((it, i) => (i === idx ? { ...it, ...patch } : it)) }));
@@ -86,19 +83,12 @@ export default function InvoicesPanel() {
     setSelected(res.data);
   };
 
-  const handleAnnul = async (inv) => {
-    if (await confirm({ title: 'Anular factura', message: `¿Anular la factura ${inv.id}? La operación queda registrada como anulada.`, confirmLabel: 'Anular', danger: true })) {
-      await invoicesService.annul(inv.id);
-      await load();
-    }
-  };
-
   const filtered = invoices.filter(i => {
     const q = search.toLowerCase();
     return !q || [i.id, i.clientName, i.clientDni, i.concept, i.paymentMethod].some(v => String(v || '').toLowerCase().includes(q));
   });
 
-  const totalIssued = filtered.filter(i => i.status !== 'anulada').reduce((acc, i) => acc + i.total, 0);
+  const totalIssued = filtered.reduce((acc, i) => acc + i.total, 0);
 
   return (
     <div className="space-y-4">
@@ -140,21 +130,18 @@ export default function InvoicesPanel() {
               <th className="p-3">Cliente</th>
               <th className="p-3">Concepto</th>
               <th className="p-3">Medio de Pago</th>
-              <th className="p-3 text-right">Neto</th>
-              <th className="p-3 text-right">IVA</th>
               <th className="p-3 text-right">Total</th>
-              <th className="p-3 text-center">Estado</th>
               <th className="p-3 text-right no-print">Acciones</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={10} className="p-8 text-center text-slate-400">No se registran facturas.</td>
+                <td colSpan={7} className="p-8 text-center text-slate-400">No se registran facturas.</td>
               </tr>
             ) : (
               filtered.map(inv => (
-                <tr key={inv.id} className={`hover:bg-slate-50/60 ${inv.status === 'anulada' ? 'opacity-60' : ''}`}>
+                <tr key={inv.id} className="hover:bg-slate-50/60">
                   <td className="p-3 font-mono font-bold text-tennis-800">{inv.id}</td>
                   <td className="p-3 text-slate-600">{inv.date}</td>
                   <td className="p-3">
@@ -163,25 +150,11 @@ export default function InvoicesPanel() {
                   </td>
                   <td className="p-3 text-slate-700 max-w-xs truncate">{inv.concept}</td>
                   <td className="p-3 text-slate-600">{inv.paymentMethod}</td>
-                  <td className="p-3 text-right text-slate-700">{money(inv.subtotal)}</td>
-                  <td className="p-3 text-right text-slate-500">{money(inv.taxAmount)}</td>
                   <td className="p-3 text-right font-bold text-slate-900">{money(inv.total)}</td>
-                  <td className="p-3 text-center">
-                    <span className={`text-[10px] font-bold ${inv.status === 'anulada' ? 'text-slate-700' : 'text-tennis-800'}`}>
-                      {inv.status === 'anulada' ? 'Anulada' : 'Emitida'}
-                    </span>
-                  </td>
                   <td className="p-3 text-right no-print">
-                    <div className="flex items-center justify-end gap-1.5">
-                      <button type="button" onClick={() => setSelected(inv)} className="px-2 py-1.5 rounded-lg bg-slate-100 hover:bg-tennis-50 text-slate-700 hover:text-tennis-800 text-[11px] font-bold inline-flex items-center gap-1" title="Ver / Imprimir factura">
-                        Ver
-                      </button>
-                      {inv.status !== 'anulada' && (
-                        <button type="button" onClick={() => handleAnnul(inv)} className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-50 text-slate-700 hover:text-slate-600" title="Anular factura">
-                          <Ban className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                    </div>
+                    <button type="button" onClick={() => setSelected(inv)} className="px-2 py-1.5 rounded-lg bg-slate-100 hover:bg-tennis-50 text-slate-700 hover:text-tennis-800 text-[11px] font-bold inline-flex items-center gap-1" title="Ver / Imprimir factura">
+                      Ver
+                    </button>
                   </td>
                 </tr>
               ))
@@ -189,9 +162,9 @@ export default function InvoicesPanel() {
           </tbody>
           <tfoot>
             <tr className="bg-slate-50 border-t border-slate-200 font-bold text-slate-900">
-              <td colSpan={7} className="p-3 text-right">Total facturado vigente</td>
+              <td colSpan={5} className="p-3 text-right">Total facturado</td>
               <td className="p-3 text-right">{money(totalIssued)}</td>
-              <td colSpan={2}></td>
+              <td></td>
             </tr>
           </tfoot>
         </table>
@@ -200,16 +173,8 @@ export default function InvoicesPanel() {
       {/* Create Invoice */}
       <Modal isOpen={showForm} onClose={() => setShowForm(false)} title="Registrar Nueva Factura" maxWidth="max-w-2xl">
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-          <div className="grid grid-cols-3 gap-3">
+          <div>
             <div>
-              <label className="font-semibold text-slate-700 block mb-1">Tipo *</label>
-              <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white">
-                <option value="A">Factura A</option>
-                <option value="B">Factura B</option>
-                <option value="C">Factura C</option>
-              </select>
-            </div>
-            <div className="col-span-2">
               <label className="font-semibold text-slate-700 block mb-1">Recibo asociado</label>
               <select value={form.relatedReceiptId} onChange={(e) => fillFromReceipt(e.target.value)} className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white">
                 <option value="">Sin recibo asociado</option>
@@ -260,27 +225,16 @@ export default function InvoicesPanel() {
             ))}
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="font-semibold text-slate-700 block mb-1">Medio de Pago *</label>
-              <select value={form.paymentMethod} onChange={(e) => setForm({ ...form, paymentMethod: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white">
-                {PAYMENT_METHODS.map(m => <option key={m} value={m}>{m}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="font-semibold text-slate-700 block mb-1">Alícuota IVA</label>
-              <select value={form.taxRate} onChange={(e) => setForm({ ...form, taxRate: Number(e.target.value) })} className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white">
-                <option value={21}>21%</option>
-                <option value={10.5}>10,5%</option>
-                <option value={0}>Exento (0%)</option>
-              </select>
-            </div>
+          <div>
+            <label className="font-semibold text-slate-700 block mb-1">Medio de Pago *</label>
+            <select value={form.paymentMethod} onChange={(e) => setForm({ ...form, paymentMethod: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white">
+              {PAYMENT_METHODS.map(m => <option key={m} value={m}>{m}</option>)}
+            </select>
           </div>
 
-          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 grid grid-cols-3 gap-3 text-center">
-            <div><span className="block text-[10px] uppercase text-slate-400 font-bold">Neto</span><span className="font-bold text-slate-800">{money(subtotal)}</span></div>
-            <div><span className="block text-[10px] uppercase text-slate-400 font-bold">IVA</span><span className="font-bold text-slate-800">{money(tax)}</span></div>
-            <div><span className="block text-[10px] uppercase text-slate-400 font-bold">Total</span><span className="font-black text-tennis-800 text-sm">{money(subtotal + tax)}</span></div>
+          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-center">
+            <span className="block text-[10px] uppercase text-slate-400 font-bold">Total</span>
+            <span className="font-black text-tennis-800 text-sm">{money(subtotal)}</span>
           </div>
 
           <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
@@ -298,10 +252,9 @@ export default function InvoicesPanel() {
               <div className="flex items-start justify-between border-b border-dashed border-slate-300 pb-3">
                 <div>
                   <h3 className="text-base font-black text-slate-900">CLUB TENIS AHORA</h3>
-                  <p className="text-[11px] text-slate-500">Sede Central • CUIT 30-00000000-0 • IVA Responsable Inscripto</p>
+                  <p className="text-[11px] text-slate-500">Sede Central • CUIT 30-00000000-0</p>
                 </div>
                 <div className="text-right">
-                  <div className="inline-block border-2 border-slate-900 px-2 py-0.5 font-black text-base">{selected.type}</div>
                   <div className="font-mono font-bold text-slate-900 mt-1">{selected.id}</div>
                   <div className="text-[11px] text-slate-500">{selected.date}</div>
                 </div>
@@ -337,15 +290,10 @@ export default function InvoicesPanel() {
 
               <div className="flex justify-end">
                 <div className="w-56 space-y-1">
-                  <div className="flex justify-between"><span className="text-slate-500">Neto</span><span>{money(selected.subtotal)}</span></div>
-                  <div className="flex justify-between"><span className="text-slate-500">IVA {selected.taxRate}%</span><span>{money(selected.taxAmount)}</span></div>
                   <div className="flex justify-between border-t border-slate-300 pt-1 font-black text-sm text-slate-900"><span>TOTAL</span><span>{money(selected.total)}</span></div>
                 </div>
               </div>
 
-              {selected.status === 'anulada' && (
-                <div className="text-center font-black text-slate-600 border-2 border-slate-500 rounded-lg py-1 tracking-widest">FACTURA ANULADA</div>
-              )}
               <div className="text-[10px] text-slate-400 flex justify-between">
                 <span>Emitida por: {selected.issuedBy}</span>
                 {selected.relatedReceiptId && <span>Recibo asociado: {selected.relatedReceiptId}</span>}

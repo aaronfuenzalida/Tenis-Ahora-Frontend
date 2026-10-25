@@ -22,13 +22,8 @@ export default function QRCode({ value, size = 128, className = '', level = 'M',
   );
 }
 
-/** Textos codificados en los QR de la app (una sola fuente para que el formato sea consistente). */
+/** Texto codificado en el QR de cobro con billetera virtual (RF130). */
 export const qrPayloads = {
-  member: (member) =>
-    `https://tenisahora.app/socios/${encodeURIComponent(member?.memberNumber || member?.id || 'socio')}?dni=${encodeURIComponent(member?.dni || '')}`,
-  receipt: (receipt) =>
-    receipt?.qrData ||
-    `https://tenisahora.app/recibos/${encodeURIComponent(receipt?.id || '')}?monto=${receipt?.totalPaid ?? 0}`,
   payment: ({ concept, amount, reference }) =>
     `https://tenisahora.app/pagar?ref=${encodeURIComponent(reference || `TA-${Date.now()}`)}&monto=${Number(amount) || 0}&concepto=${encodeURIComponent(concept || 'Pago Club Tenis Ahora')}`
 };

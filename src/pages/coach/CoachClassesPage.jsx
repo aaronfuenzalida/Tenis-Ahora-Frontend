@@ -68,16 +68,6 @@ export default function CoachClassesPage() {
           const enrolledCount = students.length;
           const isFull = enrolledCount >= 30;
 
-          // Regularity calculation (>= 75% presents)
-          const regularCount = students.filter(st => {
-            const att = st.attendance || [];
-            const p = att.filter(a => a === 'P').length;
-            const evalCount = att.filter(a => a === 'P' || a === 'A' || a === 'J').length;
-            return evalCount > 0 ? (p / evalCount) >= 0.75 : true;
-          }).length;
-
-          const regularityPct = enrolledCount > 0 ? Math.round((regularCount / enrolledCount) * 100) : 100;
-
           return (
             <div key={cls.id} className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between space-y-4">
               
@@ -97,12 +87,6 @@ export default function CoachClassesPage() {
                   <div>Días y Horarios: <strong className="text-slate-800">{cls.scheduleDays} • {cls.scheduleTime}</strong></div>
                   <div>Cancha Asignada: <strong className="text-slate-800">{cls.courtAssigned}</strong></div>
                   <div>Cuota Mensual: <strong className="text-slate-900">${cls.monthlyFee?.toLocaleString('es-AR')}</strong></div>
-                </div>
-
-                {/* Regularity indicator */}
-                <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-xs flex items-center justify-between">
-                  <span className="text-slate-500">Regularidad (≥75%):</span>
-                  <strong className="text-slate-800">{regularCount} de {enrolledCount} ({regularityPct}%)</strong>
                 </div>
 
                 {isFull && (
@@ -182,7 +166,6 @@ export default function CoachClassesPage() {
               <span className="font-semibold text-slate-700">
                 Total de Alumnos: <strong className="text-slate-900">{selectedClassForRoster.students?.length || 0} de {selectedClassForRoster.maxCapacity || 30}</strong>
               </span>
-              <span className="text-[11px] text-slate-500">Criterio regular: ≥75%</span>
             </div>
 
             <div className="border border-slate-200 rounded-xl overflow-hidden max-h-72 overflow-y-auto">
@@ -205,7 +188,7 @@ export default function CoachClassesPage() {
                     selectedClassForRoster.students.map((st) => {
                       const att = st.attendance || [];
                       const p = att.filter(a => a === 'P').length;
-                      const tot = att.filter(a => a === 'P' || a === 'A' || a === 'J').length;
+                      const tot = att.filter(a => a === 'P' || a === 'A').length;
                       const pct = tot > 0 ? Math.round((p / tot) * 100) : 100;
                       return (
                         <tr key={st.id} className="hover:bg-slate-50">

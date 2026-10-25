@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Filter, X } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import Modal from './Modal';
 import { formatDNI, isValidDNI } from '../../utils/formatters';
 
@@ -13,7 +13,6 @@ export default function AttendanceMatrixModal({
   onOpenPrintSheet 
 }) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterCondition, setFilterCondition] = useState('ALL'); // ALL, REGULAR, RIESGO
   
   // New student form
   const [showAddStudentForm, setShowAddStudentForm] = useState(false);
@@ -29,45 +28,12 @@ export default function AttendanceMatrixModal({
   const maxCapacity = Math.min(Number(classItem?.maxCapacity) || 30, 30);
   const isCupoLleno = students.length >= maxCapacity;
 
-  // Filter students
-  const filteredStudents = students.filter(st => {
-    const matchesSearch = st.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          st.dni.includes(searchTerm);
-    if (!matchesSearch) return false;
+  // Búsqueda por nombre o DNI
+  const filteredStudents = students.filter(st =>
+    st.name.toLowerCase().includes(searchTerm.toLowerCase()) || st.dni.includes(searchTerm)
+  );
 
-    // Calculate condition
-    const attList = st.attendance || [];
-    const pCount = attList.filter(a => a === 'P').length;
-    const evaluated = attList.filter(a => a === 'P' || a === 'A' || a === 'J').length;
-    const percent = evaluated > 0 ? Math.round((pCount / evaluated) * 100) : 100;
-    const isRegular = percent >= 75;
-
-    if (filterCondition === 'REGULAR') return isRegular;
-    if (filterCondition === 'RIESGO') return !isRegular;
-    return true;
-  });
-
-  // Global class stats
   const totalStudents = students.length;
-  let overallPresents = 0;
-  let overallEvaluated = 0;
-  let regularCount = 0;
-  let riesgoCount = 0;
-
-  students.forEach(st => {
-    const attList = st.attendance || [];
-    const pCount = attList.filter(a => a === 'P').length;
-    const evaluated = attList.filter(a => a === 'P' || a === 'A' || a === 'J').length;
-    overallPresents += pCount;
-    overallEvaluated += evaluated;
-    const pct = evaluated > 0 ? Math.round((pCount / evaluated) * 100) : 100;
-    if (pct >= 75) regularCount++;
-    else riesgoCount++;
-  });
-
-  const averageAttendance = overallEvaluated > 0 
-    ? Math.round((overallPresents / overallEvaluated) * 100) 
-    : 100;
 
   const handleCreateStudent = async (e) => {
     e.preventDefault();
@@ -271,30 +237,7 @@ export default function AttendanceMatrixModal({
           </form>
         )}
 
-        {/* KPI Mini-Cards Bar */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 text-center">
-            <span className="text-[10px] font-bold uppercase text-slate-400 block">Total Inscriptos</span>
-            <span className="text-lg font-black text-slate-900">{totalStudents} alumnos</span>
-          </div>
-
-          <div className="p-3 bg-tennis-50 rounded-2xl border border-tennis-200 text-center">
-            <span className="text-[10px] font-bold uppercase text-tennis-700 block">Alumnos Regulares (≥75%)</span>
-            <span className="text-lg font-black text-tennis-800">{regularCount} alumnos</span>
-          </div>
-
-          <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 text-center">
-            <span className="text-[10px] font-bold uppercase text-slate-700 block">En Riesgo (&lt;75%)</span>
-            <span className="text-lg font-black text-slate-800">{riesgoCount} alumnos</span>
-          </div>
-
-          <div className="p-3 bg-tennis-50 rounded-2xl border border-tennis-200 text-center">
-            <span className="text-[10px] font-bold uppercase text-tennis-800 block">Asistencia Promedio</span>
-            <span className="text-lg font-black text-tennis-900">{averageAttendance}%</span>
-          </div>
-        </div>
-
-        {/* Search, Filter & Legend Toolbar */}
+        {/* Search & Legend Toolbar */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-200">
           <div className="flex items-center gap-2 flex-1 max-w-sm bg-white px-3 py-1.5 rounded-xl border border-slate-200">
             <Search className="w-3.5 h-3.5 text-slate-400 shrink-0" />
@@ -312,35 +255,11 @@ export default function AttendanceMatrixModal({
             )}
           </div>
 
-          {/* Condition Filter */}
-          <div className="flex items-center gap-1.5">
-            <span className="text-[10px] font-bold uppercase text-slate-400">Filtrar:</span>
-            {[
-              { id: 'ALL', label: 'Todos' },
-              { id: 'REGULAR', label: 'Regulares (≥75%)' },
-              { id: 'RIESGO', label: 'En Riesgo (<75%)' }
-            ].map(tab => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setFilterCondition(tab.id)}
-                className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
-                  filterCondition === tab.id
-                    ? 'bg-slate-900 text-white shadow-sm'
-                    : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
           {/* Interactive Cell Toggle Legend */}
-          <div className="flex items-center gap-2 text-[10px] font-bold border-l pl-3 border-slate-200">
+          <div className="flex items-center gap-2 text-[10px] font-bold">
             <span className="text-slate-400 uppercase">1-Clic:</span>
             <span className="text-slate-600">P: Presente</span>
             <span className="text-slate-600">A: Ausente</span>
-            <span className="text-slate-600">J: Justificado</span>
           </div>
         </div>
 
@@ -362,16 +281,14 @@ export default function AttendanceMatrixModal({
 
                 <th className="py-2.5 px-2 text-center w-14 border-l border-slate-200 text-tennis-700">P</th>
                 <th className="py-2.5 px-2 text-center w-14 text-slate-700">A</th>
-                <th className="py-2.5 px-2 text-center w-14 text-slate-700">J</th>
                 <th className="py-2.5 px-3 text-center min-w-[90px] border-l border-slate-200">% Asistencia</th>
-                <th className="py-2.5 px-3 text-center min-w-[120px]">Estado / Condición</th>
               </tr>
             </thead>
 
             <tbody className="divide-y divide-slate-100">
               {filteredStudents.length === 0 ? (
                 <tr>
-                  <td colSpan={sessions.length + 7} className="py-8 text-center text-slate-400">
+                  <td colSpan={sessions.length + 5} className="py-8 text-center text-slate-400">
                     No se encontraron alumnos con los criterios seleccionados.
                   </td>
                 </tr>
@@ -380,10 +297,8 @@ export default function AttendanceMatrixModal({
                   const attList = student.attendance || [];
                   const pCount = attList.filter(a => a === 'P').length;
                   const aCount = attList.filter(a => a === 'A').length;
-                  const jCount = attList.filter(a => a === 'J').length;
-                  const evaluated = pCount + aCount + jCount;
+                  const evaluated = pCount + aCount;
                   const percentage = evaluated > 0 ? Math.round((pCount / evaluated) * 100) : 100;
-                  const isRegular = percentage >= 75;
 
                   return (
                     <tr key={student.id} className="hover:bg-slate-50/80 transition-colors">
@@ -405,15 +320,13 @@ export default function AttendanceMatrixModal({
                           cellClass = 'bg-tennis-500 hover:bg-tennis-600 text-white shadow-sm ring-1 ring-tennis-600/30 font-black';
                         } else if (status === 'A') {
                           cellClass = 'bg-slate-500 hover:bg-slate-600 text-white shadow-sm ring-1 ring-slate-600/30 font-black';
-                        } else if (status === 'J') {
-                          cellClass = 'bg-slate-400 hover:bg-slate-500 text-slate-950 shadow-sm ring-1 ring-slate-500/30 font-black';
                         }
 
                         return (
                           <td key={sIdx} className="py-1 px-1 text-center border-l border-slate-100">
                             <button
                               type="button"
-                              title={`Clic para alternar (Actual: ${status === 'P' ? 'Presente' : status === 'A' ? 'Ausente' : status === 'J' ? 'Justificado' : 'Sin registrar'})`}
+                              title={`Clic para alternar (Actual: ${status === 'P' ? 'Presente' : status === 'A' ? 'Ausente' : 'Sin registrar'})`}
                               onClick={() => onToggleAttendance(classItem.id, student.id, sIdx)}
                               className={`w-7 h-7 rounded-lg text-xs font-mono flex items-center justify-center mx-auto ${cellClass}`}
                             >
@@ -430,30 +343,10 @@ export default function AttendanceMatrixModal({
                       <td className="py-2.5 px-2 text-center font-black text-slate-700">
                         {aCount}
                       </td>
-                      <td className="py-2.5 px-2 text-center font-black text-slate-700">
-                        {jCount}
-                      </td>
 
                       {/* Percentage */}
-                      <td className="py-2.5 px-3 text-center border-l border-slate-100">
-                        <div className="flex items-center justify-center gap-1.5">
-                          <span className={`font-black text-xs ${isRegular ? 'text-tennis-700' : 'text-slate-600 font-black'}`}>
-                            {percentage}%
-                          </span>
-                        </div>
-                      </td>
-
-                      {/* Condition Badge */}
-                      <td className="py-2.5 px-3 text-center">
-                        {isRegular ? (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-black text-tennis-800">
-                            Regular
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 text-[10px] font-black text-slate-800">
-                            En riesgo (&lt;75%)
-                          </span>
-                        )}
+                      <td className="py-2.5 px-3 text-center border-l border-slate-100 font-black text-xs text-slate-800">
+                        {percentage}%
                       </td>
                     </tr>
                   );

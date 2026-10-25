@@ -114,7 +114,7 @@ export default function ReservationsManagementPage() {
     loadReservations();
     
     if (result.isWithinFreeWindow) {
-      notify({ variant: 'success', title: 'Cancelación procesada', message: `Cancelación con ${clubConfig.freeCancellationHours} hs o más de antelación. Se generó el reembolso ${result.refund?.id || ''} por ${(result.refund?.refundAmount || 0).toLocaleString('es-AR')} (pendiente de proceso en Reembolsos).` });
+      notify({ variant: 'success', title: 'Cancelación procesada', message: `Cancelación con ${clubConfig.freeCancellationHours} hs o más de antelación. Se generó el reembolso ${result.refund?.id || ''} por ${(result.refund?.refundAmount || 0).toLocaleString('es-AR')}.` });
     } else {
       notify({ variant: 'warning', title: 'Cancelación procesada', message: `Cancelación con menos de ${clubConfig.freeCancellationHours} hs de antelación, fuera de plazo. Se aplicó el cargo ${result.penaltyReceipt?.id || ''} por ${(result.penaltyReceipt?.totalPaid || 0).toLocaleString('es-AR')} y se reintegra el resto como crédito (${result.refund?.id || ''}).` });
     }

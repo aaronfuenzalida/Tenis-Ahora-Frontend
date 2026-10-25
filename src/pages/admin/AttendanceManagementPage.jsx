@@ -3,14 +3,6 @@ import { coachesAndClassesService } from '../../services/api';
 import AttendanceSheetModal from '../../components/common/AttendanceSheetModal';
 import AttendanceMatrixModal from '../../components/common/AttendanceMatrixModal';
 
-// Regularidad de un alumno: presente en al menos el 75% de las sesiones evaluadas.
-const isRegular = (student) => {
-  const att = student.attendance || [];
-  const present = att.filter(a => a === 'P').length;
-  const evaluated = att.filter(a => a === 'P' || a === 'A' || a === 'J').length;
-  return evaluated > 0 ? present / evaluated >= 0.75 : true;
-};
-
 export default function AttendanceManagementPage() {
   const [classes, setClasses] = useState([]);
   const [kindFilter, setKindFilter] = useState('ALL'); // ALL | clase | entrenamiento
@@ -96,22 +88,19 @@ export default function AttendanceManagementPage() {
                 <th className="p-3">Profesional</th>
                 <th className="p-3">Días y Horario</th>
                 <th className="p-3 text-center">Inscriptos</th>
-                <th className="p-3 text-center">Regulares</th>
                 <th className="p-3 text-right no-print">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {visibleClasses.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-slate-400">
+                  <td colSpan={6} className="p-8 text-center text-slate-400">
                     No hay clases ni entrenamientos para tomar asistencia.
                   </td>
                 </tr>
               ) : (
                 visibleClasses.map(cls => {
                   const students = cls.students || [];
-                  const regularCount = students.filter(isRegular).length;
-                  const regularityPct = students.length > 0 ? Math.round((regularCount / students.length) * 100) : 100;
                   const isTraining = (cls.kind || 'clase') === 'entrenamiento';
                   return (
                     <tr key={cls.id} className="hover:bg-slate-50">
@@ -121,9 +110,6 @@ export default function AttendanceManagementPage() {
                       <td className="p-3 text-slate-600">{cls.scheduleDays} {cls.scheduleTime}</td>
                       <td className="p-3 text-center font-semibold text-slate-800">
                         {students.length} / {Math.min(cls.maxCapacity || 30, 30)}
-                      </td>
-                      <td className="p-3 text-center text-slate-700">
-                        {regularCount} de {students.length} · {regularityPct}%
                       </td>
                       <td className="p-3 text-right no-print space-x-2 whitespace-nowrap">
                         <button

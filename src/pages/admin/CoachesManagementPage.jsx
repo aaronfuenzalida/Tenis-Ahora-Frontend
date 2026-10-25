@@ -4,6 +4,7 @@ import { Trash2 } from 'lucide-react';
 import CoachCredentialsModal from '../../components/common/CoachCredentialsModal';
 import Modal from '../../components/common/Modal';
 import CoachCertificationsReport from '../../components/admin/CoachCertificationsReport';
+import Avatar from '../../components/common/Avatar';
 import { useFeedback } from '../../context/FeedbackContext';
 
 export default function CoachesManagementPage() {
@@ -32,11 +33,7 @@ export default function CoachesManagementPage() {
     dni: '',
     phone: '',
     email: '',
-    specialty: 'Alto Rendimiento & Técnica',
-    experienceYears: 5,
-    hourlyRatePrivate: 6000,
     availableHours: 'Lunes a Viernes 08:00 - 13:00, 16:00 - 20:00',
-    bio: '',
     titleName: 'Profesor Nacional de Tenis AAT',
     institution: 'Asociación Argentina de Tenis (AAT)',
     licenseNumber: '',
@@ -74,11 +71,7 @@ export default function CoachesManagementPage() {
         dni: newCoachForm.dni,
         phone: newCoachForm.phone,
         email: newCoachForm.email,
-        specialty: newCoachForm.specialty,
-        experienceYears: Number(newCoachForm.experienceYears) || 1,
-        hourlyRatePrivate: Number(newCoachForm.hourlyRatePrivate) || 5000,
         availableHours: newCoachForm.availableHours,
-        bio: newCoachForm.bio || 'Profesional habilitado por la institución.',
         licenseDetails: {
           titleName: newCoachForm.titleName,
           institution: newCoachForm.institution,
@@ -102,11 +95,7 @@ export default function CoachesManagementPage() {
       dni: '',
       phone: '',
       email: '',
-      specialty: 'Alto Rendimiento & Técnica',
-      experienceYears: 5,
-      hourlyRatePrivate: 6000,
       availableHours: 'Lunes a Viernes 08:00 - 13:00, 16:00 - 20:00',
-      bio: '',
       titleName: 'Profesor Nacional de Tenis AAT',
       institution: 'Asociación Argentina de Tenis (AAT)',
       licenseNumber: '',
@@ -124,11 +113,7 @@ export default function CoachesManagementPage() {
       dni: coach.dni,
       phone: coach.phone,
       email: coach.email,
-      specialty: coach.specialty,
-      experienceYears: coach.experienceYears,
-      hourlyRatePrivate: coach.hourlyRatePrivate,
       availableHours: coach.availableHours || '',
-      bio: coach.bio || '',
       titleName: coach.licenseDetails?.titleName || '',
       institution: coach.licenseDetails?.institution || '',
       licenseNumber: coach.licenseDetails?.licenseNumber || '',
@@ -152,11 +137,7 @@ export default function CoachesManagementPage() {
         dni: coachToEdit.dni,
         phone: coachToEdit.phone,
         email: coachToEdit.email,
-        specialty: coachToEdit.specialty,
-        experienceYears: Number(coachToEdit.experienceYears),
-        hourlyRatePrivate: Number(coachToEdit.hourlyRatePrivate),
         availableHours: coachToEdit.availableHours,
-        bio: coachToEdit.bio,
         licenseDetails: {
           titleName: coachToEdit.titleName,
           institution: coachToEdit.institution,
@@ -206,13 +187,6 @@ export default function CoachesManagementPage() {
         >
           Imprimir
         </button>
-      </div>
-
-      {/* Mandatory Official Certification Banner */}
-      <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-700 flex items-start gap-3 no-print">
-        <div>
-          <strong className="text-slate-900">Normativa Institucional Obligatoria:</strong> Todos los profesores y entrenadores registrados deben contar con su Título Habilitante y Certificación Deportiva oficial acreditada (AAT / ITF / Educación Física) vigente antes de impartir clases o entrenamientos en las instalaciones del club.
-        </div>
       </div>
 
         <div className="space-y-4">
@@ -270,17 +244,12 @@ export default function CoachesManagementPage() {
                 
                 <div className="space-y-3">
                   <div className="flex items-start gap-3.5">
-                    <img
-                      src={coach.photo}
-                      alt={coach.name}
-                      className="w-16 h-16 rounded-xl object-cover border border-slate-200 shrink-0"
-                    />
+                    <Avatar user={{ name: coach.name }} size="w-12 h-12" rounded="rounded-xl" textClass="text-base" />
                     <div>
                       <span className="text-[11px] font-semibold text-slate-500 uppercase block">
                         {coach.type || 'Profesor'}
                       </span>
                       <h3 className="font-bold text-sm text-slate-900 leading-tight">{coach.name}</h3>
-                      <p className="text-xs text-tennis-700 font-medium mt-0.5">{coach.specialty}</p>
                       <p className="text-[11px] text-slate-400 mt-1">DNI: {coach.dni} • Tel: {coach.phone}</p>
                     </div>
                   </div>
@@ -303,11 +272,6 @@ export default function CoachesManagementPage() {
                   <div className="text-xs text-slate-600 bg-white p-2.5 rounded-xl border border-slate-100">
                     <span className="text-[10px] uppercase font-bold text-slate-400 block mb-0.5">Disponibilidad Horaria:</span>
                     <span className="font-medium text-slate-700">{coach.availableHours || 'A convenir con administración'}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between text-xs text-slate-500 pt-1 border-t border-slate-100">
-                    <span>Trayectoria: <strong className="text-slate-800">{coach.experienceYears} años</strong></span>
-                    <span>Tarifa particular: <strong className="text-slate-900">${coach.hourlyRatePrivate?.toLocaleString('es-AR')}/h</strong></span>
                   </div>
                 </div>
 
@@ -418,41 +382,6 @@ export default function CoachesManagementPage() {
                 placeholder="profesor@tenisahora.com"
                 value={newCoachForm.email}
                 onChange={(e) => setNewCoachForm({ ...newCoachForm, email: e.target.value })}
-                className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
-              />
-            </div>
-
-            <div>
-              <label className="font-semibold text-slate-700 uppercase block mb-1">Años de Trayectoria *</label>
-              <input
-                type="number"
-                min={1}
-                required
-                value={newCoachForm.experienceYears}
-                onChange={(e) => setNewCoachForm({ ...newCoachForm, experienceYears: e.target.value })}
-                className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
-              />
-            </div>
-
-            <div>
-              <label className="font-semibold text-slate-700 uppercase block mb-1">Especialidad Principal *</label>
-              <input
-                type="text"
-                required
-                placeholder="Alto Rendimiento & Técnica"
-                value={newCoachForm.specialty}
-                onChange={(e) => setNewCoachForm({ ...newCoachForm, specialty: e.target.value })}
-                className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
-              />
-            </div>
-
-            <div>
-              <label className="font-semibold text-slate-700 uppercase block mb-1">Tarifa Hora Particular (ARS) *</label>
-              <input
-                type="number"
-                required
-                value={newCoachForm.hourlyRatePrivate}
-                onChange={(e) => setNewCoachForm({ ...newCoachForm, hourlyRatePrivate: e.target.value })}
                 className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
               />
             </div>
@@ -617,17 +546,6 @@ export default function CoachesManagementPage() {
                   required
                   value={coachToEdit.email}
                   onChange={(e) => setCoachToEdit({ ...coachToEdit, email: e.target.value })}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
-                />
-              </div>
-
-              <div>
-                <label className="font-semibold text-slate-700 uppercase block mb-1">Tarifa Particular (ARS) *</label>
-                <input
-                  type="number"
-                  required
-                  value={coachToEdit.hourlyRatePrivate}
-                  onChange={(e) => setCoachToEdit({ ...coachToEdit, hourlyRatePrivate: e.target.value })}
                   className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
                 />
               </div>

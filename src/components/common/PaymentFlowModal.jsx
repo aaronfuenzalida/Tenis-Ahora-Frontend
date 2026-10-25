@@ -23,7 +23,7 @@ export function newReceiptId() {
 /**
  * Arma el recibo oficial de un pago hecho desde el portal (inscripciones, clases, turnos).
  */
-export function buildReceipt({ concept, items, amount, paymentMethod, client, relatedId, kind }) {
+export function buildReceipt({ concept, items, amount, paymentMethod, client, relatedId, kind, cashierName }) {
   const id = newReceiptId();
   return {
     id,
@@ -38,8 +38,7 @@ export function buildReceipt({ concept, items, amount, paymentMethod, client, re
     paymentMethod,
     status: 'completado',
     date: nowStamp(),
-    qrData: `https://tenisahora.app/recibos/${id}?monto=${amount}`,
-    cashierName: 'Portal del socio'
+    cashierName: cashierName || 'Portal del socio'
   };
 }
 
@@ -62,6 +61,7 @@ export default function PaymentFlowModal({
   relatedId,
   kind,
   summary,
+  cashierName,
   onPaid,
   onCompleted
 }) {
@@ -95,7 +95,8 @@ export default function PaymentFlowModal({
         paymentMethod,
         client,
         relatedId: extra?.relatedId || relatedId,
-        kind
+        kind,
+        cashierName
       });
       await receiptsService.create(rec);
       setReceipt(rec);
@@ -246,7 +247,10 @@ export default function PaymentFlowModal({
               <div>
                 <h4 className="text-base font-extrabold text-slate-900">Pago acreditado</h4>
                 <p className="text-slate-600 mt-1">
-                  Se emitió el recibo <strong className="font-mono">{receipt.id}</strong>. Lo vas a encontrar en <strong>Mis Pagos y Recibos</strong>.
+                  Se emitió el recibo <strong className="font-mono">{receipt.id}</strong>.{' '}
+                  {kind === 'mostrador'
+                    ? <>Quedó registrado en <strong>Recibos y Cobros</strong>.</>
+                    : <>Lo vas a encontrar en <strong>Mis Pagos y Recibos</strong>.</>}
                 </p>
               </div>
               <div className="flex justify-center gap-2 pt-2 border-t border-slate-100">
@@ -255,7 +259,7 @@ export default function PaymentFlowModal({
                   onClick={() => setShowReceipt(true)}
                   className="px-4 py-2 rounded-xl bg-tennis-50 hover:bg-tennis-100 text-tennis-800 font-bold border border-tennis-200 transition-colors"
                 >
-                  Ver recibo con QR
+                  Ver recibo
                 </button>
                 <button
                   type="button"

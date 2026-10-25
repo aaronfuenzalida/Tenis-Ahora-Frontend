@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { coachesAndClassesService } from '../../services/api';
+import { coachesAndClassesService, clubConfigService, DEFAULT_CLUB_CONFIG } from '../../services/api';
 import Modal from '../../components/common/Modal';
 import { useFeedback } from '../../context/FeedbackContext';
 
 export default function PrivateLessonsManagementPage() {
   const { notify, confirm } = useFeedback();
   const [coaches, setCoaches] = useState([]);
+  const [clubConfig, setClubConfig] = useState(DEFAULT_CLUB_CONFIG);
 
   const [privateKindFilter, setPrivateKindFilter] = useState('ALL'); // ALL | clase | entrenamiento
 
@@ -33,10 +34,12 @@ export default function PrivateLessonsManagementPage() {
   }, []);
 
   const loadPrivateClasses = async () => {
-    const [cRes, prvRes] = await Promise.all([
+    const [cRes, prvRes, cfgRes] = await Promise.all([
       coachesAndClassesService.getCoaches(),
-      coachesAndClassesService.getPrivateClasses()
+      coachesAndClassesService.getPrivateClasses(),
+      clubConfigService.get()
     ]);
+    setClubConfig(cfgRes.data);
     setCoaches(cRes.data);
     setPrivateClasses(prvRes.data);
 
@@ -45,7 +48,7 @@ export default function PrivateLessonsManagementPage() {
         ...prev,
         coachId: cRes.data[0].id,
         coachName: cRes.data[0].name,
-        hourlyRate: cRes.data[0].hourlyRatePrivate || 6000
+        hourlyRate: cfgRes.data.privateLessonHourlyRate
       }));
     }
   };
@@ -76,7 +79,7 @@ export default function PrivateLessonsManagementPage() {
       date: '2026-10-20',
       time: '11:00 - 12:00',
       courtAssigned: 'Cancha 1 (Ladrillo)',
-      hourlyRate: coaches[0]?.hourlyRatePrivate || 6500,
+      hourlyRate: clubConfig.privateLessonHourlyRate,
       notes: ''
     });
     await loadPrivateClasses();
@@ -294,8 +297,7 @@ export default function PrivateLessonsManagementPage() {
                   setNewPrivateForm({
                     ...newPrivateForm,
                     coachId: e.target.value,
-                    coachName: sel ? sel.name : '',
-                    hourlyRate: sel?.hourlyRatePrivate || 6000
+                    coachName: sel ? sel.name : ''
                   });
                 }}
                 className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white"

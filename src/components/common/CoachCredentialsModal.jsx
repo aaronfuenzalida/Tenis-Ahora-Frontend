@@ -1,5 +1,6 @@
 import React from 'react';
 import Modal from './Modal';
+import Avatar from './Avatar';
 import { documentsService } from '../../services/api';
 import { useFeedback } from '../../context/FeedbackContext';
 
@@ -14,11 +15,7 @@ export default function CoachCredentialsModal({ isOpen, onClose, coach }) {
       <div className="space-y-4">
         {/* Coach Header */}
         <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-200">
-          <img
-            src={coach.photo}
-            alt={coach.name}
-            className="w-16 h-16 rounded-xl object-cover border-2 border-tennis-500 shadow-sm"
-          />
+          <Avatar user={{ name: coach.name }} size="w-14 h-14" rounded="rounded-xl" textClass="text-lg" />
           <div>
             <div className="flex items-center gap-2">
               <h4 className="font-bold text-base text-slate-900">{coach.name}</h4>
@@ -26,8 +23,8 @@ export default function CoachCredentialsModal({ isOpen, onClose, coach }) {
                 Habilitado
               </span>
             </div>
-            <p className="text-xs text-slate-500">{coach.specialty}</p>
-            <p className="text-xs text-slate-400">DNI: {coach.dni} | {coach.experienceYears} años de trayectoria</p>
+            <p className="text-xs text-slate-500">{coach.type || 'Profesor'}</p>
+            <p className="text-xs text-slate-400">DNI: {coach.dni}</p>
           </div>
         </div>
 

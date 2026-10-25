@@ -82,7 +82,7 @@ export default function AdminLayout() {
               <Avatar user={user} className={user?.photo ? '' : '!bg-slate-900 !text-tennis-400'} />
               <div className="hidden md:block text-left">
                 <div className="text-xs font-bold text-slate-900 group-hover:text-tennis-700">{user?.name || 'Administración'}</div>
-                <div className="text-[10px] text-slate-500">Mando Central</div>
+                <div className="text-[10px] text-slate-500">Administración</div>
               </div>
             </button>
           </div>

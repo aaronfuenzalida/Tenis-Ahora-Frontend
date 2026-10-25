@@ -33,7 +33,6 @@ export default function RefundsPanel() {
   const [reservations, setReservations] = useState([]);
   const [receipts, setReceipts] = useState([]);
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('ALL');
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [clubConfig, setClubConfig] = useState(DEFAULT_CLUB_CONFIG);
@@ -106,25 +105,12 @@ export default function RefundsPanel() {
     await load();
   };
 
-  const handleStatus = async (refund, status) => {
-    await refundsService.updateStatus(refund.id, status);
-    await load();
-  };
-
   const filtered = refunds.filter(r => {
-    if (statusFilter !== 'ALL' && r.status !== statusFilter) return false;
     const q = search.toLowerCase();
     return !q || [r.id, r.clientName, r.clientDni, r.reason, r.relatedReservationId, r.relatedReceiptId].some(v => String(v || '').toLowerCase().includes(q));
   });
 
-  const totalRefunded = filtered.filter(r => r.status === 'procesado').reduce((acc, r) => acc + r.refundAmount, 0);
-  const totalPending = filtered.filter(r => r.status === 'pendiente').reduce((acc, r) => acc + r.refundAmount, 0);
-
-  const badge = (status) => ({
-    procesado: 'text-tennis-800',
-    pendiente: 'text-slate-800',
-    rechazado: 'text-slate-700'
-  }[status] || 'text-slate-600');
+  const totalRefunded = filtered.reduce((acc, r) => acc + r.refundAmount, 0);
 
   return (
     <div className="space-y-4">
@@ -144,7 +130,7 @@ export default function RefundsPanel() {
         </button>
       </div>
 
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3 no-print">
+      <div className="no-print">
         <div className="relative flex-1 max-w-sm">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
@@ -155,24 +141,12 @@ export default function RefundsPanel() {
             className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-xs outline-none focus:border-tennis-600"
           />
         </div>
-        <div className="flex items-center gap-1">
-          {['ALL', 'pendiente', 'procesado', 'rechazado'].map(s => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => setStatusFilter(s)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize ${statusFilter === s ? 'bg-tennis-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
-            >
-              {s === 'ALL' ? 'Todos' : s}
-            </button>
-          ))}
-        </div>
       </div>
 
       <div id="printable-area" className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="hidden print:block text-center border-b p-4">
           <h2 className="text-lg font-bold text-slate-900">TENIS AHORA — REPORTE DE REEMBOLSOS</h2>
-          <p className="text-xs text-slate-500">Devoluciones procesadas y pendientes • Emitido: {new Date().toLocaleString('es-AR')}</p>
+          <p className="text-xs text-slate-500">Devoluciones registradas • Emitido: {new Date().toLocaleString('es-AR')}</p>
         </div>
         <table className="w-full text-left text-xs">
           <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-semibold">
@@ -185,14 +159,12 @@ export default function RefundsPanel() {
               <th className="p-3 text-right">Abonado</th>
               <th className="p-3 text-right">Reintegro</th>
               <th className="p-3">Medio</th>
-              <th className="p-3 text-center">Estado</th>
-              <th className="p-3 text-right no-print">Acciones</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={10} className="p-8 text-center text-slate-400">No se registran reembolsos.</td>
+                <td colSpan={8} className="p-8 text-center text-slate-400">No se registran reembolsos.</td>
               </tr>
             ) : (
               filtered.map(r => (
@@ -215,31 +187,15 @@ export default function RefundsPanel() {
                     <span className={`block text-[10px] font-bold ${r.refundType === 'total' ? 'text-tennis-700' : 'text-slate-700'}`}>{r.refundType === 'total' ? 'Total' : 'Parcial'}</span>
                   </td>
                   <td className="p-3 text-slate-600">{r.refundMethod}</td>
-                  <td className="p-3 text-center">
-                    <span className={`text-[10px] font-bold capitalize ${badge(r.status)}`}>{r.status}</span>
-                  </td>
-                  <td className="p-3 text-right no-print">
-                    {r.status === 'pendiente' ? (
-                      <div className="flex items-center justify-end gap-1.5">
-                        <button type="button" onClick={() => handleStatus(r, 'procesado')} className="px-2 py-1 rounded-lg bg-tennis-600 hover:bg-tennis-700 text-white text-[11px] font-bold inline-flex items-center gap-1">
-                          Procesar
-                        </button>
-                        <button type="button" onClick={() => handleStatus(r, 'rechazado')} className="px-2 py-1 rounded-lg bg-slate-100 hover:bg-slate-50 text-slate-600 hover:text-slate-700 text-[11px] font-bold inline-flex items-center gap-1">
-                          Rechazar
-                        </button>
-                      </div>
-                    ) : (
-                      <span className="text-slate-400">-</span>
-                    )}
-                  </td>
                 </tr>
               ))
             )}
           </tbody>
           <tfoot>
             <tr className="bg-slate-50 border-t border-slate-200 font-bold text-slate-900">
-              <td colSpan={6} className="p-3 text-right">Reintegrado: {money(totalRefunded)} • Pendiente: {money(totalPending)}</td>
-              <td colSpan={4}></td>
+              <td colSpan={6} className="p-3 text-right">Total reintegrado</td>
+              <td className="p-3 text-right">{money(totalRefunded)}</td>
+              <td></td>
             </tr>
           </tfoot>
         </table>

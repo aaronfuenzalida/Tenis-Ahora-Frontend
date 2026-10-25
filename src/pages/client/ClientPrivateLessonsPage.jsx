@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { coachesAndClassesService } from '../../services/api';
+import { coachesAndClassesService, clubConfigService, DEFAULT_CLUB_CONFIG } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import Avatar from '../../components/common/Avatar';
 import { useFeedback } from '../../context/FeedbackContext';
 import CoachCredentialsModal from '../../components/common/CoachCredentialsModal';
 import Modal from '../../components/common/Modal';
@@ -18,6 +19,7 @@ export default function ClientPrivateLessonsPage() {
   const [allLessons, setAllLessons] = useState([]);
   const [myLessons, setMyLessons] = useState([]);
   const [coachForCredentials, setCoachForCredentials] = useState(null);
+  const [clubConfig, setClubConfig] = useState(DEFAULT_CLUB_CONFIG);
 
   const [requestCoach, setRequestCoach] = useState(null);
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
@@ -30,10 +32,12 @@ export default function ClientPrivateLessonsPage() {
   }, []);
 
   const load = async () => {
-    const [cRes, pRes] = await Promise.all([
+    const [cRes, pRes, cfgRes] = await Promise.all([
       coachesAndClassesService.getCoaches(),
-      coachesAndClassesService.getPrivateClasses()
+      coachesAndClassesService.getPrivateClasses(),
+      clubConfigService.get()
     ]);
+    setClubConfig(cfgRes.data);
     setCoaches(cRes.data);
     setAllLessons(pRes.data || []);
     setMyLessons((pRes.data || []).filter(p => !user?.dni || p.studentDni === user.dni));
@@ -61,6 +65,9 @@ export default function ClientPrivateLessonsPage() {
     setRequestCoach(null);
   };
 
+  // La tarifa de la clase particular la fija el club, igual para todos los docentes.
+  const rate = Number(clubConfig.privateLessonHourlyRate) || DEFAULT_CLUB_CONFIG.privateLessonHourlyRate;
+
   const settleAfterPayment = async () => {
     if (!payment) return null;
     const msg = conflictMessage(payment);
@@ -77,7 +84,7 @@ export default function ClientPrivateLessonsPage() {
       date: payment.date,
       time: payment.time,
       courtAssigned: 'Cancha 1 (Ladrillo)',
-      hourlyRate: coach.hourlyRatePrivate || 6000,
+      hourlyRate: rate,
       notes: payment.notes,
       status: 'programada'
     });
@@ -94,7 +101,6 @@ export default function ClientPrivateLessonsPage() {
   };
 
   const labelFor = (coach) => (coach?.type === 'Entrenador' ? 'Entrenamiento particular' : 'Clase particular');
-  const rate = Number(payment?.coach?.hourlyRatePrivate) || 6000;
 
   return (
     <div className="space-y-8">
@@ -131,20 +137,17 @@ export default function ClientPrivateLessonsPage() {
             <div key={coach.id} className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between space-y-4">
               <div className="space-y-3">
                 <div className="flex items-start gap-3.5">
-                  <img src={coach.photo} alt={coach.name} className="w-16 h-16 rounded-xl object-cover border border-slate-200 shrink-0" />
+                  <Avatar user={{ name: coach.name }} size="w-12 h-12" rounded="rounded-xl" textClass="text-base" />
                   <div>
                     <span className="text-[10px] uppercase font-bold text-slate-500 block">{coach.type || 'Profesor'}</span>
                     <h3 className="font-bold text-sm text-slate-900 leading-tight">{coach.name}</h3>
-                    <p className="text-xs text-tennis-700 font-medium">{coach.specialty}</p>
-                    <p className="text-[11px] text-slate-400 mt-0.5">{coach.experienceYears} años de trayectoria</p>
+                    <p className="text-[11px] text-slate-500 mt-0.5">{coach.availableHours || 'Horarios a convenir'}</p>
                   </div>
                 </div>
 
-                <p className="text-xs text-slate-500 line-clamp-2">{coach.bio}</p>
-
                 <div className="text-xs text-slate-600 pt-1 border-t border-slate-100 flex items-center justify-between">
                   <span>{labelFor(coach)}:</span>
-                  <strong className="text-slate-900">${coach.hourlyRatePrivate?.toLocaleString('es-AR')}/h</strong>
+                  <strong className="text-slate-900">${rate.toLocaleString('es-AR')}/h</strong>
                 </div>
               </div>
 
@@ -195,7 +198,7 @@ export default function ClientPrivateLessonsPage() {
         <form onSubmit={handleRequest} className="space-y-4 text-xs">
           <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
             <div className="font-semibold text-slate-800">
-              Arancel: ${requestCoach?.hourlyRatePrivate?.toLocaleString('es-AR')} por hora
+              Arancel: ${rate.toLocaleString('es-AR')} por hora
             </div>
           </div>
 

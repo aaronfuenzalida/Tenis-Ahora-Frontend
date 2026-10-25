@@ -35,7 +35,6 @@ import CourtsManagementPage from './pages/admin/CourtsManagementPage';
 import CourtTypesPage from './pages/admin/CourtTypesPage';
 import CourtAvailabilityPage from './pages/admin/CourtAvailabilityPage';
 import ReservationsManagementPage from './pages/admin/ReservationsManagementPage';
-import ClubPoliciesPage from './pages/admin/ClubPoliciesPage';
 import StockManagementPage from './pages/admin/StockManagementPage';
 import TournamentsManagementPage from './pages/admin/TournamentsManagementPage';
 import LeaguesManagementPage from './pages/admin/LeaguesManagementPage';
@@ -115,7 +114,6 @@ function portalRoutes(demo) {
         <Route path="tipos-cancha" element={<CourtTypesPage />} />
         <Route path="horarios" element={<CourtAvailabilityPage />} />
         <Route path="reservas" element={<ReservationsManagementPage />} />
-        <Route path="politicas" element={<ClubPoliciesPage />} />
         <Route path="stock" element={<StockManagementPage />} />
         <Route path="torneos" element={<TournamentsManagementPage />} />
         <Route path="ligas" element={<LeaguesManagementPage />} />

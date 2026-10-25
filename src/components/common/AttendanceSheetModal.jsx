@@ -49,7 +49,6 @@ export default function AttendanceSheetModal({ isOpen, onClose, classItem }) {
             </div>
 
             <div className="text-right text-xs">
-              <span className="font-mono text-[11px] text-slate-400 block">DOCUMENTO OFICIAL AAT</span>
               <span className="font-bold text-slate-800">Mes: {new Date().toLocaleString('es-AR', { month: 'long', year: 'numeric' })}</span>
             </div>
           </div>
@@ -88,8 +87,7 @@ export default function AttendanceSheetModal({ isOpen, onClose, classItem }) {
                       C{s}
                     </th>
                   ))}
-                  <th className="py-2 px-2 border-r border-slate-300 w-16 text-center">% Asist.</th>
-                  <th className="py-2 px-3">Observaciones</th>
+                  <th className="py-2 px-2 w-16 text-center">% Asist.</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
@@ -116,7 +114,7 @@ export default function AttendanceSheetModal({ isOpen, onClose, classItem }) {
                           <td key={sIdx} className="py-2 px-1 border-r border-slate-300 text-center font-bold">
                             {val ? (
                               <span className={`inline-block w-4 h-4 rounded text-[9px] leading-4 ${
-                                val === 'P' ? 'bg-tennis-100 text-tennis-800' : val === 'A' ? 'bg-slate-100 text-slate-800' : 'bg-slate-100 text-slate-800'
+                                val === 'P' ? 'bg-tennis-100 text-tennis-800' : 'bg-slate-100 text-slate-800'
                               }`}>
                                 {val}
                               </span>
@@ -126,11 +124,8 @@ export default function AttendanceSheetModal({ isOpen, onClose, classItem }) {
                           </td>
                         );
                       })}
-                      <td className="py-2 px-2 border-r border-slate-300 text-center font-bold text-tennis-800">
+                      <td className="py-2 px-2 text-center font-bold text-tennis-800">
                         {pct}%
-                      </td>
-                      <td className="py-2 px-3 text-slate-400 text-[10px]">
-                        {pct >= 75 ? 'Alumno Regular' : 'Seguimiento pedagógico'}
                       </td>
                     </tr>
                   );
@@ -145,7 +140,6 @@ export default function AttendanceSheetModal({ isOpen, onClose, classItem }) {
                     {[0, 1, 2, 3, 4, 5, 6, 7].map(s => (
                       <td key={s} className="border-r border-slate-300"></td>
                     ))}
-                    <td className="border-r border-slate-300"></td>
                     <td></td>
                   </tr>
                 ))}
@@ -164,16 +158,12 @@ export default function AttendanceSheetModal({ isOpen, onClose, classItem }) {
                 <span className="flex items-center gap-1">
                   <strong className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-800">A</strong> Ausente
                 </span>
-                <span className="flex items-center gap-1">
-                  <strong className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-800">J</strong> Justificado
-                </span>
               </div>
             </div>
 
             <div className="text-right flex flex-col items-end">
               <div className="w-48 border-b border-dashed border-slate-400 h-8" />
               <span className="text-[10px] font-bold text-slate-700 mt-1 block">Firma del Profesor Responsable</span>
-              <span className="text-[9px] text-slate-400">Título Habilitante AAT / ITF</span>
             </div>
           </div>
 

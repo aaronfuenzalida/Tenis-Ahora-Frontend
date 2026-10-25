@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { courtsService, reservationsService, stockService, coachesAndClassesService, receiptsService } from '../../services/api';
-import { availableMinutesOn } from '../../components/admin/CourtAvailabilityPanel';
 
 // Date filter options
 const DATE_FILTERS = [
@@ -111,64 +110,16 @@ export default function ReportsPage() {
     return { receipts: inPeriod, total, paymentStats };
   }, [receipts, dateFilter]);
 
-  // Ocupación del período: horas reservadas (sin canceladas) sobre horas habilitadas de cada cancha.
+  // Reservas del período (sin canceladas): alimentan el listado y el contador de turnos.
   const occupancy = useMemo(() => {
     const active = reservations.filter(r => r.status !== 'cancelada' && r.date);
     const start = periodStart(dateFilter);
     const end = periodEnd(dateFilter);
-    const dates = active.map(r => r.date).sort();
-    const from = start ? toISODate(start) : dates[0];
-    const to = end ? toISODate(end) : dates[dates.length - 1];
-    const inPeriod = from ? active.filter(r => r.date >= from && r.date <= to) : [];
-
-    const days = [];
-    if (from) {
-      const [y, m, d] = from.split('-').map(Number);
-      for (let day = new Date(y, m - 1, d); toISODate(day) <= to; day.setDate(day.getDate() + 1)) {
-        days.push(toISODate(day));
-      }
-    }
-
-    const bySurface = {};
-    courts.forEach(c => {
-      bySurface[c.surfaceType] = bySurface[c.surfaceType] || { surface: c.surfaceType, courts: [], availableMinutes: 0, bookedMinutes: 0, revenue: 0 };
-      const s = bySurface[c.surfaceType];
-      s.courts.push(c.name);
-      s.availableMinutes += days.reduce((sum, day) => sum + availableMinutesOn(c, day), 0);
-    });
-    inPeriod.forEach(r => {
-      const court = courts.find(c => c.id === r.courtId);
-      const s = bySurface[court?.surfaceType || r.surfaceType];
-      if (!s) return;
-      s.bookedMinutes += (Number(r.durationHours) || 1) * 60;
-      s.revenue += Number(r.totalCost) || 0;
-    });
-
-    const toPercent = (booked, available) => (available ? Math.min(100, Math.round((booked / available) * 100)) : 0);
-    const surfaceStats = Object.values(bySurface).map(s => ({
-      ...s,
-      hoursBooked: Math.round(s.bookedMinutes / 6) / 10,
-      totalHours: Math.round(s.availableMinutes / 6) / 10,
-      percent: toPercent(s.bookedMinutes, s.availableMinutes),
-      revenuePerHour: s.bookedMinutes ? Math.round(s.revenue / (s.bookedMinutes / 60)) : 0
-    }));
-    const booked = surfaceStats.reduce((sum, s) => sum + s.bookedMinutes, 0);
-    const available = surfaceStats.reduce((sum, s) => sum + s.availableMinutes, 0);
-    return {
-      reservations: inPeriod,
-      surfaceStats,
-      totalBookings: inPeriod.length,
-      avgOccupancy: toPercent(booked, available)
-    };
-  }, [reservations, courts, dateFilter]);
-
-  const occupancySummary = useMemo(() => {
-    const used = occupancy.surfaceStats.filter(s => s.bookedMinutes > 0);
-    if (used.length === 0) return 'No hay reservas en el período seleccionado.';
-    const busiest = used.reduce((a, b) => (b.percent > a.percent ? b : a));
-    const mostProfitable = used.reduce((a, b) => (b.revenuePerHour > a.revenuePerHour ? b : a));
-    return `${busiest.surface} tiene la mayor ocupación del período (${busiest.percent}%); ${mostProfitable.surface} rinde el mayor ingreso por hora reservada ($${mostProfitable.revenuePerHour.toLocaleString('es-AR')}/h).`;
-  }, [occupancy]);
+    const from = start ? toISODate(start) : null;
+    const to = end ? toISODate(end) : null;
+    const inPeriod = active.filter(r => (!from || r.date >= from) && (!to || r.date <= to));
+    return { reservations: inPeriod, totalBookings: inPeriod.length };
+  }, [reservations, dateFilter]);
 
   // Donut SVG circumference calculation for r=70
   // C = 2 * PI * 70 = 439.82297
@@ -186,8 +137,6 @@ export default function ReportsPage() {
       };
     });
   }, [income.paymentStats]);
-
-  const leadingMethod = income.paymentStats[0];
 
   return (
     <div className="space-y-6">
@@ -242,7 +191,7 @@ export default function ReportsPage() {
       </div>
 
       {/* KPI Overview Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="p-5 bg-white rounded-3xl border border-slate-200 shadow-sm space-y-1">
           <div className="flex items-center justify-between text-slate-400">
             <span className="text-[10px] font-bold uppercase tracking-wider">Ingresos Totales</span>
@@ -254,37 +203,11 @@ export default function ReportsPage() {
 
         <div className="p-5 bg-white rounded-3xl border border-slate-200 shadow-sm space-y-1">
           <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[10px] font-bold uppercase tracking-wider">Ocupación Promedio</span>
-          </div>
-          <div className="text-2xl font-black text-slate-900 font-mono">
-            {occupancy.avgOccupancy}%
-          </div>
-          <span className="text-[11px] text-slate-600 font-semibold">
-            Horas reservadas sobre horas habilitadas de {courts.length} canchas
-          </span>
-        </div>
-
-        <div className="p-5 bg-white rounded-3xl border border-slate-200 shadow-sm space-y-1">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[10px] font-bold uppercase tracking-wider">Reservas & Turnos</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider">Reservas del Período</span>
           </div>
           <div className="text-2xl font-black text-slate-900 font-mono">
             {occupancy.totalBookings} turnos
           </div>
-        </div>
-
-        <div className="p-5 bg-white rounded-3xl border border-slate-200 shadow-sm space-y-1">
-          <div className="flex items-center justify-between text-slate-400">
-            <span className="text-[10px] font-bold uppercase tracking-wider">Canal de Pago Líder</span>
-          </div>
-          <div className="text-2xl font-black text-slate-900 truncate">
-            {leadingMethod ? leadingMethod.name : 'Sin cobros'}
-          </div>
-          {leadingMethod && (
-            <span className="text-[11px] text-slate-600 font-semibold">
-              {leadingMethod.percent}% del volumen cobrado
-            </span>
-          )}
         </div>
       </div>
 
@@ -292,7 +215,7 @@ export default function ReportsPage() {
       <div className="flex items-center gap-2 overflow-x-auto pb-1 no-print">
         {[
           { id: 'ingresos', label: '1. Distribución de Ingresos y Medios de Pago' },
-          { id: 'reservas', label: '2. Ocupación Comparativa por Superficie' },
+          { id: 'reservas', label: '2. Reservas del Período' },
           { id: 'canchas', label: '3. Ficha Técnica de Canchas' },
           { id: 'asistencia', label: '4. Asistencia a Clases' }
         ].map(tab => {
@@ -463,65 +386,16 @@ export default function ReportsPage() {
           </div>
         )}
 
-        {/* TAB 2: Ocupación por Superficie */}
+        {/* TAB 2: Reservas del período */}
         {activeTab === 'reservas' && (
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
               <h3 className="text-base font-extrabold text-slate-900">
-                Ocupación Comparativa por Tipo de Superficie
+                Reporte de Reservas del Período
               </h3>
             </div>
 
-            {/* COMPARATIVE PERCENTAGE BARS */}
-            <div className="space-y-4">
-              {occupancy.surfaceStats.map((item) => (
-                <div key={item.surface} className="p-4 bg-slate-50/80 rounded-3xl border border-slate-200/90 space-y-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div>
-                      <h4 className="font-black text-sm text-slate-900">{item.surface}</h4>
-                      <span className="text-[11px] text-slate-500">{item.courts.join(', ')}</span>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <div className="text-right">
-                        <span className="text-xl font-black text-slate-900 font-mono">{item.percent}%</span>
-                        <span className="text-[10px] text-slate-400 block">de ocupación</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-1">
-                    <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
-                      <div
-                        className="h-full rounded-full bg-tennis-600"
-                        style={{ width: `${item.percent}%` }}
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between text-[11px] text-slate-500 font-medium px-1">
-                      <span>Horas utilizadas: <strong>{item.hoursBooked} hs</strong> de {item.totalHours} hs disponibles</span>
-                      <span>Ingresos generados: <strong className="text-slate-800 font-mono">${item.revenue.toLocaleString('es-AR')}</strong></span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Benchmark Comparison Summary */}
-            <div className="p-4 bg-tennis-50/70 border border-tennis-200 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-              <div>
-                <span className="font-extrabold text-tennis-950 block">Conclusión Técnica de Uso de Canchas</span>
-                <span className="text-tennis-800 text-[11px]">
-                  {occupancySummary}
-                </span>
-              </div>
-            </div>
-
-            {/* Reservations Table */}
             <div className="space-y-2">
-              <h4 className="text-xs font-black uppercase text-slate-500 tracking-wider">
-                Listado de Reservas del Período
-              </h4>
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="border-b border-slate-200 font-bold text-slate-500 uppercase bg-slate-50">

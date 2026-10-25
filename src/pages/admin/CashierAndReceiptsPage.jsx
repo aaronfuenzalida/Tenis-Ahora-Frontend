@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { receiptsService } from '../../services/api';
 import { Receipt, Search, ChevronDown, ChevronUp } from 'lucide-react';
 import ReceiptModal from '../../components/common/ReceiptModal';
-import POSDiscountCalculator from '../../components/admin/POSDiscountCalculator';
+import CounterChargeForm from '../../components/admin/CounterChargeForm';
 import TablePaginationBar, { TableSortHeader } from '../../components/common/TablePaginationBar';
 import { useTablePagination } from '../../hooks/useTablePagination';
 
@@ -26,10 +26,10 @@ export default function CashierAndReceiptsPage() {
     setDiscounts(dRes.data);
   };
 
-  const handleChargeCompleted = async (newReceipt) => {
-    const res = await receiptsService.create(newReceipt);
-    setReceipts(prev => [res.data, ...prev]);
-    setSelectedReceipt(res.data);
+  // El recibo ya quedó registrado por el flujo de pago; acá se suma al listado y se abre.
+  const handleChargeCompleted = (receipt) => {
+    setReceipts(prev => [receipt, ...prev]);
+    setSelectedReceipt(receipt);
   };
 
   const filteredReceipts = receipts.filter(r => 
@@ -97,7 +97,7 @@ export default function CashierAndReceiptsPage() {
       {/* Cobro en mostrador */}
       {showSimulator && (
         <div className="no-print">
-          <POSDiscountCalculator discounts={discounts} onChargeComplete={handleChargeCompleted} />
+          <CounterChargeForm discounts={discounts} onChargeComplete={handleChargeCompleted} />
         </div>
       )}
 

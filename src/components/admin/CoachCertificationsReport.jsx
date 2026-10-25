@@ -59,7 +59,7 @@ export default function CoachCertificationsReport({ coaches = [], roleFilter = '
                 <tr key={c.id} className="hover:bg-slate-50/60">
                   <td className="p-3">
                     <div className="font-bold text-slate-900">{c.name}</div>
-                    <div className="text-[11px] text-slate-500">DNI {c.dni} • {c.specialty}</div>
+                    <div className="text-[11px] text-slate-500">DNI {c.dni}</div>
                   </td>
                   <td className="p-3 text-slate-700">{c.type || 'Profesor'}</td>
                   <td className="p-3 font-semibold text-slate-800">{lic.titleName || '-'}</td>

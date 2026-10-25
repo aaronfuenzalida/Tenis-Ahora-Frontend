@@ -110,13 +110,14 @@ let competitionTypesStore = [...INITIAL_COMPETITION_TYPES];
 let invoicesStore = [...INITIAL_INVOICES];
 let refundsStore = [...INITIAL_REFUNDS];
 
-// RD02-RD05: valores que rigen mientras el club no guarde otros (los mismos que usa la API).
+// RD02-RD05: plazos de reserva y cancelación fijados por el club (los mismos que usa la API).
 export const DEFAULT_CLUB_CONFIG = {
   freeCancellationHours: 6,
   lateCancellationRetentionPercent: 50,
-  maxAdvanceBookingDays: 30
+  maxAdvanceBookingDays: 30,
+  privateLessonHourlyRate: 6000
 };
-let clubConfigStore = { id: 'club', ...DEFAULT_CLUB_CONFIG };
+const clubConfigStore = { id: 'club', ...DEFAULT_CLUB_CONFIG };
 let documentsStore = [...INITIAL_DOCUMENTS];
 
 // Documentos adjuntos (reglamentos, títulos habilitantes): mismos límites que la API.
@@ -353,7 +354,6 @@ const stockMock = {
     const total = Number(itemData.totalStock) || 0;
     const inUse = Number(itemData.inUseStock) || 0;
     const available = Math.max(0, total - inUse);
-    const minAlertThreshold = Number(itemData.minAlertThreshold) || 1;
     const newItem = {
       id: `stock-${Date.now()}`,
       name: itemData.name,
@@ -362,9 +362,8 @@ const stockMock = {
       totalStock: total,
       availableStock: available,
       inUseStock: inUse,
-      minAlertThreshold,
       unit: itemData.unit || 'unidades',
-      status: available <= minAlertThreshold ? 'alerta_baja' : 'normal'
+      status: available <= 0 ? 'agotado' : 'disponible'
     };
     stockStore.push(newItem);
     return { data: newItem };
@@ -376,15 +375,13 @@ const stockMock = {
         const total = Number(updatedData.totalStock !== undefined ? updatedData.totalStock : item.totalStock);
         const inUse = Number(updatedData.inUseStock !== undefined ? updatedData.inUseStock : item.inUseStock);
         const available = Math.max(0, total - inUse);
-        const minThreshold = Number(updatedData.minAlertThreshold !== undefined ? updatedData.minAlertThreshold : item.minAlertThreshold);
         return {
           ...item,
           ...updatedData,
           totalStock: total,
           inUseStock: inUse,
           availableStock: available,
-          minAlertThreshold: minThreshold,
-          status: available <= minThreshold ? 'alerta_baja' : 'normal'
+          status: available <= 0 ? 'agotado' : 'disponible'
         };
       }
       return item;
@@ -405,7 +402,7 @@ const stockMock = {
           ...item,
           totalStock,
           availableStock: available,
-          status: available <= item.minAlertThreshold ? 'alerta_baja' : 'normal'
+          status: available <= 0 ? 'agotado' : 'disponible'
         };
       }
       return item;
@@ -1026,8 +1023,7 @@ const coachesAndClassesMock = {
       ...coachData,
       id: `coach-${Date.now()}`,
       hasOfficialLicense: true,
-      licenseDetails: normalizeLicense(coachData.licenseDetails),
-      photo: coachData.photo || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80'
+      licenseDetails: normalizeLicense(coachData.licenseDetails)
     };
     coachesStore.push(newCoach);
     return { data: newCoach };
@@ -1110,7 +1106,7 @@ const coachesAndClassesMock = {
   },
   async toggleStudentAttendance(classId, studentId, sessionIndex) {
     await delay();
-    const cycle = { 'P': 'A', 'A': 'J', 'J': 'P', '-': 'P' };
+    const cycle = { 'P': 'A', 'A': 'P', '-': 'P' };
     classesStore = classesStore.map(cls => {
       if (cls.id === classId) {
         return {
@@ -1303,28 +1299,10 @@ const documentsMock = {
   }
 };
 
-// ---- Configuración del club (RD02 - RD05) ----
+// ---- Configuración del club (RD02 - RD05): solo consulta ----
 const clubConfigMock = {
   async get() {
     await delay();
-    return { data: clubConfigStore };
-  },
-  async update(configData) {
-    await delay();
-    const next = { ...clubConfigStore };
-    Object.keys(DEFAULT_CLUB_CONFIG).forEach(k => {
-      if (configData[k] !== undefined) next[k] = Number(configData[k]);
-    });
-    if (!(next.freeCancellationHours > 0)) {
-      throw new Error('El plazo de cancelación sin cargo debe ser mayor a 0 horas.');
-    }
-    if (!(next.lateCancellationRetentionPercent >= 0 && next.lateCancellationRetentionPercent <= 100)) {
-      throw new Error('La retención por cancelación tardía debe estar entre 0% y 100%.');
-    }
-    if (!(next.maxAdvanceBookingDays >= 1) || !Number.isInteger(next.maxAdvanceBookingDays)) {
-      throw new Error('La antelación máxima de reserva debe ser un número entero de días, mínimo 1.');
-    }
-    clubConfigStore = next;
     return { data: clubConfigStore };
   }
 };
@@ -1393,21 +1371,16 @@ const invoicesMock = {
       unitPrice: Number(it.unitPrice) || 0
     }));
     const subtotal = items.reduce((acc, it) => acc + it.quantity * it.unitPrice, 0);
-    const taxRate = Number(invoiceData.taxRate ?? 21);
-    const taxAmount = Math.round(subtotal * (taxRate / 100));
     const seq = String(412 + invoicesStore.length + 1).padStart(8, '0');
     const newInvoice = {
-      id: `FC-${invoiceData.type || 'B'}-0001-${seq}`,
-      type: invoiceData.type || 'B',
+      id: `FC-0001-${seq}`,
       clientName: invoiceData.clientName,
       clientDni: invoiceData.clientDni,
       clientAddress: invoiceData.clientAddress || '',
       concept: invoiceData.concept || items[0]?.description || 'Servicios del club',
       items,
       subtotal,
-      taxRate,
-      taxAmount,
-      total: subtotal + taxAmount,
+      total: subtotal,
       paymentMethod: invoiceData.paymentMethod || 'Tarjeta de Débito',
       relatedReceiptId: invoiceData.relatedReceiptId || null,
       status: 'emitida',
@@ -1416,11 +1389,6 @@ const invoicesMock = {
     };
     invoicesStore = [newInvoice, ...invoicesStore];
     return { data: newInvoice };
-  },
-  async annul(invoiceId) {
-    await delay();
-    invoicesStore = invoicesStore.map(i => (i.id === invoiceId ? { ...i, status: 'anulada' } : i));
-    return { data: invoicesStore.find(i => i.id === invoiceId) };
   }
 };
 
@@ -1445,17 +1413,11 @@ const refundsMock = {
       originalAmount,
       refundAmount,
       refundMethod: refundData.refundMethod || 'Crédito en cuenta de socio',
-      status: refundData.status || 'pendiente',
       date: nowStamp(),
       processedBy: refundData.processedBy || 'Administración General'
     };
     refundsStore = [newRefund, ...refundsStore];
     return { data: newRefund };
-  },
-  async updateStatus(refundId, status) {
-    await delay();
-    refundsStore = refundsStore.map(r => (r.id === refundId ? { ...r, status } : r));
-    return { data: refundsStore.find(r => r.id === refundId) };
   }
 };
 
@@ -1632,20 +1594,17 @@ const documentsHttp = {
 };
 
 const clubConfigHttp = {
-  get: () => api.get('/configuracion'),
-  update: (configData) => api.put('/configuracion', configData)
+  get: () => api.get('/configuracion')
 };
 
 const invoicesHttp = {
   getAll: () => api.get('/facturas'),
-  create: (invoiceData) => api.post('/facturas', invoiceData),
-  annul: (invoiceId) => api.post(`/facturas/${invoiceId}/anular`)
+  create: (invoiceData) => api.post('/facturas', invoiceData)
 };
 
 const refundsHttp = {
   getAll: () => api.get('/reembolsos'),
-  create: (refundData) => api.post('/reembolsos', refundData),
-  updateStatus: (refundId, status) => api.patch(`/reembolsos/${refundId}/estado`, { status })
+  create: (refundData) => api.post('/reembolsos', refundData)
 };
 
 const usersHttp = {

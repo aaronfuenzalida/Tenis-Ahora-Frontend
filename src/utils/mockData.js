@@ -186,8 +186,7 @@ export const INITIAL_STOCK = [
     availableStock: 6,
     unit: 'unidades',
     itemPrice: 0,
-    minAlertThreshold: 2,
-    status: 'normal',
+    status: 'disponible',
     description: 'Redes reglamentarias de tenis (se asigna 1 por cancha reservada).'
   },
   {
@@ -199,8 +198,7 @@ export const INITIAL_STOCK = [
     availableStock: 40,
     unit: 'pelotas',
     itemPrice: 0,
-    minAlertThreshold: 10,
-    status: 'normal',
+    status: 'disponible',
     description: 'Pelotas reglamentarias presurizadas asignadas para el uso en cancha.'
   },
   {
@@ -212,8 +210,7 @@ export const INITIAL_STOCK = [
     availableStock: 16,
     unit: 'raquetas',
     itemPrice: 0,
-    minAlertThreshold: 4,
-    status: 'normal',
+    status: 'disponible',
     description: 'Raquetas reglamentarias para los participantes del partido.'
   }
 ];
@@ -737,8 +734,6 @@ export const INITIAL_COACHES = [
     dni: '27.890.123',
     phone: '+54 11 5566-7788',
     email: 'santiago.alvarez@tenisahora.com',
-    specialty: 'Alto Rendimiento & Técnica Avanzada',
-    experienceYears: 14,
     hasOfficialLicense: true,
     availableHours: 'Lunes a Viernes 08:00 - 13:00, 16:00 - 21:00',
     licenseDetails: {
@@ -750,9 +745,6 @@ export const INITIAL_COACHES = [
       status: 'habilitado',
       document: { id: 'doc-seed-coach-01', name: 'Certificado_Oficial_AAT_Alvarez_77492.pdf', mimeType: 'application/pdf', size: 903 }
     },
-    hourlyRatePrivate: 6500,
-    photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
-    bio: 'Ex-jugador profesional ATP, especialista en desarrollo de saque, derecha y estrategia táctica.'
   },
   {
     id: 'coach-02',
@@ -761,8 +753,6 @@ export const INITIAL_COACHES = [
     dni: '32.145.678',
     phone: '+54 11 4433-2211',
     email: 'valeria.morales@tenisahora.com',
-    specialty: 'Escuela de Menores & Formación Inicial',
-    experienceYears: 9,
     hasOfficialLicense: true,
     availableHours: 'Lunes a Jueves 14:00 - 20:00, Sábados 09:00 - 14:00',
     licenseDetails: {
@@ -774,9 +764,6 @@ export const INITIAL_COACHES = [
       status: 'habilitado',
       document: { id: 'doc-seed-coach-02', name: 'Titulo_Habilitante_Morales_90114.pdf', mimeType: 'application/pdf', size: 916 }
     },
-    hourlyRatePrivate: 5800,
-    photo: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80',
-    bio: 'Especialista en pedagogía deportiva, biomecánica del golpe y clínicas de tenis infantil y adultos principiantes.'
   },
   {
     id: 'coach-03',
@@ -785,8 +772,6 @@ export const INITIAL_COACHES = [
     dni: '29.334.881',
     phone: '+54 11 6677-9922',
     email: 'lucas.delgado@tenisahora.com',
-    specialty: 'Preparación Física & Táctica de Competición',
-    experienceYears: 11,
     hasOfficialLicense: true,
     availableHours: 'Martes a Sábados 10:00 - 18:00',
     licenseDetails: {
@@ -798,9 +783,6 @@ export const INITIAL_COACHES = [
       status: 'habilitado',
       document: { id: 'doc-seed-coach-03', name: 'Certificado_Oficial_AAT_Delgado_88123.pdf', mimeType: 'application/pdf', size: 876 }
     },
-    hourlyRatePrivate: 6200,
-    photo: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80',
-    bio: 'Preparador físico de tenistas federados, especialista en trabajo de apoyos, aceleración y resistencia en polvo de ladrillo.'
   }
 ];
 
@@ -909,12 +891,12 @@ export const INITIAL_CLASSES = [
     monthName: 'Octubre 2026',
     sessions: ['03/10', '05/10', '10/10', '12/10', '17/10', '19/10', '24/10', '26/10'],
     students: [
-      { id: 'std-1', name: 'Federico Gómez', dni: '38.452.129', attendance: ['P', 'P', 'P', 'A', 'P', 'P', 'P', 'P'] }, // 7/8 = 88% Regular
-      { id: 'std-2', name: 'Romina Varela', dni: '36.992.100', attendance: ['P', 'P', 'J', 'P', 'P', 'P', 'P', 'J'] }, // 6/8 = 75% Regular
+      { id: 'std-1', name: 'Federico Gómez', dni: '38.452.129', attendance: ['P', 'P', 'P', 'A', 'P', 'P', 'P', 'P'] },
+      { id: 'std-2', name: 'Romina Varela', dni: '36.992.100', attendance: ['P', 'P', 'A', 'P', 'P', 'P', 'P', 'A'] },
       { id: 'std-3', name: 'Agustín Pereyra', dni: '39.441.800', attendance: ['P', 'A', 'P', 'A', 'A', 'P', 'A', 'P'] }, // 4/8 = 50% En riesgo (< 75%)
-      { id: 'std-4', name: 'Sofía Rossi', dni: '40.229.412', attendance: ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'] }, // 8/8 = 100% Regular
+      { id: 'std-4', name: 'Sofía Rossi', dni: '40.229.412', attendance: ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'] },
       { id: 'std-5', name: 'Martín Lanata', dni: '37.114.990', attendance: ['A', 'P', 'A', 'A', 'P', 'A', 'P', 'P'] }, // 4/8 = 50% En riesgo (< 75%)
-      { id: 'std-6', name: 'Camila Solís', dni: '41.200.334', attendance: ['P', 'P', 'P', 'P', 'P', 'J', 'P', 'P'] }  // 7/8 = 88% Regular
+      { id: 'std-6', name: 'Camila Solís', dni: '41.200.334', attendance: ['P', 'P', 'P', 'P', 'P', 'A', 'P', 'P'] }
     ]
   },
   {
@@ -934,7 +916,7 @@ export const INITIAL_CLASSES = [
     sessions: ['02/10', '04/10', '09/10', '11/10', '16/10', '18/10', '23/10', '25/10'],
     students: [
       { id: 'std-7', name: 'Claudio Bustos', dni: '34.881.002', attendance: ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'] },
-      { id: 'std-8', name: 'Marcela Díaz', dni: '35.401.993', attendance: ['P', 'J', 'P', 'P', 'P', 'A', 'P', 'P'] },
+      { id: 'std-8', name: 'Marcela Díaz', dni: '35.401.993', attendance: ['P', 'A', 'P', 'P', 'P', 'A', 'P', 'P'] },
       { id: 'std-9', name: 'Gonzalo Vega', dni: '42.110.450', attendance: ['P', 'A', 'A', 'A', 'P', 'A', 'P', 'A'] }, // 3/8 = 38% En riesgo
       { id: 'std-10', name: 'Lucía Benítez', dni: '39.811.234', attendance: ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'] }
     ]
@@ -958,7 +940,7 @@ export const INITIAL_CLASSES = [
       id: `std-full-${i + 1}`,
       name: `Alumno Competición #${i + 1}`,
       dni: `3${i + 5}.120.${100 + i}`,
-      attendance: ['P', 'P', (i % 3 === 0 ? 'A' : 'P'), 'P', (i % 4 === 0 ? 'J' : 'P'), 'P', 'P', 'P']
+      attendance: ['P', 'P', (i % 3 === 0 ? 'A' : 'P'), 'P', 'P', 'P', 'P', 'P']
     }))
   },
   {
@@ -978,7 +960,7 @@ export const INITIAL_CLASSES = [
     sessions: ['02/10', '07/10', '09/10', '14/10', '16/10', '21/10', '23/10', '28/10'],
     students: [
       { id: 'std-t1', name: 'Mariano Zabaleta', dni: '35.123.890', attendance: ['P', 'P', 'P', 'P', 'A', 'P', 'P', 'P'] },
-      { id: 'std-t2', name: 'Gastón Gaudio', dni: '33.987.654', attendance: ['P', 'A', 'P', 'P', 'P', 'J', 'P', 'P'] },
+      { id: 'std-t2', name: 'Gastón Gaudio', dni: '33.987.654', attendance: ['P', 'A', 'P', 'P', 'P', 'A', 'P', 'P'] },
       { id: 'std-t3', name: 'Lucía Benítez', dni: '40.112.334', attendance: ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'] },
       { id: 'std-t4', name: 'Guillermo Coria', dni: '31.333.444', attendance: ['A', 'A', 'P', 'P', 'P', 'P', 'A', 'P'] }
     ]
@@ -1000,7 +982,7 @@ export const INITIAL_CLASSES = [
     sessions: ['01/10', '03/10', '08/10', '10/10', '15/10', '17/10', '22/10', '24/10'],
     students: [
       { id: 'std-t5', name: 'David Nalbandian', dni: '32.111.222', attendance: ['P', 'P', 'P', 'A', 'P', 'P', 'P', 'P'] },
-      { id: 'std-t6', name: 'Sofía Rossi', dni: '40.229.412', attendance: ['P', 'P', 'J', 'P', 'P', 'P', 'P', 'P'] }
+      { id: 'std-t6', name: 'Sofía Rossi', dni: '40.229.412', attendance: ['P', 'P', 'A', 'P', 'P', 'P', 'P', 'P'] }
     ]
   }
 ];
@@ -1471,8 +1453,7 @@ export const INITIAL_COMPETITION_TYPES = [
 // ============================================================
 export const INITIAL_INVOICES = [
   {
-    id: 'FC-B-0001-00000412',
-    type: 'B',
+    id: 'FC-0001-00000412',
     clientName: 'Federico Gómez',
     clientDni: '38.452.129',
     clientAddress: 'Av. San Martín 1420, Quilmes',
@@ -1481,9 +1462,7 @@ export const INITIAL_INVOICES = [
       { description: 'Alquiler 2 Horas Cancha 1 (Polvo de Ladrillo)', quantity: 1, unitPrice: 9600 }
     ],
     subtotal: 9600,
-    taxRate: 21,
-    taxAmount: 2016,
-    total: 11616,
+    total: 9600,
     paymentMethod: 'Mercado Pago (QR)',
     relatedReceiptId: 'REC-2026-1049',
     status: 'emitida',
@@ -1491,8 +1470,7 @@ export const INITIAL_INVOICES = [
     issuedBy: 'Administración General'
   },
   {
-    id: 'FC-B-0001-00000413',
-    type: 'B',
+    id: 'FC-0001-00000413',
     clientName: 'Mariano Zabaleta',
     clientDni: '35.123.890',
     clientAddress: 'Av. Libertador 3200, CABA',
@@ -1501,9 +1479,7 @@ export const INITIAL_INVOICES = [
       { description: 'Inscripción Torneo Singles Masculino', quantity: 1, unitPrice: 7500 }
     ],
     subtotal: 7500,
-    taxRate: 21,
-    taxAmount: 1575,
-    total: 9075,
+    total: 7500,
     paymentMethod: 'Tarjeta de Crédito',
     relatedReceiptId: 'REC-2026-1046',
     status: 'emitida',
@@ -1511,8 +1487,7 @@ export const INITIAL_INVOICES = [
     issuedBy: 'Administración General'
   },
   {
-    id: 'FC-B-0001-00000414',
-    type: 'B',
+    id: 'FC-0001-00000414',
     clientName: 'Lucía Benítez',
     clientDni: '40.112.334',
     clientAddress: 'Calle Mitre 845, Florencio Varela',
@@ -1521,9 +1496,7 @@ export const INITIAL_INVOICES = [
       { description: 'Cuota Clase Grupal Octubre', quantity: 1, unitPrice: 16000 }
     ],
     subtotal: 16000,
-    taxRate: 21,
-    taxAmount: 3360,
-    total: 19360,
+    total: 16000,
     paymentMethod: 'Tarjeta de Débito',
     relatedReceiptId: null,
     status: 'emitida',
@@ -1547,7 +1520,6 @@ export const INITIAL_REFUNDS = [
     originalAmount: 4800,
     refundAmount: 4800,
     refundMethod: 'Devolución a Tarjeta de Débito',
-    status: 'procesado',
     date: '2026-09-18 11:20',
     processedBy: 'Administración General'
   },
@@ -1562,7 +1534,6 @@ export const INITIAL_REFUNDS = [
     originalAmount: 5800,
     refundAmount: 2900,
     refundMethod: 'Crédito en cuenta de socio',
-    status: 'pendiente',
     date: '2026-10-10 17:05',
     processedBy: 'Recepción del Club'
   }

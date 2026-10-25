@@ -112,7 +112,11 @@ export default function CoachDashboard() {
           <div className="text-sm font-bold text-tennis-700 flex items-center gap-1 pt-1">
             Habilitado AAT
           </div>
-          <span className="text-[11px] text-slate-500">Matrícula vigente 2029</span>
+          <span className="text-[11px] text-slate-500">
+            {coachProfile?.licenseDetails?.expiryDate
+              ? `Vigente hasta ${new Date(`${coachProfile.licenseDetails.expiryDate}T00:00:00`).toLocaleDateString('es-AR')}`
+              : 'Sin fecha de vencimiento cargada'}
+          </span>
         </div>
 
       </div>

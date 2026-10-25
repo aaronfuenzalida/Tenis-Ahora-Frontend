@@ -383,9 +383,11 @@ export default function BookCourtPage() {
                   <div className="grid grid-cols-4 gap-2">
                     {[
                       { id: 'ALL', label: 'Todas', badge: `${courts.length} canchas` },
-                      { id: 'Ladrillo', label: 'Ladrillo', badge: 'Polvo tradicional' },
-                      { id: 'Cemento', label: 'Cemento', badge: 'Pista rápida' },
-                      { id: 'Pasto', label: 'Pasto', badge: 'Césped natural' }
+                      ...['Ladrillo', 'Cemento', 'Pasto'].map(surface => ({
+                        id: surface,
+                        label: surface,
+                        badge: `${courts.filter(c => c.surfaceType === surface).length} canchas`
+                      }))
                     ].map(tab => (
                       <button
                         key={tab.id}

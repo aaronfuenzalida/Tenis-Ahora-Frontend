@@ -1,7 +1,6 @@
 import React from 'react';
 import Modal from './Modal';
 import Logo from './Logo';
-import QRCode, { qrPayloads } from './QRCode';
 
 export default function ReceiptModal({ isOpen, onClose, receipt }) {
   if (!receipt) return null;
@@ -25,7 +24,7 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
             <h2 className="text-sm font-black tracking-wider uppercase text-slate-900 mt-1">
               Club Tenis Ahora — Asociación Civil Deportiva
             </h2>
-            <p className="text-[11px] text-slate-500">CUIT: 30-71889922-4 | IVA Exento / Entidad Deportiva Sin Fines de Lucro</p>
+            <p className="text-[11px] text-slate-500">CUIT: 30-71889922-4</p>
             <p className="text-[11px] text-slate-400">Sede Social: Av. San Martín 1420, Quilmes, Buenos Aires | Tel: +54 11 4892-1234</p>
             
             <div className="mt-3 text-xs font-bold text-slate-800">
@@ -109,20 +108,13 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
             </div>
           </div>
 
-          {/* QR Code and Validation Footnote */}
+          {/* Operador y firma */}
           <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs">
-            <div className="flex items-center gap-3">
-              {/* QR Code */}
-              <div className="w-16 h-16 bg-white p-1 rounded-lg border border-slate-300 shadow-sm flex items-center justify-center shrink-0">
-                <QRCode value={qrPayloads.receipt(receipt)} size={64} level="L" />
-              </div>
-              <div className="text-[11px] text-slate-500">
-                <p className="font-bold text-slate-800">Comprobante Fiscal Digital Oficial</p>
-                <p>Escaneá el código para verificar el comprobante en línea</p>
-                <p className="text-[10px] text-slate-400 mt-0.5">
-                  Operador / Cajero: <strong>{receipt.cashierName || 'Recepción General'}</strong>
-                </p>
-              </div>
+            <div className="text-[11px] text-slate-500">
+              <p className="font-bold text-slate-800">Comprobante de pago</p>
+              <p className="text-[10px] text-slate-400 mt-0.5">
+                Operador / Cajero: <strong>{receipt.cashierName || 'Recepción General'}</strong>
+              </p>
             </div>
 
             {/* Signature Area */}

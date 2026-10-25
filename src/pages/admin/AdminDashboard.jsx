@@ -21,7 +21,6 @@ export default function AdminDashboard() {
 
   const totalDailyRevenue = reservations.reduce((acc, r) => acc + (r.depositPaid || 0) + (r.remainingPaid ? r.remainingBalance : 0), 0);
   const activeCourtsCount = courts.filter(c => c.status === 'disponible').length;
-  const lowStockAlerts = stock.filter(s => s.status === 'alerta_baja');
 
   return (
     <div className="space-y-6">
@@ -49,23 +48,6 @@ export default function AdminDashboard() {
           </Link>
         </div>
       </div>
-
-      {/* Low Stock Alert if any */}
-      {lowStockAlerts.length > 0 && (
-        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between text-xs text-slate-900">
-          <div className="flex items-center gap-2.5">
-            <span>
-              <strong>Alerta de Stock Crítico:</strong> {lowStockAlerts.map(s => s.name).join(', ')} por debajo del nivel mínimo.
-            </span>
-          </div>
-          <Link
-            to={`${paths.admin}/stock`}
-            className="px-3 py-1 bg-slate-600 text-white font-semibold rounded-lg text-xs hover:bg-slate-700 shrink-0"
-          >
-            Gestionar Stock
-          </Link>
-        </div>
-      )}
 
       {/* KPI Metrics Cards Grid (Mosaic 4 cards) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -260,7 +242,7 @@ export default function AdminDashboard() {
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-bold text-slate-800">{item.name}</span>
                   <span className={`text-xs font-semibold ${
-                    item.status === 'alerta_baja' ? 'text-slate-700' : 'text-slate-600'
+                    item.availableStock <= 0 ? 'text-slate-700' : 'text-slate-600'
                   }`}>
                     {item.availableStock} Disp.
                   </span>
@@ -269,7 +251,7 @@ export default function AdminDashboard() {
                 {/* Progress bar */}
                 <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
                   <div 
-                    className={`h-full ${item.status === 'alerta_baja' ? 'bg-slate-500' : 'bg-tennis-600'}`}
+                    className={`h-full ${item.availableStock <= 0 ? 'bg-slate-500' : 'bg-tennis-600'}`}
                     style={{ width: `${Math.min(100, (item.availableStock / item.totalStock) * 100)}%` }}
                   />
                 </div>
