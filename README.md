@@ -40,7 +40,7 @@ operaciones se indica en cada caso.
 | Control de Reservas | Modificar, eliminar, cobrar saldo, cancelar con política de 6 hs (genera reembolso o cargo), reporte | RF020-025, RD01-RD06 |
 | Gestión de Stock | Productos y stock disponible | RF026-034 |
 | Torneos, Ligas y Competencias | Torneos y ligas (ABM, cuadro, tabla, reglamento interno), inscripciones, enfrentamientos consolidados, tipos de competencia | RF035-065, RD12 |
-| Docentes, Clases y Entrenamientos | Profesores y entrenadores (alta, horarios, certificaciones + reporte), clases y entrenamientos grupales (cupo configurable ≤ 30), inscripciones, asistencia, turnos particulares | RF066-124, RD07-RD10 |
+| Profesores, Clases y Entrenamientos | Profesores y entrenadores (alta, horarios, certificaciones + reporte), clases y entrenamientos grupales (cupo configurable ≤ 30), inscripciones, asistencia, turnos particulares | RF066-124, RD07-RD10 |
 | Caja, Facturas y Reembolsos | Recibos y cobros (débito, crédito, billetera virtual), facturas, reembolsos, políticas de descuento | RF125-142, RD11 |
 | Reportes y Estadísticas | Ingresos, ocupación, canchas, asistencia a clases y entrenamientos | RF137 |
 
@@ -62,13 +62,13 @@ recargar la página vuelven al estado inicial.
 - **App real** (`/login`, `/register`, `/app`, `/coach`, `/admin`): requiere el backend levantado. Registrá un
   usuario desde `/register` o iniciá sesión con tus credenciales; el rol lo define el backend.
 - **Demo** (`/demo`): entorno separado de la app real, sin backend y con datos de ejemplo en memoria.
-  Desde `/demo` se elige el rol, o se entra directo a `/demo/app` (socio), `/demo/coach` (docente) o
+  Desde `/demo` se elige el rol, o se entra directo a `/demo/app` (socio), `/demo/coach` (profesor) o
   `/demo/admin` (administración). La sesión demo vive en `sessionStorage` de la pestaña y nunca pisa la
   sesión real; dentro de la demo se puede alternar entre los tres roles.
 
 ## Otras notas de la interfaz
 
-- **Mi Perfil**: socios, docentes y empleados editan nombre, teléfono y foto desde el avatar de la cabecera
+- **Mi Perfil**: socios, profesores y empleados editan nombre, teléfono y foto desde el avatar de la cabecera
   (o la tarjeta de la barra lateral). La foto se recorta en cuadrado y se guarda como data URL.
 - **Códigos QR**: carnet de socio, recibos y cobros con billetera virtual muestran QR reales
   (`qrcode.react`), con el texto codificado en `src/components/common/QRCode.jsx`.

@@ -1,39 +1,37 @@
 import React, { useState } from 'react';
 import Modal from './Modal';
 
-const ROUND_NAMES = ['Cuartos de final', 'Semifinales', 'Final'];
+const ROUND_NAMES = ['Octavos de final', 'Cuartos de final', 'Semifinales', 'Final'];
 
-/** Arma un cuadro de 8 lugares a partir de los inscriptos (los lugares vacíos quedan "A definir"). */
-export function buildBracketFromParticipants(participants = []) {
-  const names = participants.slice(0, 8).map(p => (p.partnerName ? `${p.name} / ${p.partnerName}` : p.name));
-  while (names.length < 8) names.push('A definir');
-  const qf = [0, 1, 2, 3].map(i => ({
-    id: `m${i + 1}`,
-    p1: names[i * 2],
-    p2: names[i * 2 + 1],
-    score: '',
-    winner: null,
-    status: 'programado'
-  }));
-  return [
-    { round: ROUND_NAMES[0], matches: qf },
-    {
-      round: ROUND_NAMES[1],
-      matches: [
-        { id: 'm5', p1: 'Ganador partido 1', p2: 'Ganador partido 2', score: '', winner: null, status: 'pendiente' },
-        { id: 'm6', p1: 'Ganador partido 3', p2: 'Ganador partido 4', score: '', winner: null, status: 'pendiente' }
-      ]
-    },
-    {
-      round: ROUND_NAMES[2],
-      matches: [{ id: 'm7', p1: 'Ganador semifinal 1', p2: 'Ganador semifinal 2', score: '', winner: null, status: 'pendiente' }]
+/** Tamaño del cuadro según el cupo del torneo: 16 (desde octavos) u 8 (desde cuartos). */
+export function bracketSize(tournament) {
+  return (tournament?.maxParticipants || 8) > 8 ? 16 : 8;
+}
+
+/** Arma el cuadro completo a partir de los inscriptos (los lugares vacíos quedan "A definir"). */
+export function buildBracketFromParticipants(participants = [], size = 8) {
+  const names = participants.slice(0, size).map(p => (p.partnerName ? `${p.name} / ${p.partnerName}` : p.name));
+  while (names.length < size) names.push('A definir');
+
+  const rounds = [];
+  let matchNumber = 1;
+  for (let matches = size / 2, round = 0; matches >= 1; matches /= 2, round++) {
+    const firstOfPrev = matchNumber - matches * 2;
+    const list = [];
+    for (let i = 0; i < matches; i++) {
+      list.push(round === 0
+        ? { id: `m${matchNumber}`, p1: names[i * 2], p2: names[i * 2 + 1], score: '', winner: null, status: 'programado' }
+        : { id: `m${matchNumber}`, p1: `Ganador partido ${firstOfPrev + i * 2}`, p2: `Ganador partido ${firstOfPrev + i * 2 + 1}`, score: '', winner: null, status: 'pendiente' });
+      matchNumber++;
     }
-  ];
+    rounds.push({ round: ROUND_NAMES[ROUND_NAMES.length - Math.log2(size) + round], matches: list });
+  }
+  return rounds;
 }
 
 /**
- * Cuadro de eliminación directa a 8 (cuartos, semis y final). Las columnas comparten la misma altura
- * y cada partido se centra en su franja, así los conectores caen siempre en el medio de cada par.
+ * Cuadro de eliminación directa (a 16 o a 8). Las columnas comparten la misma altura y cada partido se
+ * centra en su franja, así los conectores caen siempre en el medio de cada par.
  */
 export default function TournamentBracketTree({ tournament, isAdmin = false, onUpdateTournament }) {
   const [selectedMatch, setSelectedMatch] = useState(null);
@@ -44,7 +42,8 @@ export default function TournamentBracketTree({ tournament, isAdmin = false, onU
 
   if (!tournament) return null;
 
-  const bracket = Array.isArray(tournament.bracket) && tournament.bracket.length === 3 ? tournament.bracket : null;
+  const size = bracketSize(tournament);
+  const bracket = Array.isArray(tournament.bracket) && tournament.bracket.length >= 2 ? tournament.bracket : null;
 
   const update = (newBracket) => {
     onUpdateTournament?.({ ...tournament, bracket: newBracket });
@@ -61,7 +60,7 @@ export default function TournamentBracketTree({ tournament, isAdmin = false, onU
         {isAdmin && (
           <button
             type="button"
-            onClick={() => update(buildBracketFromParticipants(tournament.participants))}
+            onClick={() => update(buildBracketFromParticipants(tournament.participants, size))}
             className="px-4 py-2 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-bold text-xs shadow-sm"
           >
             Generar cuadro con los inscriptos
@@ -71,10 +70,11 @@ export default function TournamentBracketTree({ tournament, isAdmin = false, onU
     );
   }
 
-  const quarters = bracket[0].matches || [];
-  const semis = bracket[1].matches || [];
-  const finalMatch = bracket[2].matches?.[0] || null;
+  const lastRound = bracket.length - 1;
+  const finalMatch = bracket[lastRound].matches?.[0] || null;
   const champion = finalMatch?.winner;
+  // Número correlativo de cada partido en todo el cuadro
+  const matchNumber = (rIdx, mIdx) => bracket.slice(0, rIdx).reduce((acc, r) => acc + (r.matches || []).length, 0) + mIdx + 1;
 
   const handleOpenEditMatch = (match) => {
     setSelectedMatch(match);
@@ -105,13 +105,9 @@ export default function TournamentBracketTree({ tournament, isAdmin = false, onU
       }
     }));
 
-    if (rIdx === 0) {
-      const target = next[1].matches[Math.floor(mIdx / 2)];
+    if (rIdx >= 0 && rIdx < lastRound) {
+      const target = next[rIdx + 1].matches[Math.floor(mIdx / 2)];
       if (mIdx % 2 === 0) target.p1 = winnerName; else target.p2 = winnerName;
-      target.status = target.status === 'finalizado' ? target.status : 'programado';
-    } else if (rIdx === 1) {
-      const target = next[2].matches[0];
-      if (mIdx === 0) target.p1 = winnerName; else target.p2 = winnerName;
       target.status = target.status === 'finalizado' ? target.status : 'programado';
     }
 
@@ -119,15 +115,17 @@ export default function TournamentBracketTree({ tournament, isAdmin = false, onU
     setSelectedMatch(null);
   };
 
-  const handleResetBracket = () => update(buildBracketFromParticipants(tournament.participants));
+  const handleResetBracket = () => update(buildBracketFromParticipants(tournament.participants, size));
 
   const canEdit = (m) => isAdmin && !/^(Ganador|A definir)/.test(m.p1) && !/^(Ganador|A definir)/.test(m.p2);
+
+  const columns = bracket.map(() => '1fr').join(' 2.5rem ');
 
   return (
     <div className="space-y-5">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="text-xs text-slate-500">
-          Eliminación directa a 8. {tournament.modality} • {tournament.surfaceRequired}
+          Eliminación directa a {size}. {tournament.modality} • {tournament.surfaceRequired}
         </div>
         {isAdmin && (
           <button
@@ -150,56 +148,42 @@ export default function TournamentBracketTree({ tournament, isAdmin = false, onU
 
       {/* Cuadro: cabeceras y cuerpo comparten la misma grilla de columnas */}
       <div className="overflow-x-auto pb-2">
-        <div className="min-w-[760px]">
-          <div className="grid grid-cols-[1fr_2.5rem_1fr_2.5rem_1fr] gap-x-0">
-            {ROUND_NAMES.map((name, i) => (
-              <React.Fragment key={name}>
+        <div style={{ minWidth: `${bracket.length * 250}px` }}>
+          <div className="grid" style={{ gridTemplateColumns: columns }}>
+            {bracket.map((r, i) => (
+              <React.Fragment key={r.round || i}>
                 {i > 0 && <div />}
                 <div className="text-center text-[11px] font-bold uppercase tracking-wider text-slate-500 pb-2 border-b border-slate-200">
-                  {name}
+                  {r.round}
                 </div>
               </React.Fragment>
             ))}
           </div>
 
-          <div className="grid grid-cols-[1fr_2.5rem_1fr_2.5rem_1fr] items-stretch">
-            {/* Cuartos */}
-            <div className="flex flex-col">
-              {quarters.map((m, idx) => (
-                <div key={m.id || idx} className="flex-1 flex items-center py-2">
-                  <MatchCard match={m} index={idx + 1} editable={canEdit(m)} onEdit={() => handleOpenEditMatch(m)} />
+          <div className="grid items-stretch" style={{ gridTemplateColumns: columns }}>
+            {bracket.map((r, rIdx) => (
+              <React.Fragment key={r.round || rIdx}>
+                {/* Conectores desde la ronda anterior: una llave por cada partido de esta ronda */}
+                {rIdx > 0 && (
+                  <div className="flex flex-col">
+                    {(r.matches || []).map((m, idx) => <Connector key={m.id || idx} />)}
+                  </div>
+                )}
+                <div className="flex flex-col">
+                  {(r.matches || []).map((m, idx) => (
+                    <div key={m.id || idx} className="flex-1 flex items-center py-2">
+                      <MatchCard
+                        match={m}
+                        index={matchNumber(rIdx, idx)}
+                        isFinal={rIdx === lastRound}
+                        editable={canEdit(m)}
+                        onEdit={() => handleOpenEditMatch(m)}
+                      />
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-
-            {/* Conectores cuartos → semis: dos llaves, cada una cubre la mitad de la altura */}
-            <div className="flex flex-col">
-              <Connector />
-              <Connector />
-            </div>
-
-            {/* Semis */}
-            <div className="flex flex-col">
-              {semis.map((m, idx) => (
-                <div key={m.id || idx} className="flex-1 flex items-center py-2">
-                  <MatchCard match={m} index={idx + 5} editable={canEdit(m)} onEdit={() => handleOpenEditMatch(m)} />
-                </div>
-              ))}
-            </div>
-
-            {/* Conector semis → final */}
-            <div className="flex flex-col">
-              <Connector />
-            </div>
-
-            {/* Final */}
-            <div className="flex flex-col">
-              {finalMatch && (
-                <div className="flex-1 flex items-center py-2">
-                  <MatchCard match={finalMatch} index={7} isFinal editable={canEdit(finalMatch)} onEdit={() => handleOpenEditMatch(finalMatch)} />
-                </div>
-              )}
-            </div>
+              </React.Fragment>
+            ))}
           </div>
         </div>
       </div>

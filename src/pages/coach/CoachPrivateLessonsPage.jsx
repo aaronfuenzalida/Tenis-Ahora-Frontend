@@ -51,7 +51,7 @@ export default function CoachPrivateLessonsPage() {
     setNewLessonForm(prev => ({ ...prev, hourlyRate: cfgRes.data.privateLessonHourlyRate }));
   };
 
-  // Turno repetido: mismo día y horario, del docente con otro alumno o del alumno con cualquier docente.
+  // Turno repetido: mismo día y horario, del profesor con otro alumno o del alumno con cualquier profesor.
   const conflictMessage = ({ studentDni, studentName, date, time }, excludeId) => {
     const clash = findPrivateLessonConflict(allLessons, { coachId: coachProfile?.id, studentDni, date, time, excludeId });
     if (!clash) return null;

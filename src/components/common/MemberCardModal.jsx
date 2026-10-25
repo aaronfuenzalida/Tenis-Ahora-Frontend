@@ -10,7 +10,7 @@ export default function MemberCardModal({ isOpen, onClose, member }) {
 
   const memberNumber = member.memberNumber || `TA-${String(member.id).replace(/\D/g, '').padStart(4, '0') || '8840'}`;
   const memberSince = member.memberSince || '2024-03-01';
-  const roleLabel = member.role === 'admin' ? 'Comisión Directiva / Admin' : member.role === 'coach' ? 'Cuerpo Docente' : 'Socio Pleno';
+  const roleLabel = member.role === 'admin' ? 'Comisión Directiva / Admin' : member.role === 'coach' ? 'Cuerpo de Profesores' : 'Socio Pleno';
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Carnet Oficial de Socio" maxWidth="max-w-2xl">

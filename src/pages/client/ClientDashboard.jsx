@@ -32,7 +32,13 @@ export default function ClientDashboard() {
     clubConfigService.get().then(res => setClubConfig(res.data));
   };
 
-  const upcomingBooking = reservations.find(r => r.status === 'confirmada');
+  // La API ya devuelve solo las reservas del socio; en la demo (sin backend) se filtran acá por su DNI.
+  const myReservations = reservations.filter(r => !user?.dni || (r.participants || []).some(p => p.dni === user.dni));
+  const upcomingBooking = myReservations.find(r => r.status === 'confirmada');
+  const confirmedBookings = myReservations.filter(r => r.status === 'confirmada');
+  const pendingBalance = confirmedBookings.reduce((acc, r) => acc + (r.remainingBalance || 0), 0);
+  const myTournament = tournaments.find(t => (t.participants || []).some(p => p.dni === user?.dni));
+  const TOURNAMENT_STATUS = { inscripcion_abierta: 'Inscripción abierta', en_curso: 'En curso', finalizado: 'Finalizado' };
 
   const handleConfirmCancel = async () => {
     if (!upcomingBooking) return;
@@ -96,26 +102,29 @@ export default function ClientDashboard() {
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
           <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Torneo Activo</span>
-            <div className="text-lg font-black text-slate-800 mt-1">Abierto Primavera</div>
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Torneo</span>
+            <div className="text-lg font-black text-slate-800 mt-1">{myTournament ? myTournament.name : 'Sin inscripción'}</div>
             <span className="text-xs text-tennis-600 font-semibold flex items-center gap-1">
-              Clasificado a Semis
+              {myTournament ? TOURNAMENT_STATUS[myTournament.status] || myTournament.status : 'Ver torneos abiertos'}
             </span>
           </div>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
           <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Clase Semanal</span>
-            <div className="text-lg font-black text-slate-800 mt-1">Martes 19:00 hs</div>
-            <span className="text-xs text-slate-500 font-medium">Prof. Álvarez</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Mis Reservas</span>
+            <div className="text-lg font-black text-slate-800 mt-1">{myReservations.length}</div>
+            <span className="text-xs text-slate-500 font-medium">{confirmedBookings.length} confirmadas</span>
           </div>
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-center justify-between">
           <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Estado de Saldo</span>
-            <div className="text-lg font-black text-tennis-700 mt-1">Al día</div>
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Saldo Pendiente</span>
+            <div className="text-lg font-black text-tennis-700 mt-1">
+              {pendingBalance > 0 ? `$${pendingBalance.toLocaleString('es-AR')}` : 'Al día'}
+            </div>
+            <span className="text-xs text-slate-500 font-medium">Se abona al finalizar cada turno</span>
           </div>
         </div>
 

@@ -132,7 +132,7 @@ function portalRoutes(demo) {
         <Route path="reportes" element={<ReportsPage />} />
       </Route>
 
-      {/* Panel docente */}
+      {/* Panel profesor */}
       <Route path="coach" element={wrap('coach', <CoachLayout />, { requireCoach: true })}>
         <Route index element={<Navigate to={p.coachDashboard} replace />} />
         <Route path="dashboard" element={<CoachDashboard />} />

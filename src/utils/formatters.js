@@ -35,7 +35,7 @@ const normalizeTime = (t = '') => String(t).replace(/\s+/g, '').toLowerCase();
 
 /**
  * Devuelve el turno particular que choca con el pedido (mismo día y horario, sin cancelar):
- * el mismo alumno con cualquier docente, o el mismo docente con cualquier alumno. Si no hay choque, null.
+ * el mismo alumno con cualquier profesor, o el mismo profesor con cualquier alumno. Si no hay choque, null.
  */
 export function findPrivateLessonConflict(lessons = [], { coachId, studentDni, date, time, excludeId } = {}) {
   const dni = cleanDNI(studentDni || '');

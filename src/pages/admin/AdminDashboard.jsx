@@ -67,7 +67,7 @@ export default function AdminDashboard() {
             {activeCourtsCount} <span className="text-sm font-semibold text-slate-400">/ {courts.length}</span>
           </div>
           <div className="text-[11px] text-slate-500 mt-1">
-            1 en mantenimiento (Cancha 4 Cemento)
+            {courts.length - activeCourtsCount} en mantenimiento
           </div>
         </div>
 
@@ -86,7 +86,7 @@ export default function AdminDashboard() {
             {tournaments.length}
           </div>
           <div className="text-[11px] text-slate-600 font-semibold mt-1">
-            Abierto Primavera en Semifinales
+            {tournaments.filter(t => t.status === 'en_curso').length} en curso
           </div>
         </div>
 

@@ -164,7 +164,7 @@ export default function Sidebar({ isOpen, onClose }) {
                 onClick={handleGoToCoach}
                 className="flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-tennis-950/80 hover:bg-tennis-900 text-tennis-300 text-xs font-semibold transition-colors border border-tennis-800/60 cursor-pointer"
               >
-                <span>Docente</span>
+                <span>Profesor</span>
               </button>
             </div>
           )}

@@ -55,10 +55,10 @@ export default function AdminLayout() {
                 <button
                   type="button"
                   onClick={handleGoToCoach}
-                  title="Cambiar a vista de docente"
+                  title="Cambiar a vista de profesor"
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-tennis-50 hover:bg-tennis-100 text-tennis-900 text-xs font-bold border border-tennis-200 transition-all shadow-sm"
                 >
-                  <span className="hidden sm:inline">Ver como</span> Docente
+                  <span className="hidden sm:inline">Ver como</span> Profesor
                 </button>
 
                 <button

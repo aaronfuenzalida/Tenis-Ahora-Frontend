@@ -82,7 +82,7 @@ export default function CoachSidebar({ isOpen, onClose, onEditProfile }) {
           <div className="flex items-center gap-3">
             <Avatar user={user} size="w-10 h-10" rounded="rounded-xl" textClass="text-sm" className={user?.photo ? '' : '!bg-tennis-700'} />
             <div className="min-w-0 flex-1">
-              <h3 className="font-bold text-xs text-slate-900 truncate">{user?.name || 'Docente'}</h3>
+              <h3 className="font-bold text-xs text-slate-900 truncate">{user?.name || 'Profesor'}</h3>
               <p className="text-[11px] text-tennis-700 font-semibold truncate">
                 {user?.rolBackend || 'Profesor'}
               </p>
@@ -96,7 +96,7 @@ export default function CoachSidebar({ isOpen, onClose, onEditProfile }) {
         {/* Navigation Items */}
         <div className="flex-1 overflow-y-auto px-4 py-2 space-y-1">
           <div className="px-2 mb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-            Panel del Docente
+            Panel del Profesor
           </div>
 
           {navItems.map((item, idx) => {

@@ -140,7 +140,7 @@ export default function ClientSidebar({ isOpen, onClose, onEditProfile }) {
           })}
         </div>
 
-        {/* Switch to Docente or Admin Mode Box */}
+        {/* Switch to Profesor or Admin Mode Box */}
         <div className="p-4 border-t border-slate-100 space-y-2 bg-slate-50/50">
           {isDemo && (
             <div className="grid grid-cols-2 gap-2">
@@ -149,7 +149,7 @@ export default function ClientSidebar({ isOpen, onClose, onEditProfile }) {
                 onClick={handleGoToCoach}
                 className="py-2 px-2.5 rounded-xl border border-tennis-200 bg-tennis-50 hover:bg-tennis-100 text-tennis-900 text-xs font-semibold flex items-center justify-center gap-1 transition-colors"
               >
-                <span>Docente</span>
+                <span>Profesor</span>
               </button>
               <button
                 type="button"

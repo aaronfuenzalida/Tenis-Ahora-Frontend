@@ -163,7 +163,7 @@ function checkReservationConflict(data, excludeId) {
   throw new Error(`${busy?.name || 'Un jugador'} ya tiene una reserva el ${clash.date} de ${clash.startTime} a ${clash.endTime} en ${clash.courtName}.`);
 }
 
-// Un alumno no puede tener dos turnos particulares en el mismo día y horario, ni un docente dos alumnos a la vez.
+// Un alumno no puede tener dos turnos particulares en el mismo día y horario, ni un profesor dos alumnos a la vez.
 function checkPrivateLessonConflict({ coachId, studentDni, date, time, excludeId }) {
   const clash = findPrivateLessonConflict(privateClassesStore, { coachId, studentDni, date, time, excludeId });
   if (!clash) return;
@@ -191,7 +191,7 @@ function normalizeLicense(lic = {}) {
   return { ...rest, status: rest.status || 'habilitado', document: documentRef(stored) };
 }
 
-// RD09: un docente sin título vigente no puede tener clases ni turnos a cargo.
+// RD09: un profesor sin título vigente no puede tener clases ni turnos a cargo.
 function checkCoachQualified(coachId) {
   const coach = coachesStore.find(c => c.id === coachId);
   if (!coach) return;

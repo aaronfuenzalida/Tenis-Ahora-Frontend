@@ -50,49 +50,49 @@ function mapearUsuario(data) {
 /** Usuarios de la demo (coinciden con los datos de ejemplo de src/utils/mockData.js). */
 const DEMO_USERS = {
   admin: {
-    id: 'usr-02',
-    name: 'Administrador General',
-    nombre: 'Administrador',
-    apellido: 'General',
+    id: 'usr-admin',
+    name: 'Carolina Peralta',
+    nombre: 'Carolina',
+    apellido: 'Peralta',
     email: 'admin@tenisahora.com',
-    phone: '+54 11 9988-1122',
-    address: 'Sede Central Club Tenis Ahora, Buenos Aires',
+    phone: '+54 11 4253-8800',
+    address: 'Sede Club Tenis Ahora, Quilmes',
     photo: '',
     role: 'admin',
     rolBackend: 'Empleado',
-    dni: '30.123.456',
+    dni: '30.512.774',
     memberNumber: 'ADM-001',
     isDemo: true
   },
   coach: {
     id: 'coach-01',
     coachId: 'coach-01',
-    name: 'Prof. Santiago Álvarez',
-    nombre: 'Santiago',
-    apellido: 'Álvarez',
+    name: 'Gustavo Ferrari',
+    nombre: 'Gustavo',
+    apellido: 'Ferrari',
     email: 'profesor@tenisahora.com',
     phone: '+54 11 5566-7788',
-    address: 'Av. Libertador 2200, Buenos Aires',
+    address: 'Quilmes, Buenos Aires',
     photo: '',
     role: 'coach',
     rolBackend: 'Profesor',
-    dni: '27.890.123',
-    memberNumber: 'DOC-77492',
+    dni: '28.334.901',
+    memberNumber: 'DOC-01',
     isDemo: true
   },
   client: {
     id: 'usr-01',
-    name: 'Federico Gómez',
-    nombre: 'Federico',
-    apellido: 'Gómez',
+    name: 'Juan Sánchez',
+    nombre: 'Juan',
+    apellido: 'Sánchez',
     email: 'socio@tenisahora.com',
-    phone: '+54 11 4892-1234',
-    address: 'Av. San Martín 1420, Quilmes, Buenos Aires',
+    phone: '+54 11 5234-7781',
+    address: 'Mitre 1240, Quilmes',
     photo: '',
     role: 'client',
     rolBackend: 'Socio',
-    dni: '38.452.129',
-    memberNumber: 'TA-8821',
+    dni: '35.678.912',
+    memberNumber: 'TA-1001',
     isDemo: true
   }
 };
@@ -182,7 +182,7 @@ export function AuthProvider({ children }) {
   };
 
   /**
-   * Alterna la vista socio/docente/admin. Solo en la demo: el rol de un usuario real lo
+   * Alterna la vista socio/profesor/admin. Solo en la demo: el rol de un usuario real lo
    * define el backend y no se puede cambiar desde el front.
    */
   const switchRole = (newRole) => {
@@ -194,7 +194,7 @@ export function AuthProvider({ children }) {
 
   /**
    * Actualiza nombre, teléfono y foto del usuario logueado (socio, profesional o empleado).
-   * Persiste en el padrón (y en la ficha del docente si corresponde) y en la sesión local.
+   * Persiste en el padrón (y en la ficha del profesor si corresponde) y en la sesión local.
    */
   const updateProfile = async ({ name, phone, photo }) => {
     if (!user) throw new Error('No hay una sesión activa.');

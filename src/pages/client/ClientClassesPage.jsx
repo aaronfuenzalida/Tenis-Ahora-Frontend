@@ -94,7 +94,7 @@ export default function ClientClassesPage() {
                 <h3 className="text-sm font-bold text-slate-900 leading-tight">{cls.name}</h3>
 
                 <div className="space-y-1.5 text-xs bg-slate-50 p-3 rounded-xl border border-slate-200 text-slate-600">
-                  <div>Docente: <strong className="text-slate-800">{cls.coachName}</strong></div>
+                  <div>Profesor: <strong className="text-slate-800">{cls.coachName}</strong></div>
                   <div>Días y horarios: <strong className="text-slate-800">{cls.scheduleDays} {cls.scheduleTime}</strong></div>
                   <div>Cancha: <strong className="text-slate-800">{cls.courtAssigned}</strong></div>
                   <div>Cuota mensual: <strong className="text-slate-900">${cls.monthlyFee?.toLocaleString('es-AR')}</strong></div>

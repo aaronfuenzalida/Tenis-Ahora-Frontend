@@ -6,7 +6,7 @@ import { portalPaths } from '../../hooks/usePortalPaths';
 
 const ROLES = [
   { role: 'client', title: 'Socio', description: 'Reservas, torneos, ligas, clases y recibos.' },
-  { role: 'coach', title: 'Docente', description: 'Clases, asistencia, turnos particulares y certificación.' },
+  { role: 'coach', title: 'Profesor', description: 'Clases, asistencia, turnos particulares y certificación.' },
   { role: 'admin', title: 'Administración', description: 'Canchas, reservas, stock, competencias, caja, padrón y reportes.' }
 ];
 

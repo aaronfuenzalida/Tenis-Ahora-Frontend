@@ -74,7 +74,7 @@ export default function LoginPage() {
           <div className="mb-6">
             <h2 className="text-2xl font-black text-slate-900 tracking-tight">Iniciar Sesión</h2>
             <p className="text-sm text-slate-500 mt-1">
-              Ingresá con tu cuenta de socio, docente o administración.
+              Ingresá con tu cuenta de socio, profesor o administración.
             </p>
           </div>
 

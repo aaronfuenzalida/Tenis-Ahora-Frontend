@@ -1,1540 +1,3607 @@
 /**
- * Comprehensive Mock Data for "Tenis Ahora"
- * Covers all requirements from TP Integral
+ * Datos de ejemplo de "Tenis Ahora" para el Modo Demo (sin backend).
+ * Es el mismo dataset que `server/seed/seed.json`; los dos se generan juntos.
  */
 
 export const INITIAL_COURTS = [
   {
-    id: 'cancha-1',
-    name: 'Cancha 1 - Guillermo Vilas',
-    surfaceType: 'Ladrillo', // Ladrillo, Cemento, Pasto
-    surfaceColor: 'bg-orange-50 text-orange-800 border-orange-200',
-    badgeColor: 'bg-orange-100 text-orange-800',
-    capacity: 4, // 2 o 4 personas
-    pricePerHour: 4800,
-    status: 'disponible', // disponible, ocupada, mantenimiento
-    description: 'Polvo de ladrillo profesional con drenaje rápido.',
-    maintenanceNotes: '',
-    availability: {
-      days: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
-      openTime: '08:00',
-      closeTime: '22:00',
-      slotMinutes: 60,
-      blockedRanges: [],
-      notes: 'Horario corrido. Iluminación artificial a partir de las 19:00.'
+    "id": "cancha-1",
+    "name": "Cancha 1 - Lionel Messi",
+    "surfaceType": "Ladrillo",
+    "capacity": 4,
+    "pricePerHour": 4800,
+    "status": "disponible",
+    "description": "Cancha central de polvo de ladrillo, con tribuna.",
+    "maintenanceNotes": "",
+    "availability": {
+      "days": [
+        "Lunes",
+        "Martes",
+        "Miércoles",
+        "Jueves",
+        "Viernes",
+        "Sábado",
+        "Domingo"
+      ],
+      "openTime": "08:00",
+      "closeTime": "22:00",
+      "slotMinutes": 60,
+      "blockedRanges": [],
+      "notes": "Horario corrido. Iluminación artificial desde las 19:00."
     },
-    photo: 'https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?auto=format&fit=crop&w=600&q=80',
-    schedule: [
-      { time: '08:00 - 09:00', status: 'libre' },
-      { time: '09:00 - 10:00', status: 'libre' },
-      { time: '10:00 - 11:00', status: 'reservado', reservedBy: 'Federico Gómez' },
-      { time: '11:00 - 12:00', status: 'reservado', reservedBy: 'Federico Gómez' },
-      { time: '14:00 - 15:00', status: 'libre' },
-      { time: '15:00 - 16:00', status: 'libre' },
-      { time: '16:00 - 17:00', status: 'reservado', reservedBy: 'Martín Palermo' },
-      { time: '17:00 - 18:00', status: 'libre' },
-      { time: '18:00 - 19:00', status: 'libre' },
-      { time: '19:00 - 20:00', status: 'libre' },
-      { time: '20:00 - 21:00', status: 'libre' }
-    ]
+    "photo": "https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?auto=format&fit=crop&w=600&q=80"
   },
   {
-    id: 'cancha-2',
-    name: 'Cancha 2 - Gabriela Sabatini',
-    surfaceType: 'Ladrillo',
-    surfaceColor: 'bg-orange-50 text-orange-800 border-orange-200',
-    badgeColor: 'bg-orange-100 text-orange-800',
-    capacity: 4,
-    pricePerHour: 4800,
-    status: 'disponible',
-    description: 'Polvo de ladrillo tradicional ideal para singles y dobles de alta competencia.',
-    maintenanceNotes: '',
-    availability: {
-      days: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
-      openTime: '08:00',
-      closeTime: '22:00',
-      slotMinutes: 60,
-      blockedRanges: [],
-      notes: 'Horario corrido. Iluminación artificial a partir de las 19:00.'
+    "id": "cancha-2",
+    "name": "Cancha 2 - Dibu Martínez",
+    "surfaceType": "Ladrillo",
+    "capacity": 4,
+    "pricePerHour": 4800,
+    "status": "disponible",
+    "description": "Polvo de ladrillo, ideal para singles y dobles.",
+    "maintenanceNotes": "",
+    "availability": {
+      "days": [
+        "Lunes",
+        "Martes",
+        "Miércoles",
+        "Jueves",
+        "Viernes",
+        "Sábado",
+        "Domingo"
+      ],
+      "openTime": "08:00",
+      "closeTime": "22:00",
+      "slotMinutes": 60,
+      "blockedRanges": [],
+      "notes": "Horario corrido. Iluminación artificial desde las 19:00."
     },
-    photo: 'https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&w=600&q=80',
-    schedule: [
-      { time: '08:00 - 09:00', status: 'libre' },
-      { time: '09:00 - 10:00', status: 'libre' },
-      { time: '10:00 - 11:00', status: 'libre' },
-      { time: '11:00 - 12:00', status: 'libre' },
-      { time: '14:00 - 15:00', status: 'reservado', reservedBy: 'Lucía Benítez' },
-      { time: '15:00 - 16:00', status: 'reservado', reservedBy: 'Lucía Benítez' },
-      { time: '16:00 - 17:00', status: 'libre' },
-      { time: '17:00 - 18:00', status: 'libre' },
-      { time: '18:00 - 19:00', status: 'libre' },
-      { time: '19:00 - 20:00', status: 'libre' },
-      { time: '20:00 - 21:00', status: 'libre' }
-    ]
+    "photo": "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?auto=format&fit=crop&w=600&q=80"
   },
   {
-    id: 'cancha-3',
-    name: 'Cancha 3 - Juan Martín del Potro',
-    surfaceType: 'Cemento', // Hard court
-    surfaceColor: 'bg-sky-50 text-sky-800 border-sky-200',
-    badgeColor: 'bg-sky-100 text-sky-800',
-    capacity: 4,
-    pricePerHour: 4500,
-    status: 'disponible',
-    description: 'Superficie dura acrílica tipo US Open, bote rápido y uniforme.',
-    maintenanceNotes: '',
-    availability: {
-      days: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
-      openTime: '08:00',
-      closeTime: '22:00',
-      slotMinutes: 60,
-      blockedRanges: [],
-      notes: 'Horario corrido. Iluminación artificial a partir de las 19:00.'
+    "id": "cancha-3",
+    "name": "Cancha 3 - Ángel Di María",
+    "surfaceType": "Cemento",
+    "capacity": 4,
+    "pricePerHour": 4200,
+    "status": "disponible",
+    "description": "Superficie dura de pique rápido y uniforme.",
+    "maintenanceNotes": "",
+    "availability": {
+      "days": [
+        "Lunes",
+        "Martes",
+        "Miércoles",
+        "Jueves",
+        "Viernes",
+        "Sábado",
+        "Domingo"
+      ],
+      "openTime": "08:00",
+      "closeTime": "22:00",
+      "slotMinutes": 60,
+      "blockedRanges": [],
+      "notes": "Horario corrido. Iluminación artificial desde las 19:00."
     },
-    photo: 'https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?auto=format&fit=crop&w=600&q=80',
-    schedule: [
-      { time: '08:00 - 09:00', status: 'libre' },
-      { time: '09:00 - 10:00', status: 'libre' },
-      { time: '10:00 - 11:00', status: 'libre' },
-      { time: '11:00 - 12:00', status: 'libre' },
-      { time: '14:00 - 15:00', status: 'libre' },
-      { time: '15:00 - 16:00', status: 'libre' },
-      { time: '16:00 - 17:00', status: 'libre' },
-      { time: '17:00 - 18:00', status: 'libre' },
-      { time: '18:00 - 19:00', status: 'reservado', reservedBy: 'Torneo Apertura Masculino' },
-      { time: '19:00 - 20:00', status: 'reservado', reservedBy: 'Torneo Apertura Masculino' },
-      { time: '20:00 - 21:00', status: 'libre' }
-    ]
+    "photo": "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?auto=format&fit=crop&w=600&q=80"
   },
   {
-    id: 'cancha-4',
-    name: 'Cancha 4 - David Nalbandian',
-    surfaceType: 'Cemento',
-    surfaceColor: 'bg-sky-50 text-sky-800 border-sky-200',
-    badgeColor: 'bg-sky-100 text-sky-800',
-    capacity: 2, // Singles
-    pricePerHour: 4200,
-    status: 'mantenimiento',
-    description: 'Cancha rápida para singles. Actualmente en repintado de líneas reglamentarias.',
-    maintenanceNotes: 'Repintado de superficie y nivelación de postes hasta 28/08.',
-    availability: {
-      days: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
-      openTime: '08:00',
-      closeTime: '22:00',
-      slotMinutes: 60,
-      blockedRanges: [],
-      notes: 'Horario corrido. Iluminación artificial a partir de las 19:00.'
+    "id": "cancha-4",
+    "name": "Cancha 4 - Julián Álvarez",
+    "surfaceType": "Cemento",
+    "capacity": 4,
+    "pricePerHour": 4200,
+    "status": "mantenimiento",
+    "description": "Superficie dura. Actualmente en repintado de líneas.",
+    "maintenanceNotes": "Repintado de líneas y cambio de red hasta el 30/10.",
+    "availability": {
+      "days": [
+        "Lunes",
+        "Martes",
+        "Miércoles",
+        "Jueves",
+        "Viernes",
+        "Sábado",
+        "Domingo"
+      ],
+      "openTime": "08:00",
+      "closeTime": "22:00",
+      "slotMinutes": 60,
+      "blockedRanges": [],
+      "notes": "Horario corrido. Iluminación artificial desde las 19:00."
     },
-    photo: 'https://images.unsplash.com/photo-1560012057-4372e14c5085?auto=format&fit=crop&w=600&q=80',
-    schedule: [
-      { time: '08:00 - 09:00', status: 'mantenimiento' },
-      { time: '09:00 - 10:00', status: 'mantenimiento' },
-      { time: '10:00 - 11:00', status: 'mantenimiento' },
-      { time: '11:00 - 12:00', status: 'mantenimiento' },
-      { time: '14:00 - 15:00', status: 'mantenimiento' },
-      { time: '15:00 - 16:00', status: 'mantenimiento' },
-      { time: '16:00 - 17:00', status: 'mantenimiento' },
-      { time: '17:00 - 18:00', status: 'mantenimiento' },
-      { time: '18:00 - 19:00', status: 'mantenimiento' },
-      { time: '19:00 - 20:00', status: 'mantenimiento' },
-      { time: '20:00 - 21:00', status: 'mantenimiento' }
-    ]
+    "photo": "https://images.unsplash.com/photo-1560012057-4372e14c5085?auto=format&fit=crop&w=600&q=80"
   },
   {
-    id: 'cancha-5',
-    name: 'Cancha 5 - Wimbledon Grass Court',
-    surfaceType: 'Pasto', // Grass
-    surfaceColor: 'bg-emerald-50 text-emerald-800 border-emerald-200',
-    badgeColor: 'bg-emerald-100 text-emerald-800',
-    capacity: 4,
-    pricePerHour: 5500,
-    status: 'disponible',
-    description: 'Césped natural de competición, corte rasante y superficie premium.',
-    maintenanceNotes: '',
-    availability: {
-      days: ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'],
-      openTime: '08:00',
-      closeTime: '22:00',
-      slotMinutes: 60,
-      blockedRanges: [],
-      notes: 'Horario corrido. Iluminación artificial a partir de las 19:00.'
+    "id": "cancha-5",
+    "name": "Cancha 5 - Rodrigo De Paul",
+    "surfaceType": "Pasto",
+    "capacity": 4,
+    "pricePerHour": 6500,
+    "status": "disponible",
+    "description": "Césped natural, uso con calzado adecuado.",
+    "maintenanceNotes": "",
+    "availability": {
+      "days": [
+        "Lunes",
+        "Martes",
+        "Miércoles",
+        "Jueves",
+        "Viernes",
+        "Sábado",
+        "Domingo"
+      ],
+      "openTime": "08:00",
+      "closeTime": "22:00",
+      "slotMinutes": 60,
+      "blockedRanges": [],
+      "notes": "Cerrada los días de lluvia."
     },
-    photo: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=600&q=80',
-    schedule: [
-      { time: '08:00 - 09:00', status: 'libre' },
-      { time: '09:00 - 10:00', status: 'libre' },
-      { time: '10:00 - 11:00', status: 'libre' },
-      { time: '11:00 - 12:00', status: 'libre' },
-      { time: '14:00 - 15:00', status: 'libre' },
-      { time: '15:00 - 16:00', status: 'libre' },
-      { time: '16:00 - 17:00', status: 'libre' },
-      { time: '17:00 - 18:00', status: 'reservado', reservedBy: 'Clase Particular - Prof. Álvarez' },
-      { time: '18:00 - 19:00', status: 'libre' },
-      { time: '19:00 - 20:00', status: 'libre' },
-      { time: '20:00 - 21:00', status: 'libre' }
-    ]
+    "photo": "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=600&q=80"
   }
 ];
 
 export const INITIAL_STOCK = [
   {
-    id: 'item-redes',
-    name: 'Redes de Tenis',
-    category: 'Redes',
-    totalStock: 10,
-    inUseStock: 4,
-    availableStock: 6,
-    unit: 'unidades',
-    itemPrice: 0,
-    status: 'disponible',
-    description: 'Redes reglamentarias de tenis (se asigna 1 por cancha reservada).'
+    "id": "item-redes",
+    "name": "Redes de tenis",
+    "category": "Redes",
+    "totalStock": 6,
+    "inUseStock": 5,
+    "availableStock": 1,
+    "unit": "unidades",
+    "itemPrice": 0,
+    "status": "disponible",
+    "description": "Una por cancha habilitada; la restante es de repuesto."
   },
   {
-    id: 'item-pelotas',
-    name: 'Pelotas de Tenis',
-    category: 'Pelotas',
-    totalStock: 60,
-    inUseStock: 20,
-    availableStock: 40,
-    unit: 'pelotas',
-    itemPrice: 0,
-    status: 'disponible',
-    description: 'Pelotas reglamentarias presurizadas asignadas para el uso en cancha.'
+    "id": "item-pelotas",
+    "name": "Tubos de pelotas",
+    "category": "Pelotas",
+    "totalStock": 40,
+    "inUseStock": 12,
+    "availableStock": 28,
+    "unit": "tubos",
+    "itemPrice": 0,
+    "status": "disponible",
+    "description": "Tubos de 3 pelotas presurizadas. Se entrega uno por reserva."
   },
   {
-    id: 'item-raquetas',
-    name: 'Raquetas de Tenis',
-    category: 'Raquetas',
-    totalStock: 24,
-    inUseStock: 8,
-    availableStock: 16,
-    unit: 'raquetas',
-    itemPrice: 0,
-    status: 'disponible',
-    description: 'Raquetas reglamentarias para los participantes del partido.'
+    "id": "item-raquetas",
+    "name": "Raquetas de préstamo",
+    "category": "Raquetas",
+    "totalStock": 20,
+    "inUseStock": 6,
+    "availableStock": 14,
+    "unit": "raquetas",
+    "itemPrice": 0,
+    "status": "disponible",
+    "description": "Raquetas para socios que no traen la propia."
+  },
+  {
+    "id": "item-grips",
+    "name": "Overgrips",
+    "category": "Accesorios",
+    "totalStock": 50,
+    "inUseStock": 0,
+    "availableStock": 50,
+    "unit": "unidades",
+    "itemPrice": 2500,
+    "status": "disponible",
+    "description": "Overgrips a la venta en recepción."
   }
 ];
 
 export const INITIAL_RESERVATIONS = [
   {
-    id: 'RES-2026-001',
-    courtId: 'cancha-1',
-    courtName: 'Cancha 1 - Guillermo Vilas (Ladrillo)',
-    surfaceType: 'Ladrillo',
-    date: '2026-08-26',
-    startTime: '10:00',
-    endTime: '12:00',
-    durationHours: 2,
-    playersType: 'dobles', // singles (2) o dobles (4)
-    participants: [
-      { name: 'Federico Gómez', dni: '38.452.129', phone: '11-4892-1234', isLead: true },
-      { name: 'Mariano Zabaleta', dni: '35.123.890', phone: '11-4455-6677' },
-      { name: 'Gastón Gaudio', dni: '33.987.654', phone: '11-2233-4455' },
-      { name: 'Juan Ignacio Chela', dni: '34.567.890', phone: '11-9988-7766' }
+    "id": "RES-2026-001",
+    "courtId": "cancha-2",
+    "courtName": "Cancha 2 - Dibu Martínez (Ladrillo)",
+    "surfaceType": "Ladrillo",
+    "date": "2026-10-27",
+    "startTime": "19:00",
+    "endTime": "20:00",
+    "durationHours": 1,
+    "playersType": "singles",
+    "participants": [
+      {
+        "name": "Juan Sánchez",
+        "dni": "35.678.912",
+        "phone": "11 5234-7781",
+        "isLead": true
+      },
+      {
+        "name": "Nicolás Ledesma",
+        "dni": "37.345.610",
+        "phone": "11 6643-8815"
+      }
     ],
-    equipmentAssigned: {
-      nets: 1,
-      ballTubes: 1,
-      rackets: 4
+    "equipmentAssigned": {
+      "nets": 1,
+      "ballTubes": 1,
+      "rackets": 2
     },
-    courtCost: 9600, // 4800 x 2hs
-    equipmentCost: 0,
-    totalCost: 9600,
-    depositPaid: 4800, // 50% de seña
-    depositReceiptNumber: 'REC-50-8910',
-    depositPaymentMethod: 'Mercado Pago (QR)',
-    remainingBalance: 4800, // 50% al finalizar
-    remainingPaid: false,
-    finalReceiptNumber: null,
-    status: 'confirmada', // confirmada, en_curso, finalizada, cancelada
-    createdAt: '2026-08-20T14:30:00Z',
-    cancellationDetails: null
+    "courtCost": 4800,
+    "equipmentCost": 0,
+    "totalCost": 4800,
+    "depositPaid": 2400,
+    "depositReceiptNumber": "REC-2026-1001",
+    "depositPaymentMethod": "Mercado Pago",
+    "remainingBalance": 2400,
+    "remainingPaid": false,
+    "finalReceiptNumber": null,
+    "status": "confirmada",
+    "createdAt": "2026-10-22T20:05:00Z",
+    "cancellationDetails": null
   },
   {
-    id: 'RES-2026-002',
-    courtId: 'cancha-2',
-    courtName: 'Cancha 2 - Gabriela Sabatini (Ladrillo)',
-    surfaceType: 'Ladrillo',
-    date: '2026-08-26',
-    startTime: '14:00',
-    endTime: '16:00',
-    durationHours: 2,
-    playersType: 'singles',
-    participants: [
-      { name: 'Lucía Benítez', dni: '40.112.334', phone: '11-6677-8899', isLead: true },
-      { name: 'Camila Osorio', dni: '41.223.445', phone: '11-3322-1100' }
+    "id": "RES-2026-002",
+    "courtId": "cancha-3",
+    "courtName": "Cancha 3 - Ángel Di María (Cemento)",
+    "surfaceType": "Cemento",
+    "date": "2026-10-26",
+    "startTime": "10:00",
+    "endTime": "11:00",
+    "durationHours": 1,
+    "playersType": "singles",
+    "participants": [
+      {
+        "name": "Melina Romo",
+        "dni": "39.104.556",
+        "phone": "11 6012-3345",
+        "isLead": true
+      },
+      {
+        "name": "Sofía Acosta",
+        "dni": "40.223.871",
+        "phone": "11 3390-4412"
+      }
     ],
-    equipmentAssigned: {
-      nets: 1,
-      ballTubes: 1,
-      rackets: 2
+    "equipmentAssigned": {
+      "nets": 1,
+      "ballTubes": 1,
+      "rackets": 2
     },
-    courtCost: 9600,
-    equipmentCost: 0,
-    totalCost: 9600,
-    depositPaid: 4800,
-    depositReceiptNumber: 'REC-50-8912',
-    depositPaymentMethod: 'Tarjeta de Débito',
-    remainingBalance: 4800,
-    remainingPaid: false,
-    finalReceiptNumber: null,
-    status: 'confirmada',
-    createdAt: '2026-08-22T09:15:00Z',
-    cancellationDetails: null
+    "courtCost": 4200,
+    "equipmentCost": 0,
+    "totalCost": 4200,
+    "depositPaid": 2100,
+    "depositReceiptNumber": "REC-2026-1002",
+    "depositPaymentMethod": "Tarjeta de Débito",
+    "remainingBalance": 2100,
+    "remainingPaid": false,
+    "finalReceiptNumber": null,
+    "status": "confirmada",
+    "createdAt": "2026-10-21T09:15:00Z",
+    "cancellationDetails": null
   },
   {
-    id: 'RES-2026-003',
-    courtId: 'cancha-5',
-    courtName: 'Cancha 5 - Wimbledon Grass Court (Pasto)',
-    surfaceType: 'Pasto',
-    date: '2026-08-25',
-    startTime: '16:00',
-    endTime: '18:00',
-    durationHours: 2,
-    playersType: 'singles',
-    participants: [
-      { name: 'Carlos Alcaraz', dni: '95.441.228', phone: '11-5544-3322', isLead: true },
-      { name: 'Jannik Sinner', dni: '95.882.119', phone: '11-2211-9988' }
+    "id": "RES-2026-003",
+    "courtId": "cancha-1",
+    "courtName": "Cancha 1 - Lionel Messi (Ladrillo)",
+    "surfaceType": "Ladrillo",
+    "date": "2026-10-20",
+    "startTime": "18:00",
+    "endTime": "20:00",
+    "durationHours": 2,
+    "playersType": "dobles",
+    "participants": [
+      {
+        "name": "Juan Sánchez",
+        "dni": "35.678.912",
+        "phone": "11 5234-7781",
+        "isLead": true
+      },
+      {
+        "name": "Franco Medina",
+        "dni": "37.998.045",
+        "phone": "11 6207-4439"
+      },
+      {
+        "name": "Ignacio Torres",
+        "dni": "34.402.566",
+        "phone": "11 4489-1073"
+      },
+      {
+        "name": "Lucas Pereyra",
+        "dni": "36.887.213",
+        "phone": "11 4477-9120"
+      }
     ],
-    equipmentAssigned: {
-      nets: 1,
-      ballTubes: 1,
-      rackets: 2
+    "equipmentAssigned": {
+      "nets": 1,
+      "ballTubes": 1,
+      "rackets": 4
     },
-    courtCost: 11000,
-    equipmentCost: 0,
-    totalCost: 11000,
-    depositPaid: 5500,
-    depositReceiptNumber: 'REC-50-8870',
-    depositPaymentMethod: 'Tarjeta de Crédito',
-    remainingBalance: 0,
-    remainingPaid: true,
-    finalReceiptNumber: 'REC-FINAL-8875',
-    status: 'finalizada',
-    createdAt: '2026-08-18T10:00:00Z',
-    cancellationDetails: null
+    "courtCost": 9600,
+    "equipmentCost": 0,
+    "totalCost": 9600,
+    "depositPaid": 4800,
+    "depositReceiptNumber": "REC-2026-1003",
+    "depositPaymentMethod": "Mercado Pago",
+    "remainingBalance": 0,
+    "remainingPaid": true,
+    "finalReceiptNumber": "REC-2026-1004",
+    "status": "finalizada",
+    "createdAt": "2026-10-15T14:30:00Z",
+    "cancellationDetails": null
   },
   {
-    id: 'RES-2026-004',
-    courtId: 'cancha-3',
-    courtName: 'Cancha 3 - David Nalbandian (Cemento)',
-    surfaceType: 'Cemento',
-    date: '2026-08-27',
-    startTime: '09:00',
-    endTime: '11:00',
-    durationHours: 2,
-    playersType: 'singles',
-    participants: [
-      { name: 'David Nalbandian', dni: '31.223.990', phone: '11-4433-2211', isLead: true },
-      { name: 'Juan Mónaco', dni: '32.445.667', phone: '11-5566-7788' }
+    "id": "RES-2026-004",
+    "courtId": "cancha-1",
+    "courtName": "Cancha 1 - Lionel Messi (Ladrillo)",
+    "surfaceType": "Ladrillo",
+    "date": "2026-10-28",
+    "startTime": "20:00",
+    "endTime": "22:00",
+    "durationHours": 2,
+    "playersType": "dobles",
+    "participants": [
+      {
+        "name": "Facundo Molina",
+        "dni": "33.790.221",
+        "phone": "11 4920-1187",
+        "isLead": true
+      },
+      {
+        "name": "Matías Giménez",
+        "dni": "34.556.902",
+        "phone": "11 5578-2201"
+      },
+      {
+        "name": "Ignacio Torres",
+        "dni": "34.402.566",
+        "phone": "11 4489-1073"
+      },
+      {
+        "name": "Franco Medina",
+        "dni": "37.998.045",
+        "phone": "11 6207-4439"
+      }
     ],
-    equipmentAssigned: { nets: 1, ballTubes: 1, rackets: 2 },
-    courtCost: 9600,
-    equipmentCost: 0,
-    totalCost: 9600,
-    depositPaid: 4800,
-    depositReceiptNumber: 'REC-50-8915',
-    depositPaymentMethod: 'Mercado Pago (QR)',
-    remainingBalance: 4800,
-    remainingPaid: false,
-    finalReceiptNumber: null,
-    status: 'confirmada',
-    createdAt: '2026-08-23T11:00:00Z',
-    cancellationDetails: null
+    "equipmentAssigned": {
+      "nets": 1,
+      "ballTubes": 1,
+      "rackets": 4
+    },
+    "courtCost": 9600,
+    "equipmentCost": 0,
+    "totalCost": 9600,
+    "depositPaid": 4800,
+    "depositReceiptNumber": "REC-2026-1005",
+    "depositPaymentMethod": "Tarjeta de Crédito",
+    "remainingBalance": 4800,
+    "remainingPaid": false,
+    "finalReceiptNumber": null,
+    "status": "confirmada",
+    "createdAt": "2026-10-22T11:40:00Z",
+    "cancellationDetails": null
   },
   {
-    id: 'RES-2026-005',
-    courtId: 'cancha-4',
-    courtName: 'Cancha 4 - Juan Martín del Potro (Cemento)',
-    surfaceType: 'Cemento',
-    date: '2026-08-27',
-    startTime: '16:00',
-    endTime: '18:00',
-    durationHours: 2,
-    playersType: 'dobles',
-    participants: [
-      { name: 'Diego Schwartzman', dni: '36.889.001', phone: '11-7788-9900', isLead: true },
-      { name: 'Francisco Cerúndolo', dni: '42.112.909', phone: '11-3344-5566' },
-      { name: 'Tomás Etcheverry', dni: '41.900.223', phone: '11-8899-0011' },
-      { name: 'Sebastián Báez', dni: '43.200.114', phone: '11-6677-8800' }
+    "id": "RES-2026-005",
+    "courtId": "cancha-5",
+    "courtName": "Cancha 5 - Rodrigo De Paul (Pasto)",
+    "surfaceType": "Pasto",
+    "date": "2026-10-29",
+    "startTime": "17:00",
+    "endTime": "18:00",
+    "durationHours": 1,
+    "playersType": "singles",
+    "participants": [
+      {
+        "name": "Agustina Herrera",
+        "dni": "38.902.774",
+        "phone": "11 5109-3362",
+        "isLead": true
+      },
+      {
+        "name": "Florencia Castro",
+        "dni": "36.230.198",
+        "phone": "11 4056-7793"
+      }
     ],
-    equipmentAssigned: { nets: 1, ballTubes: 2, rackets: 4 },
-    courtCost: 9600,
-    equipmentCost: 0,
-    totalCost: 9600,
-    depositPaid: 4800,
-    depositReceiptNumber: 'REC-50-8918',
-    depositPaymentMethod: 'Tarjeta de Débito',
-    remainingBalance: 4800,
-    remainingPaid: false,
-    finalReceiptNumber: null,
-    status: 'confirmada',
-    createdAt: '2026-08-24T15:20:00Z',
-    cancellationDetails: null
+    "equipmentAssigned": {
+      "nets": 1,
+      "ballTubes": 1,
+      "rackets": 2
+    },
+    "courtCost": 6500,
+    "equipmentCost": 0,
+    "totalCost": 6500,
+    "depositPaid": 3250,
+    "depositReceiptNumber": "REC-2026-1006",
+    "depositPaymentMethod": "Tarjeta de Débito",
+    "remainingBalance": 3250,
+    "remainingPaid": false,
+    "finalReceiptNumber": null,
+    "status": "confirmada",
+    "createdAt": "2026-10-23T16:20:00Z",
+    "cancellationDetails": null
   },
   {
-    id: 'RES-2026-006',
-    courtId: 'cancha-1',
-    courtName: 'Cancha 1 - Guillermo Vilas (Ladrillo)',
-    surfaceType: 'Ladrillo',
-    date: '2026-08-28',
-    startTime: '18:00',
-    endTime: '20:00',
-    durationHours: 2,
-    playersType: 'singles',
-    participants: [
-      { name: 'Guillermo Coria', dni: '32.119.882', phone: '11-9900-1122', isLead: true },
-      { name: 'Gastón Gaudio', dni: '33.987.654', phone: '11-2233-4455' }
+    "id": "RES-2026-006",
+    "courtId": "cancha-3",
+    "courtName": "Cancha 3 - Ángel Di María (Cemento)",
+    "surfaceType": "Cemento",
+    "date": "2026-10-22",
+    "startTime": "09:00",
+    "endTime": "10:00",
+    "durationHours": 1,
+    "playersType": "singles",
+    "participants": [
+      {
+        "name": "Juan Sánchez",
+        "dni": "35.678.912",
+        "phone": "11 5234-7781",
+        "isLead": true
+      },
+      {
+        "name": "Tomás Benítez",
+        "dni": "39.667.130",
+        "phone": "11 6788-0241"
+      }
     ],
-    equipmentAssigned: { nets: 1, ballTubes: 1, rackets: 2 },
-    courtCost: 9600,
-    equipmentCost: 0,
-    totalCost: 9600,
-    depositPaid: 4800,
-    depositReceiptNumber: 'REC-50-8922',
-    depositPaymentMethod: 'Mercado Pago (QR)',
-    remainingBalance: 4800,
-    remainingPaid: false,
-    finalReceiptNumber: null,
-    status: 'confirmada',
-    createdAt: '2026-08-25T08:00:00Z',
-    cancellationDetails: null
-  },
-  {
-    id: 'RES-2026-007',
-    courtId: 'cancha-2',
-    courtName: 'Cancha 2 - Gabriela Sabatini (Ladrillo)',
-    surfaceType: 'Ladrillo',
-    date: '2026-08-29',
-    startTime: '10:00',
-    endTime: '12:00',
-    durationHours: 2,
-    playersType: 'singles',
-    participants: [
-      { name: 'Paola Suárez', dni: '30.876.543', phone: '11-4455-1122', isLead: true },
-      { name: 'Gisela Dulko', dni: '35.654.321', phone: '11-3322-9988' }
-    ],
-    equipmentAssigned: { nets: 1, ballTubes: 1, rackets: 2 },
-    courtCost: 9600,
-    equipmentCost: 0,
-    totalCost: 9600,
-    depositPaid: 4800,
-    depositReceiptNumber: 'REC-50-8930',
-    depositPaymentMethod: 'Tarjeta de Crédito',
-    remainingBalance: 0,
-    remainingPaid: true,
-    finalReceiptNumber: 'REC-FINAL-8935',
-    status: 'finalizada',
-    createdAt: '2026-08-26T12:00:00Z',
-    cancellationDetails: null
-  },
-  {
-    id: 'RES-2026-008',
-    courtId: 'cancha-5',
-    courtName: 'Cancha 5 - Wimbledon Grass Court (Pasto)',
-    surfaceType: 'Pasto',
-    date: '2026-08-30',
-    startTime: '14:00',
-    endTime: '16:00',
-    durationHours: 2,
-    playersType: 'singles',
-    participants: [
-      { name: 'Federico Gómez', dni: '38.452.129', phone: '11-4892-1234', isLead: true },
-      { name: 'Mariano Zabaleta', dni: '35.123.890', phone: '11-4455-6677' }
-    ],
-    equipmentAssigned: { nets: 1, ballTubes: 1, rackets: 2 },
-    courtCost: 11000,
-    equipmentCost: 0,
-    totalCost: 11000,
-    depositPaid: 5500,
-    depositReceiptNumber: 'REC-50-8940',
-    depositPaymentMethod: 'Mercado Pago (QR)',
-    remainingBalance: 5500,
-    remainingPaid: false,
-    finalReceiptNumber: null,
-    status: 'cancelada',
-    createdAt: '2026-08-27T10:30:00Z',
-    cancellationDetails: {
-      cancelledAt: '2026-08-28T10:00:00Z',
-      hoursInAdvance: 52,
-      refundApplicable: true,
-      reason: 'Cancelado con aviso previo reglamentario (>6hs)'
+    "equipmentAssigned": {
+      "nets": 1,
+      "ballTubes": 1,
+      "rackets": 2
+    },
+    "courtCost": 4200,
+    "equipmentCost": 0,
+    "totalCost": 4200,
+    "depositPaid": 2100,
+    "depositReceiptNumber": "REC-2026-1007",
+    "depositPaymentMethod": "Mercado Pago",
+    "remainingBalance": 2100,
+    "remainingPaid": false,
+    "finalReceiptNumber": null,
+    "status": "cancelada",
+    "createdAt": "2026-10-18T12:00:00Z",
+    "cancellationDetails": {
+      "cancelledAt": "2026-10-21T10:00:00Z",
+      "hoursInAdvance": 23,
+      "policyApplied": "Cancelación dentro del plazo: reintegro total de la seña."
     }
   },
   {
-    id: 'RES-2026-009',
-    courtId: 'cancha-3',
-    courtName: 'Cancha 3 - David Nalbandian (Cemento)',
-    surfaceType: 'Cemento',
-    date: '2026-09-01',
-    startTime: '11:00',
-    endTime: '13:00',
-    durationHours: 2,
-    playersType: 'singles',
-    participants: [
-      { name: 'Martín Jaite', dni: '22.334.455', phone: '11-5544-2211', isLead: true },
-      { name: 'Alberto Mancini', dni: '23.445.566', phone: '11-6655-3322' }
+    "id": "RES-2026-007",
+    "courtId": "cancha-2",
+    "courtName": "Cancha 2 - Dibu Martínez (Ladrillo)",
+    "surfaceType": "Ladrillo",
+    "date": "2026-10-23",
+    "startTime": "18:00",
+    "endTime": "19:00",
+    "durationHours": 1,
+    "playersType": "singles",
+    "participants": [
+      {
+        "name": "Ezequiel Núñez",
+        "dni": "35.114.887",
+        "phone": "11 5531-9906",
+        "isLead": true
+      },
+      {
+        "name": "Franco Medina",
+        "dni": "37.998.045",
+        "phone": "11 6207-4439"
+      }
     ],
-    equipmentAssigned: { nets: 1, ballTubes: 1, rackets: 2 },
-    courtCost: 9600,
-    equipmentCost: 0,
-    totalCost: 9600,
-    depositPaid: 4800,
-    depositReceiptNumber: 'REC-50-8950',
-    depositPaymentMethod: 'Tarjeta de Débito',
-    remainingBalance: 4800,
-    remainingPaid: false,
-    finalReceiptNumber: null,
-    status: 'confirmada',
-    createdAt: '2026-08-28T16:00:00Z',
-    cancellationDetails: null
+    "equipmentAssigned": {
+      "nets": 1,
+      "ballTubes": 1,
+      "rackets": 2
+    },
+    "courtCost": 4800,
+    "equipmentCost": 0,
+    "totalCost": 4800,
+    "depositPaid": 2400,
+    "depositReceiptNumber": "REC-2026-1008",
+    "depositPaymentMethod": "Tarjeta de Débito",
+    "remainingBalance": 0,
+    "remainingPaid": true,
+    "finalReceiptNumber": "REC-2026-1009",
+    "status": "finalizada",
+    "createdAt": "2026-10-19T08:30:00Z",
+    "cancellationDetails": null
   },
   {
-    id: 'RES-2026-010',
-    courtId: 'cancha-1',
-    courtName: 'Cancha 1 - Guillermo Vilas (Ladrillo)',
-    surfaceType: 'Ladrillo',
-    date: '2026-09-02',
-    startTime: '15:00',
-    endTime: '17:00',
-    durationHours: 2,
-    playersType: 'dobles',
-    participants: [
-      { name: 'Franco Davín', dni: '24.556.677', phone: '11-7766-4433', isLead: true },
-      { name: 'Hernán Gumy', dni: '25.667.788', phone: '11-8877-5544' },
-      { name: 'Mariano Hood', dni: '26.778.899', phone: '11-9988-6655' },
-      { name: 'Sebastián Prieto', dni: '27.889.900', phone: '11-0099-7766' }
+    "id": "RES-2026-008",
+    "courtId": "cancha-3",
+    "courtName": "Cancha 3 - Ángel Di María (Cemento)",
+    "surfaceType": "Cemento",
+    "date": "2026-10-30",
+    "startTime": "16:00",
+    "endTime": "17:00",
+    "durationHours": 1,
+    "playersType": "singles",
+    "participants": [
+      {
+        "name": "Valentina Ríos",
+        "dni": "42.118.405",
+        "phone": "11 3812-6604",
+        "isLead": true
+      },
+      {
+        "name": "Julieta Vega",
+        "dni": "43.045.612",
+        "phone": "11 2974-5518"
+      }
     ],
-    equipmentAssigned: { nets: 1, ballTubes: 2, rackets: 4 },
-    courtCost: 9600,
-    equipmentCost: 0,
-    totalCost: 9600,
-    depositPaid: 4800,
-    depositReceiptNumber: 'REC-50-8960',
-    depositPaymentMethod: 'Mercado Pago (QR)',
-    remainingBalance: 0,
-    remainingPaid: true,
-    finalReceiptNumber: 'REC-FINAL-8965',
-    status: 'finalizada',
-    createdAt: '2026-08-29T11:20:00Z',
-    cancellationDetails: null
+    "equipmentAssigned": {
+      "nets": 1,
+      "ballTubes": 1,
+      "rackets": 2
+    },
+    "courtCost": 4200,
+    "equipmentCost": 0,
+    "totalCost": 4200,
+    "depositPaid": 2100,
+    "depositReceiptNumber": "REC-2026-1010",
+    "depositPaymentMethod": "Tarjeta de Débito",
+    "remainingBalance": 2100,
+    "remainingPaid": false,
+    "finalReceiptNumber": null,
+    "status": "confirmada",
+    "createdAt": "2026-10-24T18:10:00Z",
+    "cancellationDetails": null
   },
   {
-    id: 'RES-2026-011',
-    courtId: 'cancha-4',
-    courtName: 'Cancha 4 - Juan Martín del Potro (Cemento)',
-    surfaceType: 'Cemento',
-    date: '2026-09-03',
-    startTime: '17:00',
-    endTime: '19:00',
-    durationHours: 2,
-    playersType: 'singles',
-    participants: [
-      { name: 'Guillermo Pérez Roldán', dni: '23.112.233', phone: '11-3322-1144', isLead: true },
-      { name: 'Horacio de la Peña', dni: '22.998.877', phone: '11-4433-2255' }
+    "id": "RES-2026-009",
+    "courtId": "cancha-1",
+    "courtName": "Cancha 1 - Lionel Messi (Ladrillo)",
+    "surfaceType": "Ladrillo",
+    "date": "2026-11-03",
+    "startTime": "19:00",
+    "endTime": "21:00",
+    "durationHours": 2,
+    "playersType": "dobles",
+    "participants": [
+      {
+        "name": "Juan Sánchez",
+        "dni": "35.678.912",
+        "phone": "11 5234-7781",
+        "isLead": true
+      },
+      {
+        "name": "Lucas Pereyra",
+        "dni": "36.887.213",
+        "phone": "11 4477-9120"
+      },
+      {
+        "name": "Nicolás Ledesma",
+        "dni": "37.345.610",
+        "phone": "11 6643-8815"
+      },
+      {
+        "name": "Tomás Benítez",
+        "dni": "39.667.130",
+        "phone": "11 6788-0241"
+      }
     ],
-    equipmentAssigned: { nets: 1, ballTubes: 1, rackets: 2 },
-    courtCost: 9600,
-    equipmentCost: 0,
-    totalCost: 9600,
-    depositPaid: 4800,
-    depositReceiptNumber: 'REC-50-8970',
-    depositPaymentMethod: 'Tarjeta de Débito',
-    remainingBalance: 4800,
-    remainingPaid: false,
-    finalReceiptNumber: null,
-    status: 'confirmada',
-    createdAt: '2026-08-30T14:00:00Z',
-    cancellationDetails: null
+    "equipmentAssigned": {
+      "nets": 1,
+      "ballTubes": 1,
+      "rackets": 4
+    },
+    "courtCost": 9600,
+    "equipmentCost": 0,
+    "totalCost": 9600,
+    "depositPaid": 4800,
+    "depositReceiptNumber": "REC-2026-1011",
+    "depositPaymentMethod": "Mercado Pago",
+    "remainingBalance": 4800,
+    "remainingPaid": false,
+    "finalReceiptNumber": null,
+    "status": "confirmada",
+    "createdAt": "2026-10-24T21:00:00Z",
+    "cancellationDetails": null
   },
   {
-    id: 'RES-2026-012',
-    courtId: 'cancha-2',
-    courtName: 'Cancha 2 - Gabriela Sabatini (Ladrillo)',
-    surfaceType: 'Ladrillo',
-    date: '2026-09-04',
-    startTime: '19:00',
-    endTime: '21:00',
-    durationHours: 2,
-    playersType: 'singles',
-    participants: [
-      { name: 'Florencia Labat', dni: '25.334.455', phone: '11-5544-3366', isLead: true },
-      { name: 'Patricia Tarabini', dni: '24.223.344', phone: '11-6655-4477' }
+    "id": "RES-2026-010",
+    "courtId": "cancha-5",
+    "courtName": "Cancha 5 - Rodrigo De Paul (Pasto)",
+    "surfaceType": "Pasto",
+    "date": "2026-10-24",
+    "startTime": "11:00",
+    "endTime": "12:00",
+    "durationHours": 1,
+    "playersType": "singles",
+    "participants": [
+      {
+        "name": "Camila Rodríguez",
+        "dni": "41.009.338",
+        "phone": "11 2265-7730",
+        "isLead": true
+      },
+      {
+        "name": "Martina Suárez",
+        "dni": "40.771.209",
+        "phone": "11 3345-8820"
+      }
     ],
-    equipmentAssigned: { nets: 1, ballTubes: 1, rackets: 2 },
-    courtCost: 9600,
-    equipmentCost: 0,
-    totalCost: 9600,
-    depositPaid: 4800,
-    depositReceiptNumber: 'REC-50-8980',
-    depositPaymentMethod: 'Tarjeta de Débito',
-    remainingBalance: 4800,
-    remainingPaid: false,
-    finalReceiptNumber: null,
-    status: 'confirmada',
-    createdAt: '2026-08-31T09:30:00Z',
-    cancellationDetails: null
+    "equipmentAssigned": {
+      "nets": 1,
+      "ballTubes": 1,
+      "rackets": 2
+    },
+    "courtCost": 6500,
+    "equipmentCost": 0,
+    "totalCost": 6500,
+    "depositPaid": 3250,
+    "depositReceiptNumber": "REC-2026-1012",
+    "depositPaymentMethod": "Tarjeta de Crédito",
+    "remainingBalance": 0,
+    "remainingPaid": true,
+    "finalReceiptNumber": "REC-2026-1013",
+    "status": "finalizada",
+    "createdAt": "2026-10-20T13:45:00Z",
+    "cancellationDetails": null
+  },
+  {
+    "id": "RES-2026-011",
+    "courtId": "cancha-2",
+    "courtName": "Cancha 2 - Dibu Martínez (Ladrillo)",
+    "surfaceType": "Ladrillo",
+    "date": "2026-10-31",
+    "startTime": "10:00",
+    "endTime": "11:00",
+    "durationHours": 1,
+    "playersType": "singles",
+    "participants": [
+      {
+        "name": "Nicolás Ledesma",
+        "dni": "37.345.610",
+        "phone": "11 6643-8815",
+        "isLead": true
+      },
+      {
+        "name": "Facundo Molina",
+        "dni": "33.790.221",
+        "phone": "11 4920-1187"
+      }
+    ],
+    "equipmentAssigned": {
+      "nets": 1,
+      "ballTubes": 1,
+      "rackets": 2
+    },
+    "courtCost": 4800,
+    "equipmentCost": 0,
+    "totalCost": 4800,
+    "depositPaid": 2400,
+    "depositReceiptNumber": "REC-2026-1014",
+    "depositPaymentMethod": "Tarjeta de Débito",
+    "remainingBalance": 2400,
+    "remainingPaid": false,
+    "finalReceiptNumber": null,
+    "status": "confirmada",
+    "createdAt": "2026-10-24T10:25:00Z",
+    "cancellationDetails": null
+  },
+  {
+    "id": "RES-2026-012",
+    "courtId": "cancha-3",
+    "courtName": "Cancha 3 - Ángel Di María (Cemento)",
+    "surfaceType": "Cemento",
+    "date": "2026-10-24",
+    "startTime": "19:00",
+    "endTime": "20:00",
+    "durationHours": 1,
+    "playersType": "singles",
+    "participants": [
+      {
+        "name": "Matías Giménez",
+        "dni": "34.556.902",
+        "phone": "11 5578-2201",
+        "isLead": true
+      },
+      {
+        "name": "Ignacio Torres",
+        "dni": "34.402.566",
+        "phone": "11 4489-1073"
+      }
+    ],
+    "equipmentAssigned": {
+      "nets": 1,
+      "ballTubes": 1,
+      "rackets": 2
+    },
+    "courtCost": 4200,
+    "equipmentCost": 0,
+    "totalCost": 4200,
+    "depositPaid": 2100,
+    "depositReceiptNumber": "REC-2026-1015",
+    "depositPaymentMethod": "Tarjeta de Débito",
+    "remainingBalance": 2100,
+    "remainingPaid": false,
+    "finalReceiptNumber": null,
+    "status": "cancelada",
+    "createdAt": "2026-10-20T19:00:00Z",
+    "cancellationDetails": {
+      "cancelledAt": "2026-10-24T17:30:00Z",
+      "hoursInAdvance": 1.5,
+      "policyApplied": "Cancelación fuera de plazo: retención del 50 % de la seña."
+    }
   }
 ];
 
 export const INITIAL_TOURNAMENTS = [
   {
-    id: 'trn-01',
-    name: 'Gran Torneo Abierto de Primavera 2026',
-    category: 'Masculino',
-    modality: 'Singles',
-    surfaceRequired: 'Ladrillo',
-    startDate: '2026-09-05',
-    endDate: '2026-09-12',
-    registrationFee: 7500,
-    maxParticipants: 16,
-    currentEnrolled: 12,
-    status: 'inscripcion_abierta',
-    description: 'Torneo oficial del club avalado por la Asociación de Tenis. Modalidad eliminación directa con partidos al mejor de 3 sets.',
-    internalRules: 'Reglamento Interno Oficial: Partidos al mejor de 3 sets con tie-break a 7 puntos en todos los sets. Tolerancia máxima de espera de 15 minutos en cancha. Uso obligatorio de indumentaria adecuada para polvo de ladrillo y pelotas presurizadas provistas por la organización.',
-    participants: [
-      { id: 'p-1', name: 'Federico Gómez', dni: '38.452.129', phone: '11-4892-1234', enrolledAt: '2026-08-20' },
-      { id: 'p-2', name: 'Mariano Zabaleta', dni: '35.123.890', phone: '11-4455-6677', enrolledAt: '2026-08-21' },
-      { id: 'p-3', name: 'Gastón Gaudio', dni: '33.987.654', phone: '11-2233-4455', enrolledAt: '2026-08-22' },
-      { id: 'p-4', name: 'Juan Ignacio Chela', dni: '34.567.890', phone: '11-9988-7766', enrolledAt: '2026-08-23' },
-      { id: 'p-5', name: 'David Nalbandian', dni: '32.111.222', phone: '11-5544-3322', enrolledAt: '2026-08-24' },
-      { id: 'p-6', name: 'Guillermo Coria', dni: '31.333.444', phone: '11-8877-6655', enrolledAt: '2026-08-25' }
+    "id": "trn-01",
+    "name": "Torneo Primavera 2026 Singles Caballeros",
+    "category": "Masculino",
+    "modality": "Singles",
+    "surfaceRequired": "Ladrillo",
+    "startDate": "2026-10-17",
+    "endDate": "2026-11-01",
+    "registrationFee": 8000,
+    "maxParticipants": 16,
+    "currentEnrolled": 16,
+    "status": "en_curso",
+    "description": "Torneo de eliminación directa a 16 jugadores en polvo de ladrillo. Octavos y cuartos en fines de semana consecutivos; semifinales y final el último fin de semana.",
+    "internalRules": "Partidos al mejor de 3 sets con tie-break en todos los sets. Tolerancia de espera de 15 minutos; pasado ese tiempo se pierde el partido por W.O. Pelotas provistas por el club.",
+    "participants": [
+      {
+        "id": "p-1",
+        "name": "Facundo Molina",
+        "dni": "33.790.221",
+        "phone": "11 4920-1187",
+        "enrolledAt": "2026-10-01"
+      },
+      {
+        "id": "p-2",
+        "name": "Hernán Ortiz",
+        "dni": "33.427.614",
+        "phone": "11-6192-2681",
+        "enrolledAt": "2026-10-01"
+      },
+      {
+        "id": "p-3",
+        "name": "Tomás Benítez",
+        "dni": "39.667.130",
+        "phone": "11 6788-0241",
+        "enrolledAt": "2026-10-02"
+      },
+      {
+        "id": "p-4",
+        "name": "Pablo Quiroga",
+        "dni": "34.715.736",
+        "phone": "11-6559-7891",
+        "enrolledAt": "2026-10-02"
+      },
+      {
+        "id": "p-5",
+        "name": "Lucas Pereyra",
+        "dni": "36.887.213",
+        "phone": "11 4477-9120",
+        "enrolledAt": "2026-10-03"
+      },
+      {
+        "id": "p-6",
+        "name": "Santiago Ojeda",
+        "dni": "39.686.660",
+        "phone": "11-6021-8226",
+        "enrolledAt": "2026-10-03"
+      },
+      {
+        "id": "p-7",
+        "name": "Ezequiel Núñez",
+        "dni": "35.114.887",
+        "phone": "11 5531-9906",
+        "enrolledAt": "2026-10-04"
+      },
+      {
+        "id": "p-8",
+        "name": "Martín Figueroa",
+        "dni": "34.102.728",
+        "phone": "11-2661-2814",
+        "enrolledAt": "2026-10-04"
+      },
+      {
+        "id": "p-9",
+        "name": "Ignacio Torres",
+        "dni": "34.402.566",
+        "phone": "11 4489-1073",
+        "enrolledAt": "2026-10-05"
+      },
+      {
+        "id": "p-10",
+        "name": "Rodrigo Aguirre",
+        "dni": "35.936.200",
+        "phone": "11-5683-1188",
+        "enrolledAt": "2026-10-05"
+      },
+      {
+        "id": "p-11",
+        "name": "Nicolás Ledesma",
+        "dni": "37.345.610",
+        "phone": "11 6643-8815",
+        "enrolledAt": "2026-10-06"
+      },
+      {
+        "id": "p-12",
+        "name": "Juan Sánchez",
+        "dni": "35.678.912",
+        "phone": "11 5234-7781",
+        "enrolledAt": "2026-10-06"
+      },
+      {
+        "id": "p-13",
+        "name": "Franco Medina",
+        "dni": "37.998.045",
+        "phone": "11 6207-4439",
+        "enrolledAt": "2026-10-07"
+      },
+      {
+        "id": "p-14",
+        "name": "Gonzalo Cabrera",
+        "dni": "39.801.602",
+        "phone": "11-4574-4444",
+        "enrolledAt": "2026-10-07"
+      },
+      {
+        "id": "p-15",
+        "name": "Matías Giménez",
+        "dni": "34.556.902",
+        "phone": "11 5578-2201",
+        "enrolledAt": "2026-10-08"
+      },
+      {
+        "id": "p-16",
+        "name": "Federico Luna",
+        "dni": "36.357.456",
+        "phone": "11-4921-7166",
+        "enrolledAt": "2026-10-08"
+      }
     ],
-    bracket: [
+    "bracket": [
       {
-        round: 'Cuartos de Final',
-        matches: [
-          { id: 'm1', p1: 'F. Gómez (1)', p2: 'L. Mayer', score: '6-4, 7-5', winner: 'F. Gómez (1)', status: 'finalizado' },
-          { id: 'm2', p1: 'J. M. del Potro (3)', p2: 'D. Schwartzman', score: '6-3, 3-6, 6-4', winner: 'J. M. del Potro (3)', status: 'finalizado' },
-          { id: 'm3', p1: 'M. Zabaleta', p2: 'G. Gaudio (4)', score: '4-6, 6-2, 7-6', winner: 'M. Zabaleta', status: 'finalizado' },
-          { id: 'm4', p1: 'G. Coria (2)', p2: 'J. I. Chela', score: '6-2, 6-1', winner: 'G. Coria (2)', status: 'finalizado' }
+        "round": "Octavos de final",
+        "matches": [
+          {
+            "id": "m1",
+            "p1": "Facundo Molina",
+            "p2": "Hernán Ortiz",
+            "score": "6-2, 6-3",
+            "winner": "Facundo Molina",
+            "status": "finalizado",
+            "date": "2026-10-17 10:00",
+            "court": "Cancha 1"
+          },
+          {
+            "id": "m2",
+            "p1": "Tomás Benítez",
+            "p2": "Pablo Quiroga",
+            "score": "7-5, 6-4",
+            "winner": "Tomás Benítez",
+            "status": "finalizado",
+            "date": "2026-10-17 10:00",
+            "court": "Cancha 2"
+          },
+          {
+            "id": "m3",
+            "p1": "Lucas Pereyra",
+            "p2": "Santiago Ojeda",
+            "score": "6-3, 6-2",
+            "winner": "Lucas Pereyra",
+            "status": "finalizado",
+            "date": "2026-10-17 12:00",
+            "court": "Cancha 1"
+          },
+          {
+            "id": "m4",
+            "p1": "Ezequiel Núñez",
+            "p2": "Martín Figueroa",
+            "score": "4-6, 6-3, 6-4",
+            "winner": "Ezequiel Núñez",
+            "status": "finalizado",
+            "date": "2026-10-17 12:00",
+            "court": "Cancha 2"
+          },
+          {
+            "id": "m5",
+            "p1": "Ignacio Torres",
+            "p2": "Rodrigo Aguirre",
+            "score": "6-1, 6-2",
+            "winner": "Ignacio Torres",
+            "status": "finalizado",
+            "date": "2026-10-18 10:00",
+            "court": "Cancha 1"
+          },
+          {
+            "id": "m6",
+            "p1": "Nicolás Ledesma",
+            "p2": "Juan Sánchez",
+            "score": "4-6, 6-3, 5-7",
+            "winner": "Juan Sánchez",
+            "status": "finalizado",
+            "date": "2026-10-18 10:00",
+            "court": "Cancha 2"
+          },
+          {
+            "id": "m7",
+            "p1": "Franco Medina",
+            "p2": "Gonzalo Cabrera",
+            "score": "6-4, 6-4",
+            "winner": "Franco Medina",
+            "status": "finalizado",
+            "date": "2026-10-18 12:00",
+            "court": "Cancha 1"
+          },
+          {
+            "id": "m8",
+            "p1": "Matías Giménez",
+            "p2": "Federico Luna",
+            "score": "6-0, 6-3",
+            "winner": "Matías Giménez",
+            "status": "finalizado",
+            "date": "2026-10-18 12:00",
+            "court": "Cancha 2"
+          }
         ]
       },
       {
-        round: 'Semifinales',
-        matches: [
-          { id: 'm5', p1: 'F. Gómez (1)', p2: 'J. M. del Potro (3)', score: 'Pendiente', winner: null, status: 'programado', date: '2026-09-10 16:00', court: 'Cancha 1' },
-          { id: 'm6', p1: 'M. Zabaleta', p2: 'G. Coria (2)', score: 'Pendiente', winner: null, status: 'programado', date: '2026-09-10 18:00', court: 'Cancha 2' }
+        "round": "Cuartos de final",
+        "matches": [
+          {
+            "id": "m9",
+            "p1": "Facundo Molina",
+            "p2": "Tomás Benítez",
+            "score": "6-3, 6-4",
+            "winner": "Facundo Molina",
+            "status": "finalizado",
+            "date": "2026-10-24 16:00",
+            "court": "Cancha 1"
+          },
+          {
+            "id": "m10",
+            "p1": "Lucas Pereyra",
+            "p2": "Ezequiel Núñez",
+            "score": "7-6, 6-4",
+            "winner": "Lucas Pereyra",
+            "status": "finalizado",
+            "date": "2026-10-24 18:00",
+            "court": "Cancha 1"
+          },
+          {
+            "id": "m11",
+            "p1": "Ignacio Torres",
+            "p2": "Juan Sánchez",
+            "score": "",
+            "winner": null,
+            "status": "programado",
+            "date": "2026-10-25 16:00",
+            "court": "Cancha 1"
+          },
+          {
+            "id": "m12",
+            "p1": "Franco Medina",
+            "p2": "Matías Giménez",
+            "score": "",
+            "winner": null,
+            "status": "programado",
+            "date": "2026-10-25 18:00",
+            "court": "Cancha 2"
+          }
         ]
       },
       {
-        round: 'Gran Final',
-        matches: [
-          { id: 'm7', p1: 'Ganador SF 1', p2: 'Ganador SF 2', score: 'A disputarse', winner: null, status: 'pendiente', date: '2026-09-12 17:00', court: 'Cancha 1' }
+        "round": "Semifinales",
+        "matches": [
+          {
+            "id": "m13",
+            "p1": "Facundo Molina",
+            "p2": "Lucas Pereyra",
+            "score": "",
+            "winner": null,
+            "status": "programado",
+            "date": "2026-10-31 16:00",
+            "court": "Cancha 1"
+          },
+          {
+            "id": "m14",
+            "p1": "Ganador partido 11",
+            "p2": "Ganador partido 12",
+            "score": "",
+            "winner": null,
+            "status": "pendiente",
+            "date": "2026-10-31 18:00",
+            "court": "Cancha 1"
+          }
+        ]
+      },
+      {
+        "round": "Final",
+        "matches": [
+          {
+            "id": "m15",
+            "p1": "Ganador partido 13",
+            "p2": "Ganador partido 14",
+            "score": "",
+            "winner": null,
+            "status": "pendiente",
+            "date": "2026-11-01 17:00",
+            "court": "Cancha 1"
+          }
         ]
       }
     ]
   },
   {
-    id: 'trn-02',
-    name: 'Copa Damas Sabatini - Dobles',
-    category: 'Femenino',
-    modality: 'Pareja',
-    surfaceRequired: 'Cemento',
-    startDate: '2026-09-15',
-    endDate: '2026-09-20',
-    registrationFee: 12000,
-    maxParticipants: 8,
-    currentEnrolled: 6,
-    status: 'inscripcion_abierta',
-    description: 'Torneo femenino por parejas en canchas de cemento. Ambiente competitivo y distendido con tercer tiempo incluido.',
-    internalRules: 'Reglamento Interno: Partidos a dos sets con punto de oro en 40-40. En caso de empate en sets se define por Match Tie-break a 10 puntos.',
-    participants: [
-      { id: 'p-7', name: 'Lucía Benítez', dni: '40.112.334', phone: '11-6677-8899', partnerName: 'Camila Osorio', partnerDni: '41.223.445', enrolledAt: '2026-08-25' }
+    "id": "trn-02",
+    "name": "Torneo de Dobles Damas - Noviembre 2026",
+    "category": "Femenino",
+    "modality": "Pareja",
+    "surfaceRequired": "Cemento",
+    "startDate": "2026-11-14",
+    "endDate": "2026-11-15",
+    "registrationFee": 12000,
+    "maxParticipants": 8,
+    "currentEnrolled": 4,
+    "status": "inscripcion_abierta",
+    "description": "Torneo femenino por parejas en canchas de cemento. Cuadro a 8 parejas; se juega en un fin de semana.",
+    "internalRules": "Partidos a dos sets con punto de oro en 40-40. En caso de empate en sets se define por match tie-break a 10 puntos.",
+    "participants": [
+      {
+        "id": "p-1",
+        "name": "Melina Romo",
+        "dni": "39.104.556",
+        "phone": "11 6012-3345",
+        "enrolledAt": "2026-10-12",
+        "partnerName": "Sofía Acosta",
+        "partnerDni": "40.223.871"
+      },
+      {
+        "id": "p-2",
+        "name": "Camila Rodríguez",
+        "dni": "41.009.338",
+        "phone": "11 2265-7730",
+        "enrolledAt": "2026-10-12",
+        "partnerName": "Valentina Ríos",
+        "partnerDni": "42.118.405"
+      },
+      {
+        "id": "p-3",
+        "name": "Agustina Herrera",
+        "dni": "38.902.774",
+        "phone": "11 5109-3362",
+        "enrolledAt": "2026-10-13",
+        "partnerName": "Florencia Castro",
+        "partnerDni": "36.230.198"
+      },
+      {
+        "id": "p-4",
+        "name": "Julieta Vega",
+        "dni": "43.045.612",
+        "phone": "11 2974-5518",
+        "enrolledAt": "2026-10-13",
+        "partnerName": "Martina Suárez",
+        "partnerDni": "40.771.209"
+      }
     ],
-    bracket: []
+    "bracket": []
+  },
+  {
+    "id": "trn-03",
+    "name": "Torneo Invierno 2026 Singles Damas",
+    "category": "Femenino",
+    "modality": "Singles",
+    "surfaceRequired": "Cemento",
+    "startDate": "2026-08-08",
+    "endDate": "2026-08-16",
+    "registrationFee": 7000,
+    "maxParticipants": 8,
+    "currentEnrolled": 8,
+    "status": "finalizado",
+    "description": "Torneo femenino de eliminación directa a 8 jugadoras en cemento.",
+    "internalRules": "Partidos al mejor de 3 sets con tie-break en todos los sets. Tolerancia de espera de 15 minutos.",
+    "participants": [
+      {
+        "id": "p-1",
+        "name": "Melina Romo",
+        "dni": "39.104.556",
+        "phone": "11 6012-3345",
+        "enrolledAt": "2026-07-20"
+      },
+      {
+        "id": "p-2",
+        "name": "Julieta Vega",
+        "dni": "43.045.612",
+        "phone": "11 2974-5518",
+        "enrolledAt": "2026-07-20"
+      },
+      {
+        "id": "p-3",
+        "name": "Valentina Ríos",
+        "dni": "42.118.405",
+        "phone": "11 3812-6604",
+        "enrolledAt": "2026-07-21"
+      },
+      {
+        "id": "p-4",
+        "name": "Martina Suárez",
+        "dni": "40.771.209",
+        "phone": "11 3345-8820",
+        "enrolledAt": "2026-07-21"
+      },
+      {
+        "id": "p-5",
+        "name": "Sofía Acosta",
+        "dni": "40.223.871",
+        "phone": "11 3390-4412",
+        "enrolledAt": "2026-07-22"
+      },
+      {
+        "id": "p-6",
+        "name": "Camila Rodríguez",
+        "dni": "41.009.338",
+        "phone": "11 2265-7730",
+        "enrolledAt": "2026-07-22"
+      },
+      {
+        "id": "p-7",
+        "name": "Agustina Herrera",
+        "dni": "38.902.774",
+        "phone": "11 5109-3362",
+        "enrolledAt": "2026-07-23"
+      },
+      {
+        "id": "p-8",
+        "name": "Florencia Castro",
+        "dni": "36.230.198",
+        "phone": "11 4056-7793",
+        "enrolledAt": "2026-07-23"
+      }
+    ],
+    "bracket": [
+      {
+        "round": "Cuartos de final",
+        "matches": [
+          {
+            "id": "m1",
+            "p1": "Melina Romo",
+            "p2": "Julieta Vega",
+            "score": "6-2, 6-1",
+            "winner": "Melina Romo",
+            "status": "finalizado",
+            "date": "2026-08-08 10:00",
+            "court": "Cancha 3"
+          },
+          {
+            "id": "m2",
+            "p1": "Valentina Ríos",
+            "p2": "Martina Suárez",
+            "score": "6-4, 6-4",
+            "winner": "Valentina Ríos",
+            "status": "finalizado",
+            "date": "2026-08-08 12:00",
+            "court": "Cancha 3"
+          },
+          {
+            "id": "m3",
+            "p1": "Sofía Acosta",
+            "p2": "Camila Rodríguez",
+            "score": "3-6, 6-2, 6-3",
+            "winner": "Sofía Acosta",
+            "status": "finalizado",
+            "date": "2026-08-09 10:00",
+            "court": "Cancha 3"
+          },
+          {
+            "id": "m4",
+            "p1": "Agustina Herrera",
+            "p2": "Florencia Castro",
+            "score": "7-5, 6-3",
+            "winner": "Agustina Herrera",
+            "status": "finalizado",
+            "date": "2026-08-09 12:00",
+            "court": "Cancha 3"
+          }
+        ]
+      },
+      {
+        "round": "Semifinales",
+        "matches": [
+          {
+            "id": "m5",
+            "p1": "Melina Romo",
+            "p2": "Valentina Ríos",
+            "score": "6-3, 6-4",
+            "winner": "Melina Romo",
+            "status": "finalizado",
+            "date": "2026-08-15 16:00",
+            "court": "Cancha 3"
+          },
+          {
+            "id": "m6",
+            "p1": "Sofía Acosta",
+            "p2": "Agustina Herrera",
+            "score": "4-6, 6-7",
+            "winner": "Agustina Herrera",
+            "status": "finalizado",
+            "date": "2026-08-15 18:00",
+            "court": "Cancha 3"
+          }
+        ]
+      },
+      {
+        "round": "Final",
+        "matches": [
+          {
+            "id": "m7",
+            "p1": "Melina Romo",
+            "p2": "Agustina Herrera",
+            "score": "6-4, 3-6, 6-2",
+            "winner": "Melina Romo",
+            "status": "finalizado",
+            "date": "2026-08-16 17:00",
+            "court": "Cancha 3"
+          }
+        ]
+      }
+    ]
   }
 ];
 
 export const INITIAL_LEAGUES = [
   {
-    id: 'liga-01',
-    name: 'Liga Apertura Masculina Primera División',
-    category: 'Masculino',
-    modality: 'Singles',
-    surfaceRequired: 'Ladrillo',
-    startDate: '2026-09-01',
-    endDate: '2026-11-30',
-    registrationFee: 15000,
-    maxParticipants: 8,
-    currentEnrolled: 6,
-    status: 'en_curso',
-    description: 'Liga regular del club con formato todos contra todos a una rueda. Partidos semanales programados en polvo de ladrillo.',
-    internalRules: 'Reglamento Interno de Liga: Sistema todos contra todos. Cada partido ganado suma 3 puntos y partido perdido 0 puntos. Los partidos se juegan al mejor de 3 sets completos. Criterios de desempate en la tabla: 1) Diferencia de sets, 2) Diferencia de games, 3) Resultado de enfrentamiento directo.',
-    standings: [
-      { rank: 1, name: 'Federico Gómez', pj: 5, pg: 4, pp: 1, sf: 9, sc: 3, dif: 6, points: 12 },
-      { rank: 2, name: 'Mariano Zabaleta', pj: 5, pg: 4, pp: 1, sf: 8, sc: 4, dif: 4, points: 12 },
-      { rank: 3, name: 'Gastón Gaudio', pj: 5, pg: 3, pp: 2, sf: 7, sc: 5, dif: 2, points: 9 },
-      { rank: 4, name: 'Juan Ignacio Chela', pj: 5, pg: 2, pp: 3, sf: 5, sc: 7, dif: -2, points: 6 },
-      { rank: 5, name: 'David Nalbandian', pj: 5, pg: 1, pp: 4, sf: 3, sc: 8, dif: -5, points: 3 },
-      { rank: 6, name: 'Guillermo Coria', pj: 5, pg: 1, pp: 4, sf: 3, sc: 8, dif: -5, points: 3 }
+    "id": "liga-01",
+    "name": "Liga Primavera Singles Caballeros",
+    "category": "Masculino",
+    "modality": "Singles",
+    "surfaceRequired": "Ladrillo",
+    "startDate": "2026-10-04",
+    "endDate": "2026-12-13",
+    "registrationFee": 15000,
+    "maxParticipants": 8,
+    "currentEnrolled": 8,
+    "status": "en_curso",
+    "description": "Liga todos contra todos a una rueda, con una jornada por fin de semana en polvo de ladrillo.",
+    "internalRules": "Cada partido ganado suma 3 puntos. Partidos al mejor de 3 sets. Desempate en la tabla: 1) diferencia de sets, 2) resultado entre ambos.",
+    "standings": [
+      {
+        "rank": 1,
+        "name": "Matías Giménez",
+        "pj": 3,
+        "pg": 3,
+        "pp": 0,
+        "sf": 6,
+        "sc": 0,
+        "dif": 6,
+        "points": 9
+      },
+      {
+        "rank": 2,
+        "name": "Facundo Molina",
+        "pj": 3,
+        "pg": 3,
+        "pp": 0,
+        "sf": 6,
+        "sc": 1,
+        "dif": 5,
+        "points": 9
+      },
+      {
+        "rank": 3,
+        "name": "Ezequiel Núñez",
+        "pj": 3,
+        "pg": 2,
+        "pp": 1,
+        "sf": 5,
+        "sc": 4,
+        "dif": 1,
+        "points": 6
+      },
+      {
+        "rank": 4,
+        "name": "Ignacio Torres",
+        "pj": 3,
+        "pg": 1,
+        "pp": 2,
+        "sf": 3,
+        "sc": 4,
+        "dif": -1,
+        "points": 3
+      },
+      {
+        "rank": 5,
+        "name": "Nicolás Ledesma",
+        "pj": 3,
+        "pg": 1,
+        "pp": 2,
+        "sf": 3,
+        "sc": 4,
+        "dif": -1,
+        "points": 3
+      },
+      {
+        "rank": 6,
+        "name": "Juan Sánchez",
+        "pj": 3,
+        "pg": 1,
+        "pp": 2,
+        "sf": 2,
+        "sc": 4,
+        "dif": -2,
+        "points": 3
+      },
+      {
+        "rank": 7,
+        "name": "Lucas Pereyra",
+        "pj": 3,
+        "pg": 1,
+        "pp": 2,
+        "sf": 2,
+        "sc": 4,
+        "dif": -2,
+        "points": 3
+      },
+      {
+        "rank": 8,
+        "name": "Franco Medina",
+        "pj": 3,
+        "pg": 0,
+        "pp": 3,
+        "sf": 0,
+        "sc": 6,
+        "dif": -6,
+        "points": 0
+      }
     ],
-    fixtures: [
+    "fixtures": [
       {
-        round: 'Jornada 1',
-        matches: [
-          { id: 'lm-1', p1: 'Federico Gómez', p2: 'Mariano Zabaleta', score: '6-4, 3-6, 6-3', winner: 'Federico Gómez', status: 'finalizado', court: 'Cancha 1', date: '2026-09-05' },
-          { id: 'lm-2', p1: 'Gastón Gaudio', p2: 'Juan Ignacio Chela', score: '6-2, 6-4', winner: 'Gastón Gaudio', status: 'finalizado', court: 'Cancha 2', date: '2026-09-05' },
-          { id: 'lm-3', p1: 'David Nalbandian', p2: 'Guillermo Coria', score: '4-6, 6-4, 7-5', winner: 'David Nalbandian', status: 'finalizado', court: 'Cancha 1', date: '2026-09-06' }
+        "round": "Jornada 1",
+        "matches": [
+          {
+            "id": "lm-1",
+            "p1": "Facundo Molina",
+            "p2": "Nicolás Ledesma",
+            "score": "7-5, 6-4",
+            "winner": "Facundo Molina",
+            "status": "finalizado",
+            "date": "2026-10-04 15:00",
+            "court": "Cancha 1"
+          },
+          {
+            "id": "lm-2",
+            "p1": "Matías Giménez",
+            "p2": "Franco Medina",
+            "score": "6-2, 6-3",
+            "winner": "Matías Giménez",
+            "status": "finalizado",
+            "date": "2026-10-04 15:00",
+            "court": "Cancha 2"
+          },
+          {
+            "id": "lm-3",
+            "p1": "Ignacio Torres",
+            "p2": "Ezequiel Núñez",
+            "score": "6-4, 3-6, 6-3",
+            "winner": "Ezequiel Núñez",
+            "status": "finalizado",
+            "date": "2026-10-04 17:00",
+            "court": "Cancha 1"
+          },
+          {
+            "id": "lm-4",
+            "p1": "Lucas Pereyra",
+            "p2": "Juan Sánchez",
+            "score": "7-6, 6-4",
+            "winner": "Lucas Pereyra",
+            "status": "finalizado",
+            "date": "2026-10-04 17:00",
+            "court": "Cancha 2"
+          }
         ]
       },
       {
-        round: 'Jornada 2',
-        matches: [
-          { id: 'lm-4', p1: 'Federico Gómez', p2: 'Gastón Gaudio', score: '7-5, 6-4', winner: 'Federico Gómez', status: 'finalizado', court: 'Cancha 1', date: '2026-09-12' },
-          { id: 'lm-5', p1: 'Mariano Zabaleta', p2: 'Guillermo Coria', score: '6-3, 6-2', winner: 'Mariano Zabaleta', status: 'finalizado', court: 'Cancha 2', date: '2026-09-12' },
-          { id: 'lm-6', p1: 'Juan Ignacio Chela', p2: 'David Nalbandian', score: '6-1, 6-3', winner: 'Juan Ignacio Chela', status: 'finalizado', court: 'Cancha 1', date: '2026-09-13' }
+        "round": "Jornada 2",
+        "matches": [
+          {
+            "id": "lm-5",
+            "p1": "Facundo Molina",
+            "p2": "Franco Medina",
+            "score": "6-3, 6-2",
+            "winner": "Facundo Molina",
+            "status": "finalizado",
+            "date": "2026-10-11 15:00",
+            "court": "Cancha 1"
+          },
+          {
+            "id": "lm-6",
+            "p1": "Nicolás Ledesma",
+            "p2": "Ezequiel Núñez",
+            "score": "4-6, 6-4, 7-5",
+            "winner": "Ezequiel Núñez",
+            "status": "finalizado",
+            "date": "2026-10-11 15:00",
+            "court": "Cancha 2"
+          },
+          {
+            "id": "lm-7",
+            "p1": "Matías Giménez",
+            "p2": "Juan Sánchez",
+            "score": "6-1, 6-4",
+            "winner": "Matías Giménez",
+            "status": "finalizado",
+            "date": "2026-10-11 17:00",
+            "court": "Cancha 1"
+          },
+          {
+            "id": "lm-8",
+            "p1": "Ignacio Torres",
+            "p2": "Lucas Pereyra",
+            "score": "6-4, 6-4",
+            "winner": "Ignacio Torres",
+            "status": "finalizado",
+            "date": "2026-10-11 17:00",
+            "court": "Cancha 2"
+          }
         ]
       },
       {
-        round: 'Jornada 3',
-        matches: [
-          { id: 'lm-7', p1: 'Federico Gómez', p2: 'David Nalbandian', score: 'Pendiente', winner: null, status: 'programado', court: 'Cancha 1', date: '2026-09-19 15:00' },
-          { id: 'lm-8', p1: 'Mariano Zabaleta', p2: 'Gastón Gaudio', score: 'Pendiente', winner: null, status: 'programado', court: 'Cancha 2', date: '2026-09-19 17:00' },
-          { id: 'lm-9', p1: 'Juan Ignacio Chela', p2: 'Guillermo Coria', score: 'Pendiente', winner: null, status: 'programado', court: 'Cancha 1', date: '2026-09-20 16:00' }
+        "round": "Jornada 3",
+        "matches": [
+          {
+            "id": "lm-9",
+            "p1": "Facundo Molina",
+            "p2": "Ezequiel Núñez",
+            "score": "3-6, 6-3, 6-4",
+            "winner": "Facundo Molina",
+            "status": "finalizado",
+            "date": "2026-10-18 15:00",
+            "court": "Cancha 1"
+          },
+          {
+            "id": "lm-10",
+            "p1": "Franco Medina",
+            "p2": "Juan Sánchez",
+            "score": "6-4, 6-3",
+            "winner": "Juan Sánchez",
+            "status": "finalizado",
+            "date": "2026-10-18 15:00",
+            "court": "Cancha 2"
+          },
+          {
+            "id": "lm-11",
+            "p1": "Nicolás Ledesma",
+            "p2": "Lucas Pereyra",
+            "score": "7-5, 6-4",
+            "winner": "Nicolás Ledesma",
+            "status": "finalizado",
+            "date": "2026-10-18 17:00",
+            "court": "Cancha 1"
+          },
+          {
+            "id": "lm-12",
+            "p1": "Matías Giménez",
+            "p2": "Ignacio Torres",
+            "score": "6-2, 6-3",
+            "winner": "Matías Giménez",
+            "status": "finalizado",
+            "date": "2026-10-18 17:00",
+            "court": "Cancha 2"
+          }
+        ]
+      },
+      {
+        "round": "Jornada 4",
+        "matches": [
+          {
+            "id": "lm-13",
+            "p1": "Facundo Molina",
+            "p2": "Juan Sánchez",
+            "score": "",
+            "winner": null,
+            "status": "programado",
+            "date": "2026-11-08 15:00",
+            "court": "Cancha 1"
+          },
+          {
+            "id": "lm-14",
+            "p1": "Ezequiel Núñez",
+            "p2": "Lucas Pereyra",
+            "score": "",
+            "winner": null,
+            "status": "programado",
+            "date": "2026-11-08 15:00",
+            "court": "Cancha 2"
+          },
+          {
+            "id": "lm-15",
+            "p1": "Franco Medina",
+            "p2": "Ignacio Torres",
+            "score": "",
+            "winner": null,
+            "status": "programado",
+            "date": "2026-11-08 17:00",
+            "court": "Cancha 1"
+          },
+          {
+            "id": "lm-16",
+            "p1": "Nicolás Ledesma",
+            "p2": "Matías Giménez",
+            "score": "",
+            "winner": null,
+            "status": "programado",
+            "date": "2026-11-08 17:00",
+            "court": "Cancha 2"
+          }
         ]
       }
     ],
-    participants: [
-      { id: 'lp-1', name: 'Federico Gómez', dni: '38.452.129', phone: '11-4892-1234', enrolledAt: '2026-08-15' },
-      { id: 'lp-2', name: 'Mariano Zabaleta', dni: '35.123.890', phone: '11-4455-6677', enrolledAt: '2026-08-16' },
-      { id: 'lp-3', name: 'Gastón Gaudio', dni: '33.987.654', phone: '11-2233-4455', enrolledAt: '2026-08-17' },
-      { id: 'lp-4', name: 'Juan Ignacio Chela', dni: '34.567.890', phone: '11-9988-7766', enrolledAt: '2026-08-18' },
-      { id: 'lp-5', name: 'David Nalbandian', dni: '32.111.222', phone: '11-5544-3322', enrolledAt: '2026-08-19' },
-      { id: 'lp-6', name: 'Guillermo Coria', dni: '31.333.444', phone: '11-8877-6655', enrolledAt: '2026-08-20' }
+    "participants": [
+      {
+        "id": "lp-1",
+        "name": "Facundo Molina",
+        "dni": "33.790.221",
+        "phone": "11 4920-1187",
+        "enrolledAt": "2026-09-20"
+      },
+      {
+        "id": "lp-2",
+        "name": "Matías Giménez",
+        "dni": "34.556.902",
+        "phone": "11 5578-2201",
+        "enrolledAt": "2026-09-20"
+      },
+      {
+        "id": "lp-3",
+        "name": "Ignacio Torres",
+        "dni": "34.402.566",
+        "phone": "11 4489-1073",
+        "enrolledAt": "2026-09-21"
+      },
+      {
+        "id": "lp-4",
+        "name": "Lucas Pereyra",
+        "dni": "36.887.213",
+        "phone": "11 4477-9120",
+        "enrolledAt": "2026-09-21"
+      },
+      {
+        "id": "lp-5",
+        "name": "Juan Sánchez",
+        "dni": "35.678.912",
+        "phone": "11 5234-7781",
+        "enrolledAt": "2026-09-22"
+      },
+      {
+        "id": "lp-6",
+        "name": "Ezequiel Núñez",
+        "dni": "35.114.887",
+        "phone": "11 5531-9906",
+        "enrolledAt": "2026-09-22"
+      },
+      {
+        "id": "lp-7",
+        "name": "Franco Medina",
+        "dni": "37.998.045",
+        "phone": "11 6207-4439",
+        "enrolledAt": "2026-09-23"
+      },
+      {
+        "id": "lp-8",
+        "name": "Nicolás Ledesma",
+        "dni": "37.345.610",
+        "phone": "11 6643-8815",
+        "enrolledAt": "2026-09-23"
+      }
     ]
   },
   {
-    id: 'liga-02',
-    name: 'Liga Interclubes Dobles Femenino',
-    category: 'Femenino',
-    modality: 'Pareja',
-    surfaceRequired: 'Cemento',
-    startDate: '2026-10-01',
-    endDate: '2026-12-15',
-    registrationFee: 20000,
-    maxParticipants: 8,
-    currentEnrolled: 4,
-    status: 'inscripcion_abierta',
-    description: 'Competencia regular femenina en modalidad dobles por zonas clasificatorias en cemento.',
-    internalRules: 'Reglamento Interno de Liga Dobles: Partidos disputados los sábados. Cada pareja debe presentar lista de buena fe.',
-    standings: [],
-    fixtures: [],
-    participants: [
-      { id: 'lp-7', name: 'Lucía Benítez', dni: '40.112.334', partnerName: 'Camila Osorio', partnerDni: '41.223.445', phone: '11-6677-8899', enrolledAt: '2026-09-01' }
+    "id": "liga-02",
+    "name": "Liga de Dobles Mixto",
+    "category": "Mixto",
+    "modality": "Pareja",
+    "surfaceRequired": "Cemento",
+    "startDate": "2026-11-07",
+    "endDate": "2026-12-19",
+    "registrationFee": 20000,
+    "maxParticipants": 8,
+    "currentEnrolled": 3,
+    "status": "inscripcion_abierta",
+    "description": "Liga de dobles mixto por puntos en canchas de cemento. Una jornada por sábado.",
+    "internalRules": "Partidos a dos sets con punto de oro; match tie-break a 10 si empatan. Cada pareja debe presentar su lista de buena fe antes de la primera jornada.",
+    "standings": [
+      {
+        "rank": 1,
+        "name": "Melina Romo",
+        "pj": 0,
+        "pg": 0,
+        "pp": 0,
+        "sf": 0,
+        "sc": 0,
+        "dif": 0,
+        "points": 0
+      },
+      {
+        "rank": 2,
+        "name": "Sofía Acosta",
+        "pj": 0,
+        "pg": 0,
+        "pp": 0,
+        "sf": 0,
+        "sc": 0,
+        "dif": 0,
+        "points": 0
+      },
+      {
+        "rank": 3,
+        "name": "Camila Rodríguez",
+        "pj": 0,
+        "pg": 0,
+        "pp": 0,
+        "sf": 0,
+        "sc": 0,
+        "dif": 0,
+        "points": 0
+      }
+    ],
+    "fixtures": [],
+    "participants": [
+      {
+        "id": "lp-1",
+        "name": "Melina Romo",
+        "dni": "39.104.556",
+        "phone": "11 6012-3345",
+        "enrolledAt": "2026-10-15",
+        "partnerName": "Lucas Pereyra",
+        "partnerDni": "36.887.213"
+      },
+      {
+        "id": "lp-2",
+        "name": "Sofía Acosta",
+        "dni": "40.223.871",
+        "phone": "11 3390-4412",
+        "enrolledAt": "2026-10-15",
+        "partnerName": "Matías Giménez",
+        "partnerDni": "34.556.902"
+      },
+      {
+        "id": "lp-3",
+        "name": "Camila Rodríguez",
+        "dni": "41.009.338",
+        "phone": "11 2265-7730",
+        "enrolledAt": "2026-10-16",
+        "partnerName": "Nicolás Ledesma",
+        "partnerDni": "37.345.610"
+      }
     ]
   }
 ];
 
 export const INITIAL_COACHES = [
   {
-    id: 'coach-01',
-    name: 'Prof. Santiago Álvarez',
-    type: 'Profesor',
-    dni: '27.890.123',
-    phone: '+54 11 5566-7788',
-    email: 'santiago.alvarez@tenisahora.com',
-    hasOfficialLicense: true,
-    availableHours: 'Lunes a Viernes 08:00 - 13:00, 16:00 - 21:00',
-    licenseDetails: {
-      titleName: 'Profesor Nacional de Tenis de Alta Competencia',
-      institution: 'Asociación Argentina de Tenis (AAT) / ITF Nivel 2',
-      licenseNumber: 'AAT-LIC-77492',
-      issueDate: '2015-11-20',
-      expiryDate: '2028-12-31',
-      status: 'habilitado',
-      document: { id: 'doc-seed-coach-01', name: 'Certificado_Oficial_AAT_Alvarez_77492.pdf', mimeType: 'application/pdf', size: 903 }
-    },
+    "id": "coach-01",
+    "name": "Gustavo Ferrari",
+    "type": "Profesor",
+    "dni": "28.334.901",
+    "phone": "+54 11 5566-7788",
+    "email": "profesor@tenisahora.com",
+    "hasOfficialLicense": true,
+    "availableHours": "Lunes a Viernes 08:00 - 13:00 y 17:00 - 21:00",
+    "licenseDetails": {
+      "titleName": "Profesor Nacional de Tenis",
+      "institution": "Asociación Argentina de Tenis (AAT)",
+      "licenseNumber": "AAT-PRO-41287",
+      "issueDate": "2014-08-20",
+      "expiryDate": "2028-12-31",
+      "status": "habilitado",
+      "document": {
+        "id": "doc-seed-coach-01",
+        "name": "Titulo_Profesor_Ferrari.pdf",
+        "mimeType": "application/pdf",
+        "size": 862
+      }
+    }
   },
   {
-    id: 'coach-02',
-    name: 'Entrenadora Valeria Morales',
-    type: 'Entrenador',
-    dni: '32.145.678',
-    phone: '+54 11 4433-2211',
-    email: 'valeria.morales@tenisahora.com',
-    hasOfficialLicense: true,
-    availableHours: 'Lunes a Jueves 14:00 - 20:00, Sábados 09:00 - 14:00',
-    licenseDetails: {
-      titleName: 'Licenciada en Educación Física y Entrenadora de Tenis Nivel 1',
-      institution: 'Instituto Nacional de Educación Física & AAT',
-      licenseNumber: 'AAT-LIC-90114',
-      issueDate: '2018-04-15',
-      expiryDate: '2029-06-30',
-      status: 'habilitado',
-      document: { id: 'doc-seed-coach-02', name: 'Titulo_Habilitante_Morales_90114.pdf', mimeType: 'application/pdf', size: 916 }
-    },
+    "id": "coach-02",
+    "name": "Laura Domínguez",
+    "type": "Entrenador",
+    "dni": "31.245.678",
+    "phone": "+54 11 4433-2211",
+    "email": "entrenador@tenisahora.com",
+    "hasOfficialLicense": true,
+    "availableHours": "Lunes a Jueves 14:00 - 20:00, Sábados 09:00 - 13:00",
+    "licenseDetails": {
+      "titleName": "Entrenadora Nacional de Tenis Nivel 1",
+      "institution": "Asociación Argentina de Tenis (AAT)",
+      "licenseNumber": "AAT-ENT-50932",
+      "issueDate": "2018-03-12",
+      "expiryDate": "2029-03-31",
+      "status": "habilitado",
+      "document": {
+        "id": "doc-seed-coach-02",
+        "name": "Certificado_Entrenadora_Dominguez.pdf",
+        "mimeType": "application/pdf",
+        "size": 873
+      }
+    }
   },
   {
-    id: 'coach-03',
-    name: 'Entrenador Lucas Delgado',
-    type: 'Entrenador',
-    dni: '29.334.881',
-    phone: '+54 11 6677-9922',
-    email: 'lucas.delgado@tenisahora.com',
-    hasOfficialLicense: true,
-    availableHours: 'Martes a Sábados 10:00 - 18:00',
-    licenseDetails: {
-      titleName: 'Entrenador Nacional Nivel 2 AAT',
-      institution: 'Asociación Argentina de Tenis (AAT)',
-      licenseNumber: 'AAT-LIC-88123',
-      issueDate: '2016-09-10',
-      expiryDate: '2027-12-31',
-      status: 'habilitado',
-      document: { id: 'doc-seed-coach-03', name: 'Certificado_Oficial_AAT_Delgado_88123.pdf', mimeType: 'application/pdf', size: 876 }
-    },
+    "id": "coach-03",
+    "name": "Diego Paredes",
+    "type": "Entrenador",
+    "dni": "29.871.340",
+    "phone": "+54 11 6677-9922",
+    "email": "diego.paredes@tenisahora.com",
+    "hasOfficialLicense": true,
+    "availableHours": "Martes a Sábados 10:00 - 18:00",
+    "licenseDetails": {
+      "titleName": "Entrenador Nacional de Tenis Nivel 2",
+      "institution": "Asociación Argentina de Tenis (AAT)",
+      "licenseNumber": "AAT-ENT-47710",
+      "issueDate": "2016-09-10",
+      "expiryDate": "2027-12-31",
+      "status": "habilitado",
+      "document": {
+        "id": "doc-seed-coach-03",
+        "name": "Certificado_Entrenador_Paredes.pdf",
+        "mimeType": "application/pdf",
+        "size": 870
+      }
+    }
   }
 ];
 
-// Documentos de muestra (PDF mínimos) para los títulos habilitantes de los docentes.
 export const INITIAL_DOCUMENTS = [
   {
-    id: 'doc-seed-coach-01',
-    name: 'Certificado_Oficial_AAT_Alvarez_77492.pdf',
-    mimeType: 'application/pdf',
-    size: 903,
-    data: 'JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSA1IDAgUiA+PiA+PiAvQ29udGVudHMgNCAwIFIgPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCAzMzEgPj4Kc3RyZWFtCkJUIC9GMSAxNCBUZiA3MiA3NjAgVGQgMTggVEwgKENMVUIgVEVOSVMgQUhPUkEgLSBET0NVTUVOVE8gREUgTVVFU1RSQSkgVGogVCogKFTtdHVsbyBoYWJpbGl0YW50ZTogUHJvZmVzb3IgTmFjaW9uYWwgZGUgVGVuaXMgZGUgQWx0YSBDb21wZXRlbmNpYSkgVGogVCogKFRpdHVsYXI6IFByb2YuIFNhbnRpYWdvIMFsdmFyZXopIFRqIFQqIChJbnN0aXR1Y2nzbjogQXNvY2lhY2nzbiBBcmdlbnRpbmEgZGUgVGVuaXMgXChBQVRcKSAvIElURiBOaXZlbCAyKSBUaiBUKiAoTGljZW5jaWE6IEFBVC1MSUMtNzc0OTIpIFRqIFQqIChWZW5jaW1pZW50bzogMjAyOC0xMi0zMSkgVGogVCogRVQKZW5kc3RyZWFtCmVuZG9iago1IDAgb2JqCjw8IC9UeXBlIC9Gb250IC9TdWJ0eXBlIC9UeXBlMSAvQmFzZUZvbnQgL0hlbHZldGljYSAvRW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZyA+PgplbmRvYmoKeHJlZgowIDYKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwNTggMDAwMDAgbiAKMDAwMDAwMDExNSAwMDAwMCBuIAowMDAwMDAwMjQxIDAwMDAwIG4gCjAwMDAwMDA2MjMgMDAwMDAgbiAKdHJhaWxlcgo8PCAvU2l6ZSA2IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgo3MjAKJSVFT0YK'
+    "id": "doc-seed-coach-01",
+    "name": "Titulo_Profesor_Ferrari.pdf",
+    "mimeType": "application/pdf",
+    "size": 862,
+    "data": "JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSA1IDAgUiA+PiA+PiAvQ29udGVudHMgNCAwIFIgPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCAyOTAgPj4Kc3RyZWFtCkJUIC9GMSAxNCBUZiA3MiA3NjAgVGQgMTggVEwgKENMVUIgVEVOSVMgQUhPUkEgLSBET0NVTUVOVE8gREUgTVVFU1RSQSkgVGogVCogKFTtdHVsbyBoYWJpbGl0YW50ZTogUHJvZmVzb3IgTmFjaW9uYWwgZGUgVGVuaXMpIFRqIFQqIChUaXR1bGFyOiBHdXN0YXZvIEZlcnJhcmkpIFRqIFQqIChJbnN0aXR1Y2nzbjogQXNvY2lhY2nzbiBBcmdlbnRpbmEgZGUgVGVuaXMgXChBQVRcKSkgVGogVCogKExpY2VuY2lhOiBBQVQtUFJPLTQxMjg3KSBUaiBUKiAoVmVuY2ltaWVudG86IDIwMjgtMTItMzEpIFRqIFQqIEVUCmVuZHN0cmVhbQplbmRvYmoKNSAwIG9iago8PCAvVHlwZSAvRm9udCAvU3VidHlwZSAvVHlwZTEgL0Jhc2VGb250IC9IZWx2ZXRpY2EgL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcgPj4KZW5kb2JqCnhyZWYKMCA2CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAwOSAwMDAwMCBuIAowMDAwMDAwMDU4IDAwMDAwIG4gCjAwMDAwMDAxMTUgMDAwMDAgbiAKMDAwMDAwMDI0MSAwMDAwMCBuIAowMDAwMDAwNTgyIDAwMDAwIG4gCnRyYWlsZXIKPDwgL1NpemUgNiAvUm9vdCAxIDAgUiA+PgpzdGFydHhyZWYKNjc5CiUlRU9GCg==",
+    "uploadedAt": "2026-10-01T12:00:00.000Z"
   },
   {
-    id: 'doc-seed-coach-02',
-    name: 'Titulo_Habilitante_Morales_90114.pdf',
-    mimeType: 'application/pdf',
-    size: 916,
-    data: 'JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSA1IDAgUiA+PiA+PiAvQ29udGVudHMgNCAwIFIgPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCAzNDQgPj4Kc3RyZWFtCkJUIC9GMSAxNCBUZiA3MiA3NjAgVGQgMTggVEwgKENMVUIgVEVOSVMgQUhPUkEgLSBET0NVTUVOVE8gREUgTVVFU1RSQSkgVGogVCogKFTtdHVsbyBoYWJpbGl0YW50ZTogTGljZW5jaWFkYSBlbiBFZHVjYWNp824gRu1zaWNhIHkgRW50cmVuYWRvcmEgZGUgVGVuaXMgTml2ZWwgMSkgVGogVCogKFRpdHVsYXI6IEVudHJlbmFkb3JhIFZhbGVyaWEgTW9yYWxlcykgVGogVCogKEluc3RpdHVjafNuOiBJbnN0aXR1dG8gTmFjaW9uYWwgZGUgRWR1Y2FjafNuIEbtc2ljYSAmIEFBVCkgVGogVCogKExpY2VuY2lhOiBBQVQtTElDLTkwMTE0KSBUaiBUKiAoVmVuY2ltaWVudG86IDIwMjktMDYtMzApIFRqIFQqIEVUCmVuZHN0cmVhbQplbmRvYmoKNSAwIG9iago8PCAvVHlwZSAvRm9udCAvU3VidHlwZSAvVHlwZTEgL0Jhc2VGb250IC9IZWx2ZXRpY2EgL0VuY29kaW5nIC9XaW5BbnNpRW5jb2RpbmcgPj4KZW5kb2JqCnhyZWYKMCA2CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAwOSAwMDAwMCBuIAowMDAwMDAwMDU4IDAwMDAwIG4gCjAwMDAwMDAxMTUgMDAwMDAgbiAKMDAwMDAwMDI0MSAwMDAwMCBuIAowMDAwMDAwNjM2IDAwMDAwIG4gCnRyYWlsZXIKPDwgL1NpemUgNiAvUm9vdCAxIDAgUiA+PgpzdGFydHhyZWYKNzMzCiUlRU9GCg=='
+    "id": "doc-seed-coach-02",
+    "name": "Certificado_Entrenadora_Dominguez.pdf",
+    "mimeType": "application/pdf",
+    "size": 873,
+    "data": "JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSA1IDAgUiA+PiA+PiAvQ29udGVudHMgNCAwIFIgPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCAzMDEgPj4Kc3RyZWFtCkJUIC9GMSAxNCBUZiA3MiA3NjAgVGQgMTggVEwgKENMVUIgVEVOSVMgQUhPUkEgLSBET0NVTUVOVE8gREUgTVVFU1RSQSkgVGogVCogKFTtdHVsbyBoYWJpbGl0YW50ZTogRW50cmVuYWRvcmEgTmFjaW9uYWwgZGUgVGVuaXMgTml2ZWwgMSkgVGogVCogKFRpdHVsYXI6IExhdXJhIERvbe1uZ3VleikgVGogVCogKEluc3RpdHVjafNuOiBBc29jaWFjafNuIEFyZ2VudGluYSBkZSBUZW5pcyBcKEFBVFwpKSBUaiBUKiAoTGljZW5jaWE6IEFBVC1FTlQtNTA5MzIpIFRqIFQqIChWZW5jaW1pZW50bzogMjAyOS0wMy0zMSkgVGogVCogRVQKZW5kc3RyZWFtCmVuZG9iago1IDAgb2JqCjw8IC9UeXBlIC9Gb250IC9TdWJ0eXBlIC9UeXBlMSAvQmFzZUZvbnQgL0hlbHZldGljYSAvRW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZyA+PgplbmRvYmoKeHJlZgowIDYKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwNTggMDAwMDAgbiAKMDAwMDAwMDExNSAwMDAwMCBuIAowMDAwMDAwMjQxIDAwMDAwIG4gCjAwMDAwMDA1OTMgMDAwMDAgbiAKdHJhaWxlcgo8PCAvU2l6ZSA2IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgo2OTAKJSVFT0YK",
+    "uploadedAt": "2026-10-01T12:00:00.000Z"
   },
   {
-    id: 'doc-seed-coach-03',
-    name: 'Certificado_Oficial_AAT_Delgado_88123.pdf',
-    mimeType: 'application/pdf',
-    size: 876,
-    data: 'JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSA1IDAgUiA+PiA+PiAvQ29udGVudHMgNCAwIFIgPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCAzMDQgPj4Kc3RyZWFtCkJUIC9GMSAxNCBUZiA3MiA3NjAgVGQgMTggVEwgKENMVUIgVEVOSVMgQUhPUkEgLSBET0NVTUVOVE8gREUgTVVFU1RSQSkgVGogVCogKFTtdHVsbyBoYWJpbGl0YW50ZTogRW50cmVuYWRvciBOYWNpb25hbCBOaXZlbCAyIEFBVCkgVGogVCogKFRpdHVsYXI6IEVudHJlbmFkb3IgTHVjYXMgRGVsZ2FkbykgVGogVCogKEluc3RpdHVjafNuOiBBc29jaWFjafNuIEFyZ2VudGluYSBkZSBUZW5pcyBcKEFBVFwpKSBUaiBUKiAoTGljZW5jaWE6IEFBVC1MSUMtODgxMjMpIFRqIFQqIChWZW5jaW1pZW50bzogMjAyNy0xMi0zMSkgVGogVCogRVQKZW5kc3RyZWFtCmVuZG9iago1IDAgb2JqCjw8IC9UeXBlIC9Gb250IC9TdWJ0eXBlIC9UeXBlMSAvQmFzZUZvbnQgL0hlbHZldGljYSAvRW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZyA+PgplbmRvYmoKeHJlZgowIDYKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwNTggMDAwMDAgbiAKMDAwMDAwMDExNSAwMDAwMCBuIAowMDAwMDAwMjQxIDAwMDAwIG4gCjAwMDAwMDA1OTYgMDAwMDAgbiAKdHJhaWxlcgo8PCAvU2l6ZSA2IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgo2OTMKJSVFT0YK'
+    "id": "doc-seed-coach-03",
+    "name": "Certificado_Entrenador_Paredes.pdf",
+    "mimeType": "application/pdf",
+    "size": 870,
+    "data": "JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCA2MTIgNzkyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSA1IDAgUiA+PiA+PiAvQ29udGVudHMgNCAwIFIgPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCAyOTggPj4Kc3RyZWFtCkJUIC9GMSAxNCBUZiA3MiA3NjAgVGQgMTggVEwgKENMVUIgVEVOSVMgQUhPUkEgLSBET0NVTUVOVE8gREUgTVVFU1RSQSkgVGogVCogKFTtdHVsbyBoYWJpbGl0YW50ZTogRW50cmVuYWRvciBOYWNpb25hbCBkZSBUZW5pcyBOaXZlbCAyKSBUaiBUKiAoVGl0dWxhcjogRGllZ28gUGFyZWRlcykgVGogVCogKEluc3RpdHVjafNuOiBBc29jaWFjafNuIEFyZ2VudGluYSBkZSBUZW5pcyBcKEFBVFwpKSBUaiBUKiAoTGljZW5jaWE6IEFBVC1FTlQtNDc3MTApIFRqIFQqIChWZW5jaW1pZW50bzogMjAyNy0xMi0zMSkgVGogVCogRVQKZW5kc3RyZWFtCmVuZG9iago1IDAgb2JqCjw8IC9UeXBlIC9Gb250IC9TdWJ0eXBlIC9UeXBlMSAvQmFzZUZvbnQgL0hlbHZldGljYSAvRW5jb2RpbmcgL1dpbkFuc2lFbmNvZGluZyA+PgplbmRvYmoKeHJlZgowIDYKMDAwMDAwMDAwMCA2NTUzNSBmIAowMDAwMDAwMDA5IDAwMDAwIG4gCjAwMDAwMDAwNTggMDAwMDAgbiAKMDAwMDAwMDExNSAwMDAwMCBuIAowMDAwMDAwMjQxIDAwMDAwIG4gCjAwMDAwMDA1OTAgMDAwMDAgbiAKdHJhaWxlcgo8PCAvU2l6ZSA2IC9Sb290IDEgMCBSID4+CnN0YXJ0eHJlZgo2ODcKJSVFT0YK",
+    "uploadedAt": "2026-10-01T12:00:00.000Z"
   }
 ];
 
 export const INITIAL_PRIVATE_CLASSES = [
   {
-    id: 'prv-01',
-    kind: 'clase',
-    coachId: 'coach-01',
-    coachName: 'Prof. Santiago Álvarez',
-    studentName: 'Federico Gómez',
-    studentDni: '38.452.129',
-    studentPhone: '11-4892-1234',
-    date: '2026-10-15',
-    time: '10:00 - 11:00',
-    courtAssigned: 'Cancha 1 (Ladrillo)',
-    hourlyRate: 6500,
-    status: 'confirmada',
-    notes: 'Perfeccionamiento de saque y revés con top-spin.'
+    "id": "prv-01",
+    "kind": "clase",
+    "coachId": "coach-01",
+    "coachName": "Gustavo Ferrari",
+    "studentName": "Juan Sánchez",
+    "studentDni": "35.678.912",
+    "studentPhone": "11 5234-7781",
+    "date": "2026-10-27",
+    "time": "10:00 - 11:00",
+    "courtAssigned": "Cancha 1 (Ladrillo)",
+    "hourlyRate": 6000,
+    "status": "confirmada",
+    "notes": "Trabajo de saque y volea."
   },
   {
-    id: 'prv-02',
-    kind: 'entrenamiento',
-    coachId: 'coach-02',
-    coachName: 'Entrenadora Valeria Morales',
-    studentName: 'Romina Varela',
-    studentDni: '36.992.100',
-    studentPhone: '11-3344-5566',
-    date: '2026-10-16',
-    time: '16:00 - 17:00',
-    courtAssigned: 'Cancha 3 (Cemento)',
-    hourlyRate: 5800,
-    status: 'confirmada',
-    notes: 'Clase de movilidad en cancha y derecha invertida.'
+    "id": "prv-02",
+    "kind": "entrenamiento",
+    "coachId": "coach-02",
+    "coachName": "Laura Domínguez",
+    "studentName": "Melina Romo",
+    "studentDni": "39.104.556",
+    "studentPhone": "11 6012-3345",
+    "date": "2026-10-28",
+    "time": "16:00 - 17:00",
+    "courtAssigned": "Cancha 3 (Cemento)",
+    "hourlyRate": 6000,
+    "status": "confirmada",
+    "notes": "Preparación física para el torneo de dobles."
   },
   {
-    id: 'prv-03',
-    kind: 'clase',
-    coachId: 'coach-01',
-    coachName: 'Prof. Santiago Álvarez',
-    studentName: 'Martín Lanata',
-    studentDni: '37.114.990',
-    studentPhone: '11-2233-4455',
-    date: '2026-10-18',
-    time: '11:00 - 12:00',
-    courtAssigned: 'Cancha 2 (Ladrillo)',
-    hourlyRate: 6500,
-    status: 'programada',
-    notes: 'Clínica táctica para torneo.'
+    "id": "prv-03",
+    "kind": "clase",
+    "coachId": "coach-01",
+    "coachName": "Gustavo Ferrari",
+    "studentName": "Sofía Acosta",
+    "studentDni": "40.223.871",
+    "studentPhone": "11 3390-4412",
+    "date": "2026-10-30",
+    "time": "11:00 - 12:00",
+    "courtAssigned": "Cancha 2 (Ladrillo)",
+    "hourlyRate": 6000,
+    "status": "programada",
+    "notes": "Revés a dos manos."
   },
   {
-    id: 'prv-04',
-    kind: 'entrenamiento',
-    coachId: 'coach-03',
-    coachName: 'Entrenador Lucas Delgado',
-    studentName: 'Mariano Zabaleta',
-    studentDni: '35.123.890',
-    studentPhone: '11-4455-6677',
-    date: '2026-10-17',
-    time: '08:00 - 09:00',
-    courtAssigned: 'Cancha 4 (Cemento)',
-    hourlyRate: 6000,
-    status: 'programada',
-    notes: 'Entrenamiento particular de preparación física pre-torneo.'
+    "id": "prv-04",
+    "kind": "entrenamiento",
+    "coachId": "coach-03",
+    "coachName": "Diego Paredes",
+    "studentName": "Facundo Molina",
+    "studentDni": "33.790.221",
+    "studentPhone": "11 4920-1187",
+    "date": "2026-10-29",
+    "time": "08:00 - 09:00",
+    "courtAssigned": "Cancha 2 (Ladrillo)",
+    "hourlyRate": 6000,
+    "status": "programada",
+    "notes": "Entrenamiento previo a la semifinal."
+  },
+  {
+    "id": "prv-05",
+    "kind": "clase",
+    "coachId": "coach-01",
+    "coachName": "Gustavo Ferrari",
+    "studentName": "Valentina Ríos",
+    "studentDni": "42.118.405",
+    "studentPhone": "11 3812-6604",
+    "date": "2026-10-23",
+    "time": "10:00 - 11:00",
+    "courtAssigned": "Cancha 1 (Ladrillo)",
+    "hourlyRate": 6000,
+    "status": "cancelada",
+    "notes": "Cancelada por lluvia."
   }
 ];
 
 export const INITIAL_CLASSES = [
   {
-    id: 'cls-01',
-    name: 'Escuela de Adultos - Nivel Intermedio',
-    type: 'grupal',
-    kind: 'clase',
-    coachId: 'coach-01',
-    coachName: 'Prof. Santiago Álvarez',
-    scheduleDays: 'Martes y Jueves',
-    scheduleTime: '19:00 - 20:30',
-    courtAssigned: 'Cancha 1 (Ladrillo)',
-    maxCapacity: 30, // Requerimiento: Máximo 30 alumnos 
-    currentEnrolled: 6,
-    monthlyFee: 16000,
-    monthName: 'Octubre 2026',
-    sessions: ['03/10', '05/10', '10/10', '12/10', '17/10', '19/10', '24/10', '26/10'],
-    students: [
-      { id: 'std-1', name: 'Federico Gómez', dni: '38.452.129', attendance: ['P', 'P', 'P', 'A', 'P', 'P', 'P', 'P'] },
-      { id: 'std-2', name: 'Romina Varela', dni: '36.992.100', attendance: ['P', 'P', 'A', 'P', 'P', 'P', 'P', 'A'] },
-      { id: 'std-3', name: 'Agustín Pereyra', dni: '39.441.800', attendance: ['P', 'A', 'P', 'A', 'A', 'P', 'A', 'P'] }, // 4/8 = 50% En riesgo (< 75%)
-      { id: 'std-4', name: 'Sofía Rossi', dni: '40.229.412', attendance: ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'] },
-      { id: 'std-5', name: 'Martín Lanata', dni: '37.114.990', attendance: ['A', 'P', 'A', 'A', 'P', 'A', 'P', 'P'] }, // 4/8 = 50% En riesgo (< 75%)
-      { id: 'std-6', name: 'Camila Solís', dni: '41.200.334', attendance: ['P', 'P', 'P', 'P', 'P', 'A', 'P', 'P'] }
+    "id": "cls-01",
+    "name": "Escuela de Adultos - Nivel Intermedio",
+    "type": "grupal",
+    "kind": "clase",
+    "coachId": "coach-01",
+    "coachName": "Gustavo Ferrari",
+    "scheduleDays": "Martes y Jueves",
+    "scheduleTime": "19:00 - 20:30",
+    "courtAssigned": "Cancha 1 (Ladrillo)",
+    "maxCapacity": 12,
+    "currentEnrolled": 6,
+    "monthlyFee": 16000,
+    "monthName": "Octubre 2026",
+    "sessions": [
+      "01/10",
+      "06/10",
+      "08/10",
+      "13/10",
+      "15/10",
+      "20/10",
+      "22/10"
+    ],
+    "students": [
+      {
+        "id": "std-01-1",
+        "name": "Melina Romo",
+        "dni": "39.104.556",
+        "attendance": [
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "A",
+          "P"
+        ]
+      },
+      {
+        "id": "std-01-2",
+        "name": "Lucas Pereyra",
+        "dni": "36.887.213",
+        "attendance": [
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P"
+        ]
+      },
+      {
+        "id": "std-01-3",
+        "name": "Sofía Acosta",
+        "dni": "40.223.871",
+        "attendance": [
+          "P",
+          "P",
+          "A",
+          "P",
+          "P",
+          "A",
+          "P"
+        ]
+      },
+      {
+        "id": "std-01-4",
+        "name": "Camila Rodríguez",
+        "dni": "41.009.338",
+        "attendance": [
+          "P",
+          "A",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P"
+        ]
+      },
+      {
+        "id": "std-01-5",
+        "name": "Agustina Herrera",
+        "dni": "38.902.774",
+        "attendance": [
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P"
+        ]
+      },
+      {
+        "id": "std-01-6",
+        "name": "Franco Medina",
+        "dni": "37.998.045",
+        "attendance": [
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P"
+        ]
+      }
     ]
   },
   {
-    id: 'cls-02',
-    name: 'Clínica de Iniciación y Fundamentos',
-    type: 'grupal',
-    kind: 'entrenamiento',
-    coachId: 'coach-02',
-    coachName: 'Entrenadora Valeria Morales',
-    scheduleDays: 'Lunes y Miércoles',
-    scheduleTime: '18:00 - 19:30',
-    courtAssigned: 'Cancha 3 (Cemento)',
-    maxCapacity: 25, // Configurable hasta 30
-    currentEnrolled: 4,
-    monthlyFee: 14500,
-    monthName: 'Octubre 2026',
-    sessions: ['02/10', '04/10', '09/10', '11/10', '16/10', '18/10', '23/10', '25/10'],
-    students: [
-      { id: 'std-7', name: 'Claudio Bustos', dni: '34.881.002', attendance: ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'] },
-      { id: 'std-8', name: 'Marcela Díaz', dni: '35.401.993', attendance: ['P', 'A', 'P', 'P', 'P', 'A', 'P', 'P'] },
-      { id: 'std-9', name: 'Gonzalo Vega', dni: '42.110.450', attendance: ['P', 'A', 'A', 'A', 'P', 'A', 'P', 'A'] }, // 3/8 = 38% En riesgo
-      { id: 'std-10', name: 'Lucía Benítez', dni: '39.811.234', attendance: ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'] }
+    "id": "cls-02",
+    "name": "Iniciación Adultos",
+    "type": "grupal",
+    "kind": "entrenamiento",
+    "coachId": "coach-02",
+    "coachName": "Laura Domínguez",
+    "scheduleDays": "Lunes y Miércoles",
+    "scheduleTime": "18:00 - 19:30",
+    "courtAssigned": "Cancha 3 (Cemento)",
+    "maxCapacity": 10,
+    "currentEnrolled": 4,
+    "monthlyFee": 14000,
+    "monthName": "Octubre 2026",
+    "sessions": [
+      "05/10",
+      "07/10",
+      "14/10",
+      "19/10",
+      "21/10"
+    ],
+    "students": [
+      {
+        "id": "std-02-1",
+        "name": "Valentina Ríos",
+        "dni": "42.118.405",
+        "attendance": [
+          "P",
+          "P",
+          "A",
+          "P",
+          "P"
+        ]
+      },
+      {
+        "id": "std-02-2",
+        "name": "Julieta Vega",
+        "dni": "43.045.612",
+        "attendance": [
+          "P",
+          "P",
+          "P",
+          "P",
+          "P"
+        ]
+      },
+      {
+        "id": "std-02-3",
+        "name": "Martina Suárez",
+        "dni": "40.771.209",
+        "attendance": [
+          "P",
+          "P",
+          "P",
+          "P",
+          "P"
+        ]
+      },
+      {
+        "id": "std-02-4",
+        "name": "Florencia Castro",
+        "dni": "36.230.198",
+        "attendance": [
+          "P",
+          "P",
+          "P",
+          "P",
+          "A"
+        ]
+      }
     ]
   },
   {
-    id: 'cls-03',
-    name: 'Escuela de Competición y Alto Rendimiento (Cupo Lleno)',
-    type: 'grupal',
-    kind: 'clase',
-    coachId: 'coach-01',
-    coachName: 'Prof. Santiago Álvarez',
-    scheduleDays: 'Viernes y Sábados',
-    scheduleTime: '17:00 - 19:00',
-    courtAssigned: 'Cancha 2 (Ladrillo)',
-    maxCapacity: 30, // Tope estricto de 30 alumnos 
-    currentEnrolled: 30, // Cupo alcanzado para demostrar inhabilitación de inscripción
-    monthlyFee: 22000,
-    monthName: 'Octubre 2026',
-    sessions: ['04/10', '05/10', '11/10', '12/10', '18/10', '19/10', '25/10', '26/10'],
-    students: Array.from({ length: 30 }, (_, i) => ({
-      id: `std-full-${i + 1}`,
-      name: `Alumno Competición #${i + 1}`,
-      dni: `3${i + 5}.120.${100 + i}`,
-      attendance: ['P', 'P', (i % 3 === 0 ? 'A' : 'P'), 'P', 'P', 'P', 'P', 'P']
-    }))
-  },
-  {
-    id: 'cls-04',
-    name: 'Entrenamiento Físico-Técnico Competitivo',
-    type: 'grupal',
-    kind: 'entrenamiento',
-    coachId: 'coach-02',
-    coachName: 'Entrenadora Valeria Morales',
-    scheduleDays: 'Lunes y Miércoles',
-    scheduleTime: '07:00 - 08:30',
-    courtAssigned: 'Cancha 3 (Cemento)',
-    maxCapacity: 20,
-    currentEnrolled: 4,
-    monthlyFee: 18500,
-    monthName: 'Octubre 2026',
-    sessions: ['02/10', '07/10', '09/10', '14/10', '16/10', '21/10', '23/10', '28/10'],
-    students: [
-      { id: 'std-t1', name: 'Mariano Zabaleta', dni: '35.123.890', attendance: ['P', 'P', 'P', 'P', 'A', 'P', 'P', 'P'] },
-      { id: 'std-t2', name: 'Gastón Gaudio', dni: '33.987.654', attendance: ['P', 'A', 'P', 'P', 'P', 'A', 'P', 'P'] },
-      { id: 'std-t3', name: 'Lucía Benítez', dni: '40.112.334', attendance: ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'] },
-      { id: 'std-t4', name: 'Guillermo Coria', dni: '31.333.444', attendance: ['A', 'A', 'P', 'P', 'P', 'P', 'A', 'P'] }
+    "id": "cls-03",
+    "name": "Escuela de Menores - Competición",
+    "type": "grupal",
+    "kind": "clase",
+    "coachId": "coach-01",
+    "coachName": "Gustavo Ferrari",
+    "scheduleDays": "Viernes y Sábados",
+    "scheduleTime": "17:00 - 19:00",
+    "courtAssigned": "Cancha 2 (Ladrillo)",
+    "maxCapacity": 30,
+    "currentEnrolled": 30,
+    "monthlyFee": 18000,
+    "monthName": "Octubre 2026",
+    "sessions": [
+      "02/10",
+      "03/10",
+      "09/10",
+      "10/10",
+      "16/10",
+      "17/10",
+      "23/10",
+      "24/10"
+    ],
+    "students": [
+      {
+        "id": "std-03-1",
+        "name": "Benjamín Ramírez",
+        "dni": "52.563.287",
+        "attendance": [
+          "P",
+          "P",
+          "P",
+          "A",
+          "P",
+          "P",
+          "A",
+          "P"
+        ]
+      },
+      {
+        "id": "std-03-2",
+        "name": "Olivia Flores",
+        "dni": "53.249.560",
+        "attendance": [
+          "P",
+          "A",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P"
+        ]
+      },
+      {
+        "id": "std-03-3",
+        "name": "Thiago Sosa",
+        "dni": "50.869.659",
+        "attendance": [
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P"
+        ]
+      },
+      {
+        "id": "std-03-4",
+        "name": "Emma Romero",
+        "dni": "53.806.837",
+        "attendance": [
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P"
+        ]
+      },
+      {
+        "id": "std-03-5",
+        "name": "Bautista Álvarez",
+        "dni": "51.238.902",
+        "attendance": [
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P"
+        ]
+      },
+      {
+        "id": "std-03-6",
+        "name": "Isabella Ruiz",
+        "dni": "53.175.152",
+        "attendance": [
+          "P",
+          "P",
+          "P",
+          "P",
+          "A",
+          "P",
+          "P",
+          "P"
+        ]
+      },
+      {
+        "id": "std-03-7",
+        "name": "Mateo Díaz",
+        "dni": "50.609.577",
+        "attendance": [
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P"
+        ]
+      },
+      {
+        "id": "std-03-8",
+        "name": "Catalina Moreno",
+        "dni": "50.660.508",
+        "attendance": [
+          "A",
+          "P",
+          "P",
+          "P",
+          "P",
+          "A",
+          "P",
+          "P"
+        ]
+      },
+      {
+        "id": "std-03-9",
+        "name": "Santino Ortega",
+        "dni": "53.828.794",
+        "attendance": [
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P"
+        ]
+      },
+      {
+        "id": "std-03-10",
+        "name": "Alma Silva",
+        "dni": "53.379.535",
+        "attendance": [
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P"
+        ]
+      },
+      {
+        "id": "std-03-11",
+        "name": "Lautaro Aguilar",
+        "dni": "52.578.281",
+        "attendance": [
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P"
+        ]
+      },
+      {
+        "id": "std-03-12",
+        "name": "Victoria Peralta",
+        "dni": "50.999.565",
+        "attendance": [
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P"
+        ]
+      },
+      {
+        "id": "std-03-13",
+        "name": "Joaquín Gutiérrez",
+        "dni": "51.212.735",
+        "attendance": [
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P"
+        ]
+      },
+      {
+        "id": "std-03-14",
+        "name": "Mía Luna",
+        "dni": "52.198.546",
+        "attendance": [
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P"
+        ]
+      },
+      {
+        "id": "std-03-15",
+        "name": "Felipe Ponce",
+        "dni": "50.398.422",
+        "attendance": [
+          "P",
+          "P",
+          "A",
+          "P",
+          "P",
+          "P",
+          "P",
+          "A"
+        ]
+      },
+      {
+        "id": "std-03-16",
+        "name": "Luna Rojas",
+        "dni": "51.123.417",
+        "attendance": [
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P"
+        ]
+      },
+      {
+        "id": "std-03-17",
+        "name": "Dante Ferreyra",
+        "dni": "50.513.423",
+        "attendance": [
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P"
+        ]
+      },
+      {
+        "id": "std-03-18",
+        "name": "Zoe Arias",
+        "dni": "52.498.398",
+        "attendance": [
+          "P",
+          "P",
+          "P",
+          "P",
+          "A",
+          "P",
+          "P",
+          "P"
+        ]
+      },
+      {
+        "id": "std-03-19",
+        "name": "Valentino Villalba",
+        "dni": "50.404.886",
+        "attendance": [
+          "P",
+          "P",
+          "A",
+          "P",
+          "P",
+          "A",
+          "P",
+          "P"
+        ]
+      },
+      {
+        "id": "std-03-20",
+        "name": "Delfina Bustos",
+        "dni": "50.221.138",
+        "attendance": [
+          "P",
+          "P",
+          "P",
+          "P",
+          "A",
+          "P",
+          "P",
+          "P"
+        ]
+      },
+      {
+        "id": "std-03-21",
+        "name": "Ciro Cardozo",
+        "dni": "51.895.531",
+        "attendance": [
+          "P",
+          "P",
+          "P",
+          "A",
+          "P",
+          "P",
+          "P",
+          "P"
+        ]
+      },
+      {
+        "id": "std-03-22",
+        "name": "Renata Godoy",
+        "dni": "51.333.123",
+        "attendance": [
+          "A",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "A",
+          "P"
+        ]
+      },
+      {
+        "id": "std-03-23",
+        "name": "Lorenzo Ríos",
+        "dni": "50.765.986",
+        "attendance": [
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "A"
+        ]
+      },
+      {
+        "id": "std-03-24",
+        "name": "Guadalupe Navarro",
+        "dni": "51.581.159",
+        "attendance": [
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P"
+        ]
+      },
+      {
+        "id": "std-03-25",
+        "name": "Francesco Paz",
+        "dni": "51.675.948",
+        "attendance": [
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P"
+        ]
+      },
+      {
+        "id": "std-03-26",
+        "name": "Juana Mansilla",
+        "dni": "52.292.262",
+        "attendance": [
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P"
+        ]
+      },
+      {
+        "id": "std-03-27",
+        "name": "Gael Acuña",
+        "dni": "51.186.406",
+        "attendance": [
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "A",
+          "P",
+          "P"
+        ]
+      },
+      {
+        "id": "std-03-28",
+        "name": "Antonella Ledesma",
+        "dni": "52.686.145",
+        "attendance": [
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "A"
+        ]
+      },
+      {
+        "id": "std-03-29",
+        "name": "Noah Coronel",
+        "dni": "53.441.660",
+        "attendance": [
+          "P",
+          "A",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P"
+        ]
+      },
+      {
+        "id": "std-03-30",
+        "name": "Abril Vera",
+        "dni": "53.293.864",
+        "attendance": [
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P"
+        ]
+      }
     ]
   },
   {
-    id: 'cls-05',
-    name: 'Entrenamiento de Resistencia y Velocidad en Cancha',
-    type: 'grupal',
-    kind: 'entrenamiento',
-    coachId: 'coach-03',
-    coachName: 'Entrenador Lucas Delgado',
-    scheduleDays: 'Martes y Jueves',
-    scheduleTime: '20:30 - 22:00',
-    courtAssigned: 'Cancha 4 (Cemento)',
-    maxCapacity: 16,
-    currentEnrolled: 2,
-    monthlyFee: 17000,
-    monthName: 'Octubre 2026',
-    sessions: ['01/10', '03/10', '08/10', '10/10', '15/10', '17/10', '22/10', '24/10'],
-    students: [
-      { id: 'std-t5', name: 'David Nalbandian', dni: '32.111.222', attendance: ['P', 'P', 'P', 'A', 'P', 'P', 'P', 'P'] },
-      { id: 'std-t6', name: 'Sofía Rossi', dni: '40.229.412', attendance: ['P', 'P', 'A', 'P', 'P', 'P', 'P', 'P'] }
+    "id": "cls-04",
+    "name": "Entrenamiento Físico-Técnico",
+    "type": "grupal",
+    "kind": "entrenamiento",
+    "coachId": "coach-02",
+    "coachName": "Laura Domínguez",
+    "scheduleDays": "Lunes y Miércoles",
+    "scheduleTime": "07:00 - 08:30",
+    "courtAssigned": "Cancha 3 (Cemento)",
+    "maxCapacity": 15,
+    "currentEnrolled": 4,
+    "monthlyFee": 18000,
+    "monthName": "Octubre 2026",
+    "sessions": [
+      "05/10",
+      "07/10",
+      "14/10",
+      "19/10",
+      "21/10"
+    ],
+    "students": [
+      {
+        "id": "std-04-1",
+        "name": "Facundo Molina",
+        "dni": "33.790.221",
+        "attendance": [
+          "P",
+          "P",
+          "A",
+          "P",
+          "P"
+        ]
+      },
+      {
+        "id": "std-04-2",
+        "name": "Matías Giménez",
+        "dni": "34.556.902",
+        "attendance": [
+          "A",
+          "A",
+          "P",
+          "P",
+          "P"
+        ]
+      },
+      {
+        "id": "std-04-3",
+        "name": "Ignacio Torres",
+        "dni": "34.402.566",
+        "attendance": [
+          "P",
+          "A",
+          "P",
+          "P",
+          "P"
+        ]
+      },
+      {
+        "id": "std-04-4",
+        "name": "Ezequiel Núñez",
+        "dni": "35.114.887",
+        "attendance": [
+          "P",
+          "A",
+          "P",
+          "A",
+          "P"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "cls-05",
+    "name": "Entrenamiento de Alto Rendimiento",
+    "type": "grupal",
+    "kind": "entrenamiento",
+    "coachId": "coach-03",
+    "coachName": "Diego Paredes",
+    "scheduleDays": "Martes y Jueves",
+    "scheduleTime": "20:30 - 22:00",
+    "courtAssigned": "Cancha 2 (Ladrillo)",
+    "maxCapacity": 8,
+    "currentEnrolled": 3,
+    "monthlyFee": 17000,
+    "monthName": "Octubre 2026",
+    "sessions": [
+      "01/10",
+      "06/10",
+      "08/10",
+      "13/10",
+      "15/10",
+      "20/10",
+      "22/10"
+    ],
+    "students": [
+      {
+        "id": "std-05-1",
+        "name": "Tomás Benítez",
+        "dni": "39.667.130",
+        "attendance": [
+          "A",
+          "P",
+          "P",
+          "A",
+          "P",
+          "P",
+          "P"
+        ]
+      },
+      {
+        "id": "std-05-2",
+        "name": "Nicolás Ledesma",
+        "dni": "37.345.610",
+        "attendance": [
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "A",
+          "P"
+        ]
+      },
+      {
+        "id": "std-05-3",
+        "name": "Lucas Pereyra",
+        "dni": "36.887.213",
+        "attendance": [
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P",
+          "P"
+        ]
+      }
     ]
   }
 ];
 
 export const INITIAL_DISCOUNTS = [
   {
-    id: 'disc-01',
-    name: 'Paquete 10 Horas Mensuales',
-    discountPercent: 15,
-    code: 'PAQ10',
-    applicableTo: 'Alquiler de Canchas',
-    active: true
+    "id": "disc-01",
+    "name": "Paquete 10 horas mensuales",
+    "discountPercent": 15,
+    "code": "PAQ10",
+    "applicableTo": "Alquiler de canchas",
+    "active": true
   },
   {
-    id: 'disc-02',
-    name: 'Socio Liga Regular Tenis Ahora',
-    discountPercent: 20,
-    code: 'LIGA20',
-    applicableTo: 'Torneos y Alquiler',
-    active: true
+    "id": "disc-02",
+    "name": "Jugador de liga",
+    "discountPercent": 20,
+    "code": "LIGA20",
+    "applicableTo": "Torneos y ligas",
+    "active": true
   },
   {
-    id: 'disc-03',
-    name: 'Convenio Escuela de Fútbol Afiliada',
-    discountPercent: 10,
-    code: 'FUTBOL10',
-    applicableTo: 'Alquiler de Canchas y Clases',
-    active: true
+    "id": "disc-03",
+    "name": "Estudiantes",
+    "discountPercent": 10,
+    "code": "EST10",
+    "applicableTo": "Clases y entrenamientos",
+    "active": true
   }
 ];
 
 export const INITIAL_RECEIPTS = [
   {
-    id: 'REC-2026-1049',
-    reservationId: 'RES-2026-001',
-    clientName: 'Federico Gómez',
-    clientDni: '38.452.129',
-    concept: 'Seña 50% - Alquiler Cancha 1 (Ladrillo)',
-    items: [
-      { description: 'Alquiler 2 Horas Cancha 1 (Polvo de Ladrillo)', amount: 9600 },
-      { description: 'Equipamiento incluido (Red, Pelotas, Raquetas)', amount: 0 },
-      { description: 'Subtotal Total Reserva', amount: 9600 },
-      { description: 'Pago correspondiente al 50% de Seña Obligatoria', amount: 4800 }
+    "id": "REC-2026-1001",
+    "reservationId": "RES-2026-001",
+    "clientName": "Juan Sánchez",
+    "clientDni": "35.678.912",
+    "concept": "Seña 50 % - Cancha 2 - Dibu Martínez (Ladrillo)",
+    "items": [
+      {
+        "description": "Alquiler 1 h - Cancha 2 - Dibu Martínez (Ladrillo)",
+        "amount": 4800
+      },
+      {
+        "description": "Equipamiento incluido (red, pelotas y raquetas)",
+        "amount": 0
+      },
+      {
+        "description": "Seña 50 %",
+        "amount": 2400
+      }
     ],
-    totalPaid: 4800,
-    paymentMethod: 'Mercado Pago QR',
-    status: 'completado',
-    date: '2026-08-20 14:30',
-    qrData: 'https://mpago.la/pos/tenisahora/rec_2026_1049_fede_gomez',
-    cashierName: 'Sistema Automático / Recepción'
+    "totalPaid": 2400,
+    "paymentMethod": "Mercado Pago",
+    "status": "completado",
+    "date": "2026-10-22 20:05",
+    "cashierName": "Portal del socio"
   },
   {
-    id: 'REC-2026-1048',
-    reservationId: 'RES-2026-003',
-    clientName: 'Carlos Alcaraz',
-    clientDni: '95.441.228',
-    concept: 'Liquidación Final 50% Restante - Cancha 5 Pasto',
-    items: [
-      { description: 'Saldo 50% Restante Cancha Césped Natural (2hs)', amount: 5500 }
+    "id": "REC-2026-1002",
+    "reservationId": "RES-2026-002",
+    "clientName": "Melina Romo",
+    "clientDni": "39.104.556",
+    "concept": "Seña 50 % - Cancha 3 - Ángel Di María (Cemento)",
+    "items": [
+      {
+        "description": "Alquiler 1 h - Cancha 3 - Ángel Di María (Cemento)",
+        "amount": 4200
+      },
+      {
+        "description": "Equipamiento incluido (red, pelotas y raquetas)",
+        "amount": 0
+      },
+      {
+        "description": "Seña 50 %",
+        "amount": 2100
+      }
     ],
-    totalPaid: 5500,
-    paymentMethod: 'Tarjeta de Crédito Visa Débito',
-    status: 'completado',
-    date: '2026-08-25 18:05',
-    qrData: 'https://mpago.la/pos/tenisahora/rec_2026_1048_carlos_alcaraz',
-    cashierName: 'Mariana López (Cajera Turno Tarde)'
+    "totalPaid": 2100,
+    "paymentMethod": "Tarjeta de Débito",
+    "status": "completado",
+    "date": "2026-10-21 09:15",
+    "cashierName": "Portal del socio"
   },
   {
-    id: 'REC-2026-1047',
-    reservationId: 'RES-2026-004',
-    clientName: 'David Nalbandian',
-    clientDni: '31.223.990',
-    concept: 'Seña 50% - Alquiler Cancha 3 (Cemento)',
-    items: [
-      { description: 'Alquiler Cancha 3 Cemento (2hs)', amount: 9600 },
-      { description: 'Seña 50% Abonada', amount: 4800 }
+    "id": "REC-2026-1003",
+    "reservationId": "RES-2026-003",
+    "clientName": "Juan Sánchez",
+    "clientDni": "35.678.912",
+    "concept": "Seña 50 % - Cancha 1 - Lionel Messi (Ladrillo)",
+    "items": [
+      {
+        "description": "Alquiler 2 h - Cancha 1 - Lionel Messi (Ladrillo)",
+        "amount": 9600
+      },
+      {
+        "description": "Equipamiento incluido (red, pelotas y raquetas)",
+        "amount": 0
+      },
+      {
+        "description": "Seña 50 %",
+        "amount": 4800
+      }
     ],
-    totalPaid: 4800,
-    paymentMethod: 'Mercado Pago (QR)',
-    status: 'completado',
-    date: '2026-08-23 11:05',
-    qrData: 'https://mpago.la/pos/tenisahora/rec_2026_1047',
-    cashierName: 'Recepción Central'
+    "totalPaid": 4800,
+    "paymentMethod": "Mercado Pago",
+    "status": "completado",
+    "date": "2026-10-15 14:30",
+    "cashierName": "Portal del socio"
   },
   {
-    id: 'REC-2026-1046',
-    reservationId: 'RES-2026-007',
-    clientName: 'Paola Suárez',
-    clientDni: '30.876.543',
-    concept: 'Liquidación Final Saldo 50% - Cancha 2 Ladrillo',
-    items: [
-      { description: 'Saldo 50% Turno Cancha 2', amount: 4800 }
+    "id": "REC-2026-1004",
+    "reservationId": "RES-2026-003",
+    "clientName": "Juan Sánchez",
+    "clientDni": "35.678.912",
+    "concept": "Saldo 50 % - Cancha 1 - Lionel Messi (Ladrillo)",
+    "items": [
+      {
+        "description": "Saldo restante alquiler 2 h",
+        "amount": 4800
+      }
     ],
-    totalPaid: 4800,
-    paymentMethod: 'Tarjeta de Crédito',
-    status: 'completado',
-    date: '2026-08-26 12:10',
-    qrData: 'https://mpago.la/pos/tenisahora/rec_2026_1046',
-    cashierName: 'Administración General'
+    "totalPaid": 4800,
+    "paymentMethod": "Mercado Pago",
+    "status": "completado",
+    "date": "2026-10-20 20:00",
+    "cashierName": "Recepción del Club"
   },
   {
-    id: 'REC-2026-1045',
-    reservationId: 'RES-POS-301',
-    clientName: 'Juan Martín del Potro',
-    clientDni: '34.120.443',
-    concept: 'Inscripción a Torneo Apertura (Singles)',
-    items: [
-      { description: 'Inscripción a Torneo Apertura (Singles)', amount: 7500 },
-      { description: 'Descuento Socio Liga Regular (20%)', amount: -1500 }
+    "id": "REC-2026-1005",
+    "reservationId": "RES-2026-004",
+    "clientName": "Facundo Molina",
+    "clientDni": "33.790.221",
+    "concept": "Seña 50 % - Cancha 1 - Lionel Messi (Ladrillo)",
+    "items": [
+      {
+        "description": "Alquiler 2 h - Cancha 1 - Lionel Messi (Ladrillo)",
+        "amount": 9600
+      },
+      {
+        "description": "Equipamiento incluido (red, pelotas y raquetas)",
+        "amount": 0
+      },
+      {
+        "description": "Seña 50 %",
+        "amount": 4800
+      }
     ],
-    totalPaid: 6000,
-    paymentMethod: 'Mercado Pago (QR)',
-    status: 'completado',
-    date: '2026-08-28 17:30',
-    qrData: 'https://mpago.la/pos/tenisahora/rec_2026_1045',
-    cashierName: 'Caja Torneos'
+    "totalPaid": 4800,
+    "paymentMethod": "Tarjeta de Crédito",
+    "status": "completado",
+    "date": "2026-10-22 11:40",
+    "cashierName": "Portal del socio"
   },
   {
-    id: 'REC-2026-1044',
-    reservationId: 'RES-POS-302',
-    clientName: 'Martín Jaite',
-    clientDni: '22.334.455',
-    concept: 'Cuota de Clase (Escuela de Tenis Mensual)',
-    items: [
-      { description: 'Cuota Escuela de Tenis (Nivel Intermedio)', amount: 16000 },
-      { description: 'Descuento Convenio Escuela de Fútbol (10%)', amount: -1600 }
+    "id": "REC-2026-1006",
+    "reservationId": "RES-2026-005",
+    "clientName": "Agustina Herrera",
+    "clientDni": "38.902.774",
+    "concept": "Seña 50 % - Cancha 5 - Rodrigo De Paul (Pasto)",
+    "items": [
+      {
+        "description": "Alquiler 1 h - Cancha 5 - Rodrigo De Paul (Pasto)",
+        "amount": 6500
+      },
+      {
+        "description": "Equipamiento incluido (red, pelotas y raquetas)",
+        "amount": 0
+      },
+      {
+        "description": "Seña 50 %",
+        "amount": 3250
+      }
     ],
-    totalPaid: 14400,
-    paymentMethod: 'Tarjeta de Débito',
-    status: 'completado',
-    date: '2026-08-29 09:45',
-    qrData: 'https://mpago.la/pos/tenisahora/rec_2026_1044',
-    cashierName: 'Administración General'
+    "totalPaid": 3250,
+    "paymentMethod": "Tarjeta de Débito",
+    "status": "completado",
+    "date": "2026-10-23 16:20",
+    "cashierName": "Portal del socio"
   },
   {
-    id: 'REC-2026-1043',
-    reservationId: 'RES-2026-010',
-    clientName: 'Franco Davín',
-    clientDni: '24.556.677',
-    concept: 'Liquidación Final Saldo 50% - Cancha 1 Ladrillo',
-    items: [
-      { description: 'Saldo 50% Dobles Cancha 1', amount: 4800 }
+    "id": "REC-2026-1007",
+    "reservationId": "RES-2026-006",
+    "clientName": "Juan Sánchez",
+    "clientDni": "35.678.912",
+    "concept": "Seña 50 % - Cancha 3 - Ángel Di María (Cemento)",
+    "items": [
+      {
+        "description": "Alquiler 1 h - Cancha 3 - Ángel Di María (Cemento)",
+        "amount": 4200
+      },
+      {
+        "description": "Equipamiento incluido (red, pelotas y raquetas)",
+        "amount": 0
+      },
+      {
+        "description": "Seña 50 %",
+        "amount": 2100
+      }
     ],
-    totalPaid: 4800,
-    paymentMethod: 'Tarjeta de Débito',
-    status: 'completado',
-    date: '2026-09-02 17:05',
-    qrData: 'https://mpago.la/pos/tenisahora/rec_2026_1043',
-    cashierName: 'Recepción Central'
+    "totalPaid": 2100,
+    "paymentMethod": "Mercado Pago",
+    "status": "completado",
+    "date": "2026-10-18 12:00",
+    "cashierName": "Portal del socio"
   },
   {
-    id: 'REC-2026-1042',
-    reservationId: 'RES-POS-303',
-    clientName: 'Diego Schwartzman',
-    clientDni: '36.889.001',
-    concept: 'Alquiler Cancha Rápida (Turno 1 h)',
-    items: [
-      { description: 'Alquiler Cancha Rápida 1 h', amount: 4800 },
-      { description: 'Descuento Paquete 10 Horas Mensuales (15%)', amount: -720 }
+    "id": "REC-2026-1008",
+    "reservationId": "RES-2026-007",
+    "clientName": "Ezequiel Núñez",
+    "clientDni": "35.114.887",
+    "concept": "Seña 50 % - Cancha 2 - Dibu Martínez (Ladrillo)",
+    "items": [
+      {
+        "description": "Alquiler 1 h - Cancha 2 - Dibu Martínez (Ladrillo)",
+        "amount": 4800
+      },
+      {
+        "description": "Equipamiento incluido (red, pelotas y raquetas)",
+        "amount": 0
+      },
+      {
+        "description": "Seña 50 %",
+        "amount": 2400
+      }
     ],
-    totalPaid: 4080,
-    paymentMethod: 'Mercado Pago (QR)',
-    status: 'completado',
-    date: '2026-09-03 14:15',
-    qrData: 'https://mpago.la/pos/tenisahora/rec_2026_1042',
-    cashierName: 'Caja Principal'
+    "totalPaid": 2400,
+    "paymentMethod": "Tarjeta de Débito",
+    "status": "completado",
+    "date": "2026-10-19 08:30",
+    "cashierName": "Portal del socio"
   },
   {
-    id: 'REC-2026-1041',
-    reservationId: 'RES-POS-304',
-    clientName: 'Gisela Dulko',
-    clientDni: '35.654.321',
-    concept: 'Inscripción a Torneo Oficial (Dobles)',
-    items: [
-      { description: 'Inscripción a Torneo Oficial (Dobles)', amount: 12000 },
-      { description: 'Descuento Socio Liga Regular (20%)', amount: -2400 }
+    "id": "REC-2026-1009",
+    "reservationId": "RES-2026-007",
+    "clientName": "Ezequiel Núñez",
+    "clientDni": "35.114.887",
+    "concept": "Saldo 50 % - Cancha 2 - Dibu Martínez (Ladrillo)",
+    "items": [
+      {
+        "description": "Saldo restante alquiler 1 h",
+        "amount": 2400
+      }
     ],
-    totalPaid: 9600,
-    paymentMethod: 'Tarjeta de Débito',
-    status: 'completado',
-    date: '2026-09-04 11:00',
-    qrData: 'https://mpago.la/pos/tenisahora/rec_2026_1041',
-    cashierName: 'Caja Torneos'
+    "totalPaid": 2400,
+    "paymentMethod": "Tarjeta de Débito",
+    "status": "completado",
+    "date": "2026-10-23 19:00",
+    "cashierName": "Recepción del Club"
   },
   {
-    id: 'REC-2026-1040',
-    reservationId: 'RES-2026-012',
-    clientName: 'Florencia Labat',
-    clientDni: '25.334.455',
-    concept: 'Seña 50% - Cancha 2 Ladrillo',
-    items: [
-      { description: 'Seña 50% Turno Noche Cancha 2', amount: 4800 }
+    "id": "REC-2026-1010",
+    "reservationId": "RES-2026-008",
+    "clientName": "Valentina Ríos",
+    "clientDni": "42.118.405",
+    "concept": "Seña 50 % - Cancha 3 - Ángel Di María (Cemento)",
+    "items": [
+      {
+        "description": "Alquiler 1 h - Cancha 3 - Ángel Di María (Cemento)",
+        "amount": 4200
+      },
+      {
+        "description": "Equipamiento incluido (red, pelotas y raquetas)",
+        "amount": 0
+      },
+      {
+        "description": "Seña 50 %",
+        "amount": 2100
+      }
     ],
-    totalPaid: 4800,
-    paymentMethod: 'Tarjeta de Débito',
-    status: 'completado',
-    date: '2026-09-04 18:30',
-    qrData: 'https://mpago.la/pos/tenisahora/rec_2026_1040',
-    cashierName: 'Recepción Central'
+    "totalPaid": 2100,
+    "paymentMethod": "Tarjeta de Débito",
+    "status": "completado",
+    "date": "2026-10-24 18:10",
+    "cashierName": "Portal del socio"
+  },
+  {
+    "id": "REC-2026-1011",
+    "reservationId": "RES-2026-009",
+    "clientName": "Juan Sánchez",
+    "clientDni": "35.678.912",
+    "concept": "Seña 50 % - Cancha 1 - Lionel Messi (Ladrillo)",
+    "items": [
+      {
+        "description": "Alquiler 2 h - Cancha 1 - Lionel Messi (Ladrillo)",
+        "amount": 9600
+      },
+      {
+        "description": "Equipamiento incluido (red, pelotas y raquetas)",
+        "amount": 0
+      },
+      {
+        "description": "Seña 50 %",
+        "amount": 4800
+      }
+    ],
+    "totalPaid": 4800,
+    "paymentMethod": "Mercado Pago",
+    "status": "completado",
+    "date": "2026-10-24 21:00",
+    "cashierName": "Portal del socio"
+  },
+  {
+    "id": "REC-2026-1012",
+    "reservationId": "RES-2026-010",
+    "clientName": "Camila Rodríguez",
+    "clientDni": "41.009.338",
+    "concept": "Seña 50 % - Cancha 5 - Rodrigo De Paul (Pasto)",
+    "items": [
+      {
+        "description": "Alquiler 1 h - Cancha 5 - Rodrigo De Paul (Pasto)",
+        "amount": 6500
+      },
+      {
+        "description": "Equipamiento incluido (red, pelotas y raquetas)",
+        "amount": 0
+      },
+      {
+        "description": "Seña 50 %",
+        "amount": 3250
+      }
+    ],
+    "totalPaid": 3250,
+    "paymentMethod": "Tarjeta de Crédito",
+    "status": "completado",
+    "date": "2026-10-20 13:45",
+    "cashierName": "Portal del socio"
+  },
+  {
+    "id": "REC-2026-1013",
+    "reservationId": "RES-2026-010",
+    "clientName": "Camila Rodríguez",
+    "clientDni": "41.009.338",
+    "concept": "Saldo 50 % - Cancha 5 - Rodrigo De Paul (Pasto)",
+    "items": [
+      {
+        "description": "Saldo restante alquiler 1 h",
+        "amount": 3250
+      }
+    ],
+    "totalPaid": 3250,
+    "paymentMethod": "Tarjeta de Crédito",
+    "status": "completado",
+    "date": "2026-10-24 12:00",
+    "cashierName": "Recepción del Club"
+  },
+  {
+    "id": "REC-2026-1014",
+    "reservationId": "RES-2026-011",
+    "clientName": "Nicolás Ledesma",
+    "clientDni": "37.345.610",
+    "concept": "Seña 50 % - Cancha 2 - Dibu Martínez (Ladrillo)",
+    "items": [
+      {
+        "description": "Alquiler 1 h - Cancha 2 - Dibu Martínez (Ladrillo)",
+        "amount": 4800
+      },
+      {
+        "description": "Equipamiento incluido (red, pelotas y raquetas)",
+        "amount": 0
+      },
+      {
+        "description": "Seña 50 %",
+        "amount": 2400
+      }
+    ],
+    "totalPaid": 2400,
+    "paymentMethod": "Tarjeta de Débito",
+    "status": "completado",
+    "date": "2026-10-24 10:25",
+    "cashierName": "Portal del socio"
+  },
+  {
+    "id": "REC-2026-1015",
+    "reservationId": "RES-2026-012",
+    "clientName": "Matías Giménez",
+    "clientDni": "34.556.902",
+    "concept": "Seña 50 % - Cancha 3 - Ángel Di María (Cemento)",
+    "items": [
+      {
+        "description": "Alquiler 1 h - Cancha 3 - Ángel Di María (Cemento)",
+        "amount": 4200
+      },
+      {
+        "description": "Equipamiento incluido (red, pelotas y raquetas)",
+        "amount": 0
+      },
+      {
+        "description": "Seña 50 %",
+        "amount": 2100
+      }
+    ],
+    "totalPaid": 2100,
+    "paymentMethod": "Tarjeta de Débito",
+    "status": "completado",
+    "date": "2026-10-20 19:00",
+    "cashierName": "Portal del socio"
+  },
+  {
+    "id": "REC-2026-1016",
+    "reservationId": "RES-2026-012",
+    "clientName": "Matías Giménez",
+    "clientDni": "34.556.902",
+    "concept": "Cargo por cancelación fuera de plazo - Cancha 3 - Ángel Di María (Cemento)",
+    "items": [
+      {
+        "description": "Seña abonada (RES-2026-012)",
+        "amount": 2100
+      },
+      {
+        "description": "Retención 50 % por cancelación con menos de 6 hs",
+        "amount": 1050
+      },
+      {
+        "description": "Saldo reintegrado como crédito en cuenta",
+        "amount": 1050
+      }
+    ],
+    "totalPaid": 1050,
+    "paymentMethod": "Retención sobre seña",
+    "status": "completado",
+    "date": "2026-10-24 17:30",
+    "cashierName": "Sistema de Reservas"
+  },
+  {
+    "id": "REC-2026-1017",
+    "reservationId": null,
+    "clientName": "Facundo Molina",
+    "clientDni": "33.790.221",
+    "concept": "Inscripción Liga Primavera Singles Caballeros",
+    "items": [
+      {
+        "description": "Inscripción a liga",
+        "amount": 15000
+      }
+    ],
+    "totalPaid": 15000,
+    "paymentMethod": "Tarjeta de Crédito",
+    "status": "completado",
+    "date": "2026-09-28 11:10",
+    "cashierName": "Recepción del Club"
+  },
+  {
+    "id": "REC-2026-1018",
+    "reservationId": null,
+    "clientName": "Melina Romo",
+    "clientDni": "39.104.556",
+    "concept": "Cuota octubre - Escuela de Adultos Nivel Intermedio",
+    "items": [
+      {
+        "description": "Cuota mensual clase grupal",
+        "amount": 16000
+      }
+    ],
+    "totalPaid": 16000,
+    "paymentMethod": "Tarjeta de Débito",
+    "status": "completado",
+    "date": "2026-10-02 18:45",
+    "cashierName": "Recepción del Club"
+  },
+  {
+    "id": "REC-2026-1019",
+    "reservationId": null,
+    "clientName": "Juan Sánchez",
+    "clientDni": "35.678.912",
+    "concept": "Inscripción Torneo Primavera 2026 Singles Caballeros",
+    "items": [
+      {
+        "description": "Inscripción a torneo",
+        "amount": 8000
+      }
+    ],
+    "totalPaid": 8000,
+    "paymentMethod": "Mercado Pago",
+    "status": "completado",
+    "date": "2026-10-09 20:30",
+    "cashierName": "Portal del socio"
   }
 ];
 
 export const INITIAL_USERS = [
   {
-    id: 'usr-01',
-    name: 'Federico Gómez',
-    dni: '38.452.129',
-    phone: '+54 11 4892-1234',
-    email: 'socio@tenisahora.com',
-    address: 'Av. San Martín 1420, Quilmes, Buenos Aires',
-    role: 'client',
-    memberNumber: 'TA-8821',
-    memberSince: '2024-03-10',
-    activeDiscounts: ['PAQ10', 'LIGA20'],
-    totalBookings: 14
+    "id": "usr-01",
+    "name": "Juan Sánchez",
+    "dni": "35.678.912",
+    "phone": "+54 11 5234-7781",
+    "email": "socio@tenisahora.com",
+    "address": "Mitre 1240, Quilmes",
+    "role": "client",
+    "memberNumber": "TA-1001",
+    "memberSince": "2024-03-10",
+    "activeDiscounts": [
+      "PAQ10"
+    ],
+    "totalBookings": 14
   },
   {
-    id: 'usr-02',
-    name: 'Administrador General',
-    dni: '30.123.456',
-    phone: '+54 11 9988-1122',
-    email: 'admin@tenisahora.com',
-    address: 'Sede Central Club Tenis Ahora, Buenos Aires',
-    role: 'admin',
-    memberNumber: 'ADM-001',
-    memberSince: '2022-01-01',
-    activeDiscounts: [],
-    totalBookings: 0
+    "id": "usr-admin",
+    "name": "Carolina Peralta",
+    "dni": "30.512.774",
+    "phone": "+54 11 4253-8800",
+    "email": "admin@tenisahora.com",
+    "address": "Sede Club Tenis Ahora, Quilmes",
+    "role": "admin",
+    "memberNumber": "ADM-001",
+    "memberSince": "2022-01-01",
+    "activeDiscounts": [],
+    "totalBookings": 0
   },
   {
-    id: 'usr-03',
-    name: 'Lucía Benítez',
-    dni: '40.112.334',
-    phone: '+54 11 6677-8899',
-    email: 'lucia.benitez@gmail.com',
-    address: 'Calle Mitre 845, Florencio Varela',
-    role: 'client',
-    memberNumber: 'TA-9044',
-    memberSince: '2025-01-15',
-    activeDiscounts: ['FUTBOL10'],
-    totalBookings: 8
+    "id": "usr-02",
+    "name": "Melina Romo",
+    "dni": "39.104.556",
+    "phone": "+54 11 6012-3345",
+    "email": "melina.romo@gmail.com",
+    "address": "Av. Calchaquí 2350, Quilmes",
+    "role": "client",
+    "memberNumber": "TA-1002",
+    "memberSince": "2024-05-02",
+    "activeDiscounts": [
+      "LIGA20"
+    ],
+    "totalBookings": 9
   },
   {
-    id: 'usr-04',
-    name: 'Mariano Zabaleta',
-    dni: '35.123.890',
-    phone: '+54 11 4455-6677',
-    email: 'mariano.zabaleta@tennis.com',
-    address: 'Av. Libertador 3200, CABA',
-    role: 'client',
-    memberNumber: 'TA-7612',
-    memberSince: '2023-08-01',
-    activeDiscounts: ['LIGA20'],
-    totalBookings: 22
+    "id": "usr-03",
+    "name": "Lucas Pereyra",
+    "dni": "36.887.213",
+    "phone": "+54 11 4477-9120",
+    "email": "lucas.pereyra@hotmail.com",
+    "address": "Lavalle 780, Bernal",
+    "role": "client",
+    "memberNumber": "TA-1003",
+    "memberSince": "2023-08-14",
+    "activeDiscounts": [
+      "LIGA20"
+    ],
+    "totalBookings": 21
   },
   {
-    id: 'usr-05',
-    name: 'David Nalbandian',
-    dni: '31.223.990',
-    phone: '+54 11 4433-2211',
-    email: 'david.nalbandian@cordoba.com',
-    address: 'Av. Colón 1500, Unquillo, Córdoba',
-    role: 'client',
-    memberNumber: 'TA-8822',
-    memberSince: '2023-04-12',
-    activeDiscounts: ['PAQ10'],
-    totalBookings: 19
+    "id": "usr-04",
+    "name": "Sofía Acosta",
+    "dni": "40.223.871",
+    "phone": "+54 11 3390-4412",
+    "email": "sofia.acosta@gmail.com",
+    "address": "Rivadavia 455, Berazategui",
+    "role": "client",
+    "memberNumber": "TA-1004",
+    "memberSince": "2025-02-18",
+    "activeDiscounts": [],
+    "totalBookings": 5
   },
   {
-    id: 'usr-06',
-    name: 'Guillermo Coria',
-    dni: '32.119.882',
-    phone: '+54 11 9900-1122',
-    email: 'guille.coria@santafe.com',
-    address: 'Bv. Oroño 450, Rosario, Santa Fe',
-    role: 'client',
-    memberNumber: 'TA-8823',
-    memberSince: '2023-06-20',
-    activeDiscounts: ['LIGA20'],
-    totalBookings: 31
+    "id": "usr-05",
+    "name": "Matías Giménez",
+    "dni": "34.556.902",
+    "phone": "+54 11 5578-2201",
+    "email": "matias.gimenez@gmail.com",
+    "address": "Belgrano 1920, Quilmes",
+    "role": "client",
+    "memberNumber": "TA-1005",
+    "memberSince": "2023-04-03",
+    "activeDiscounts": [
+      "PAQ10",
+      "LIGA20"
+    ],
+    "totalBookings": 27
   },
   {
-    id: 'usr-07',
-    name: 'Gastón Gaudio',
-    dni: '33.987.654',
-    phone: '+54 11 2233-4455',
-    email: 'gaston.gaudio@adrogue.com',
-    address: 'Calle Amenedo 120, Adrogué, Buenos Aires',
-    role: 'client',
-    memberNumber: 'TA-8824',
-    memberSince: '2022-11-10',
-    activeDiscounts: ['PAQ10', 'LIGA20'],
-    totalBookings: 27
+    "id": "usr-06",
+    "name": "Camila Rodríguez",
+    "dni": "41.009.338",
+    "phone": "+54 11 2265-7730",
+    "email": "camila.rodriguez@outlook.com",
+    "address": "Alsina 310, Bernal",
+    "role": "client",
+    "memberNumber": "TA-1006",
+    "memberSince": "2025-06-09",
+    "activeDiscounts": [],
+    "totalBookings": 3
   },
   {
-    id: 'usr-08',
-    name: 'Gabriela Sabatini',
-    dni: '21.445.678',
-    phone: '+54 11 1122-3344',
-    email: 'gaby.sabatini@tennislegend.com',
-    address: 'Av. Alvear 1900, Recoleta, CABA',
-    role: 'client',
-    memberNumber: 'TA-0010',
-    memberSince: '2021-01-01',
-    activeDiscounts: ['LIGA20'],
-    totalBookings: 45
+    "id": "usr-07",
+    "name": "Nicolás Ledesma",
+    "dni": "37.345.610",
+    "phone": "+54 11 6643-8815",
+    "email": "nicolas.ledesma@gmail.com",
+    "address": "San Martín 2210, Quilmes Oeste",
+    "role": "client",
+    "memberNumber": "TA-1007",
+    "memberSince": "2023-11-27",
+    "activeDiscounts": [
+      "LIGA20"
+    ],
+    "totalBookings": 18
   },
   {
-    id: 'usr-09',
-    name: 'Paola Suárez',
-    dni: '30.876.543',
-    phone: '+54 11 4455-1122',
-    email: 'paola.suarez@pergamino.com',
-    address: 'Av. de Mayo 800, Pergamino, Buenos Aires',
-    role: 'client',
-    memberNumber: 'TA-8825',
-    memberSince: '2024-02-14',
-    activeDiscounts: ['FUTBOL10'],
-    totalBookings: 11
+    "id": "usr-08",
+    "name": "Valentina Ríos",
+    "dni": "42.118.405",
+    "phone": "+54 11 3812-6604",
+    "email": "valentina.rios@gmail.com",
+    "address": "Moreno 1015, Ezpeleta",
+    "role": "client",
+    "memberNumber": "TA-1008",
+    "memberSince": "2025-03-12",
+    "activeDiscounts": [
+      "EST10"
+    ],
+    "totalBookings": 6
   },
   {
-    id: 'usr-10',
-    name: 'Gisela Dulko',
-    dni: '35.654.321',
-    phone: '+54 11 3322-9988',
-    email: 'gisela.dulko@tigre.com',
-    address: 'Av. Cazón 1250, Tigre, Buenos Aires',
-    role: 'client',
-    memberNumber: 'TA-8826',
-    memberSince: '2024-05-18',
-    activeDiscounts: ['LIGA20'],
-    totalBookings: 16
+    "id": "usr-09",
+    "name": "Facundo Molina",
+    "dni": "33.790.221",
+    "phone": "+54 11 4920-1187",
+    "email": "facundo.molina@yahoo.com.ar",
+    "address": "Garibaldi 640, Quilmes",
+    "role": "client",
+    "memberNumber": "TA-1009",
+    "memberSince": "2022-10-05",
+    "activeDiscounts": [
+      "LIGA20"
+    ],
+    "totalBookings": 33
   },
   {
-    id: 'usr-11',
-    name: 'Diego Schwartzman',
-    dni: '36.889.001',
-    phone: '+54 11 7788-9900',
-    email: 'peque.schwartzman@hacoaj.com',
-    address: 'Av. Estado de Israel 4200, CABA',
-    role: 'client',
-    memberNumber: 'TA-8827',
-    memberSince: '2024-07-01',
-    activeDiscounts: ['PAQ10'],
-    totalBookings: 18
+    "id": "usr-10",
+    "name": "Agustina Herrera",
+    "dni": "38.902.774",
+    "phone": "+54 11 5109-3362",
+    "email": "agustina.herrera@gmail.com",
+    "address": "Brown 1580, Bernal",
+    "role": "client",
+    "memberNumber": "TA-1010",
+    "memberSince": "2024-08-21",
+    "activeDiscounts": [
+      "PAQ10"
+    ],
+    "totalBookings": 12
   },
   {
-    id: 'usr-12',
-    name: 'Francisco Cerúndolo',
-    dni: '42.112.909',
-    phone: '+54 11 3344-5566',
-    email: 'fran.cerundolo@belgrano.com',
-    address: 'Calle Juramento 2100, Belgrano, CABA',
-    role: 'client',
-    memberNumber: 'TA-8828',
-    memberSince: '2024-09-15',
-    activeDiscounts: ['LIGA20'],
-    totalBookings: 12
+    "id": "usr-11",
+    "name": "Tomás Benítez",
+    "dni": "39.667.130",
+    "phone": "+54 11 6788-0241",
+    "email": "tomas.benitez@gmail.com",
+    "address": "Colón 925, Quilmes",
+    "role": "client",
+    "memberNumber": "TA-1011",
+    "memberSince": "2024-09-30",
+    "activeDiscounts": [
+      "LIGA20"
+    ],
+    "totalBookings": 15
   },
   {
-    id: 'usr-13',
-    name: 'Tomás Etcheverry',
-    dni: '41.900.223',
-    phone: '+54 11 8899-0011',
-    email: 'tomy.etcheverry@laplata.com',
-    address: 'Calle 7 N° 450, La Plata, Buenos Aires',
-    role: 'client',
-    memberNumber: 'TA-8829',
-    memberSince: '2024-10-02',
-    activeDiscounts: ['FUTBOL10'],
-    totalBookings: 9
+    "id": "usr-12",
+    "name": "Florencia Castro",
+    "dni": "36.230.198",
+    "phone": "+54 11 4056-7793",
+    "email": "florencia.castro@hotmail.com",
+    "address": "Sarmiento 1330, Berazategui",
+    "role": "client",
+    "memberNumber": "TA-1012",
+    "memberSince": "2023-02-14",
+    "activeDiscounts": [],
+    "totalBookings": 11
   },
   {
-    id: 'usr-14',
-    name: 'Sebastián Báez',
-    dni: '43.200.114',
-    phone: '+54 11 6677-8800',
-    email: 'seba.baez@sanmartin.com',
-    address: 'Av. Rodríguez Peña 890, San Martín',
-    role: 'client',
-    memberNumber: 'TA-8830',
-    memberSince: '2025-01-20',
-    activeDiscounts: ['PAQ10', 'LIGA20'],
-    totalBookings: 15
+    "id": "usr-13",
+    "name": "Ezequiel Núñez",
+    "dni": "35.114.887",
+    "phone": "+54 11 5531-9906",
+    "email": "ezequiel.nunez@gmail.com",
+    "address": "Andrés Baranda 2040, Quilmes",
+    "role": "client",
+    "memberNumber": "TA-1013",
+    "memberSince": "2023-06-20",
+    "activeDiscounts": [
+      "LIGA20"
+    ],
+    "totalBookings": 24
+  },
+  {
+    "id": "usr-14",
+    "name": "Julieta Vega",
+    "dni": "43.045.612",
+    "phone": "+54 11 2974-5518",
+    "email": "julieta.vega@gmail.com",
+    "address": "Humberto Primo 715, Bernal",
+    "role": "client",
+    "memberNumber": "TA-1014",
+    "memberSince": "2025-08-04",
+    "activeDiscounts": [
+      "EST10"
+    ],
+    "totalBookings": 2
+  },
+  {
+    "id": "usr-15",
+    "name": "Franco Medina",
+    "dni": "37.998.045",
+    "phone": "+54 11 6207-4439",
+    "email": "franco.medina@gmail.com",
+    "address": "Pringles 450, Quilmes",
+    "role": "client",
+    "memberNumber": "TA-1015",
+    "memberSince": "2024-01-16",
+    "activeDiscounts": [
+      "LIGA20"
+    ],
+    "totalBookings": 19
+  },
+  {
+    "id": "usr-16",
+    "name": "Martina Suárez",
+    "dni": "40.771.209",
+    "phone": "+54 11 3345-8820",
+    "email": "martina.suarez@gmail.com",
+    "address": "Olavarría 1180, Ezpeleta",
+    "role": "client",
+    "memberNumber": "TA-1016",
+    "memberSince": "2024-11-11",
+    "activeDiscounts": [],
+    "totalBookings": 7
+  },
+  {
+    "id": "usr-17",
+    "name": "Ignacio Torres",
+    "dni": "34.402.566",
+    "phone": "+54 11 4489-1073",
+    "email": "ignacio.torres@gmail.com",
+    "address": "Videla 870, Quilmes",
+    "role": "client",
+    "memberNumber": "TA-1017",
+    "memberSince": "2023-09-08",
+    "activeDiscounts": [
+      "PAQ10",
+      "LIGA20"
+    ],
+    "totalBookings": 29
+  },
+  {
+    "id": "usr-coach-01",
+    "name": "Gustavo Ferrari",
+    "dni": "28.334.901",
+    "phone": "+54 11 5566-7788",
+    "email": "profesor@tenisahora.com",
+    "address": "Quilmes, Buenos Aires",
+    "role": "coach",
+    "coachId": "coach-01",
+    "memberNumber": "DOC-01",
+    "memberSince": "2024-01-15",
+    "activeDiscounts": [],
+    "totalBookings": 0
+  },
+  {
+    "id": "usr-coach-02",
+    "name": "Laura Domínguez",
+    "dni": "31.245.678",
+    "phone": "+54 11 4433-2211",
+    "email": "entrenador@tenisahora.com",
+    "address": "Quilmes, Buenos Aires",
+    "role": "coach",
+    "coachId": "coach-02",
+    "memberNumber": "DOC-02",
+    "memberSince": "2024-01-15",
+    "activeDiscounts": [],
+    "totalBookings": 0
+  },
+  {
+    "id": "usr-coach-03",
+    "name": "Diego Paredes",
+    "dni": "29.871.340",
+    "phone": "+54 11 6677-9922",
+    "email": "diego.paredes@tenisahora.com",
+    "address": "Quilmes, Buenos Aires",
+    "role": "coach",
+    "coachId": "coach-03",
+    "memberNumber": "DOC-03",
+    "memberSince": "2024-01-15",
+    "activeDiscounts": [],
+    "totalBookings": 0
   }
 ];
 
-// ============================================================
-// TIPOS DE CANCHA (RF011 - RF015)
-// ============================================================
 export const INITIAL_COURT_TYPES = [
   {
-    id: 'ct-ladrillo',
-    name: 'Ladrillo',
-    label: 'Polvo de Ladrillo',
-    description: 'Superficie lenta de arcilla roja. Ideal para peloteo largo y juego de fondo.',
-    speed: 'Lenta',
-    basePricePerHour: 4800,
-    maintenanceFrequency: 'Diaria (riego y pasada de alfombra)',
-    maxStudentsPerClass: 30,
-    active: true
+    "id": "ct-ladrillo",
+    "name": "Ladrillo",
+    "label": "Polvo de ladrillo",
+    "description": "Superficie lenta de arcilla roja. Ideal para peloteo largo y juego de fondo.",
+    "speed": "Lenta",
+    "basePricePerHour": 4800,
+    "maintenanceFrequency": "Diaria (riego y pasada de alfombra)",
+    "maxStudentsPerClass": 30,
+    "active": true
   },
   {
-    id: 'ct-cemento',
-    name: 'Cemento',
-    label: 'Cemento / Hard Court',
-    description: 'Superficie dura de pique medio-rápido. Bajo mantenimiento.',
-    speed: 'Media-Rápida',
-    basePricePerHour: 4200,
-    maintenanceFrequency: 'Semanal (barrido y revisión de fisuras)',
-    maxStudentsPerClass: 24,
-    active: true
+    "id": "ct-cemento",
+    "name": "Cemento",
+    "label": "Cemento",
+    "description": "Superficie dura de pique medio-rápido. Bajo mantenimiento.",
+    "speed": "Media-rápida",
+    "basePricePerHour": 4200,
+    "maintenanceFrequency": "Semanal (barrido y revisión de fisuras)",
+    "maxStudentsPerClass": 20,
+    "active": true
   },
   {
-    id: 'ct-pasto',
-    name: 'Pasto',
-    label: 'Pasto / Césped Natural',
-    description: 'Superficie rápida de pique bajo. Uso restringido en días de lluvia.',
-    speed: 'Rápida',
-    basePricePerHour: 6500,
-    maintenanceFrequency: 'Diaria (corte, riego y marcado de líneas)',
-    maxStudentsPerClass: 16,
-    active: true
+    "id": "ct-pasto",
+    "name": "Pasto",
+    "label": "Césped natural",
+    "description": "Superficie rápida de pique bajo. No se usa en días de lluvia.",
+    "speed": "Rápida",
+    "basePricePerHour": 6500,
+    "maintenanceFrequency": "Diaria (corte, riego y marcado de líneas)",
+    "maxStudentsPerClass": 12,
+    "active": true
   }
 ];
 
-// ============================================================
-// TIPOS DE COMPETENCIA (RF061 - RF065)
-// ============================================================
 export const INITIAL_COMPETITION_TYPES = [
   {
-    id: 'cmp-elim',
-    name: 'Torneo de Eliminación Directa',
-    format: 'Cuadro eliminatorio (Single Elimination)',
-    appliesTo: 'Torneo',
-    scoringSystem: 'Al mejor de 3 sets con tie-break a 7 puntos',
-    minParticipants: 8,
-    maxParticipants: 32,
-    description: 'El perdedor queda eliminado. Cuadro con cuartos, semifinales y final.',
-    active: true
+    "id": "cmp-elim",
+    "name": "Torneo de eliminación directa",
+    "format": "Cuadro eliminatorio",
+    "appliesTo": "Torneo",
+    "scoringSystem": "Al mejor de 3 sets con tie-break",
+    "minParticipants": 8,
+    "maxParticipants": 16,
+    "description": "El perdedor queda eliminado. Cuadro de octavos, cuartos, semifinales y final.",
+    "active": true
   },
   {
-    id: 'cmp-liga',
-    name: 'Liga Todos contra Todos',
-    format: 'Round Robin por puntos',
-    appliesTo: 'Liga',
-    scoringSystem: '3 puntos por victoria, 0 por derrota. Desempate por diferencia de sets',
-    minParticipants: 4,
-    maxParticipants: 12,
-    description: 'Cada jugador enfrenta a todos los demás a lo largo de las jornadas.',
-    active: true
+    "id": "cmp-liga",
+    "name": "Liga todos contra todos",
+    "format": "Round robin por puntos",
+    "appliesTo": "Liga",
+    "scoringSystem": "3 puntos por victoria, 0 por derrota. Desempate por diferencia de sets",
+    "minParticipants": 4,
+    "maxParticipants": 8,
+    "description": "Cada jugador enfrenta a todos los demás a lo largo de las jornadas.",
+    "active": true
   },
   {
-    id: 'cmp-copa',
-    name: 'Copa por Equipos',
-    format: 'Fase de grupos + Playoffs',
-    appliesTo: 'Torneo',
-    scoringSystem: 'Series de 2 singles y 1 dobles por cruce',
-    minParticipants: 4,
-    maxParticipants: 16,
-    description: 'Modalidad por equipos del club con fase de grupos y eliminatorias finales.',
-    active: true
+    "id": "cmp-dobles",
+    "name": "Torneo de dobles",
+    "format": "Cuadro eliminatorio por parejas",
+    "appliesTo": "Torneo",
+    "scoringSystem": "Dos sets con punto de oro; match tie-break a 10 si empatan",
+    "minParticipants": 4,
+    "maxParticipants": 8,
+    "description": "Eliminación directa entre parejas inscriptas.",
+    "active": true
   }
 ];
 
-// ============================================================
-// FACTURAS (RF125 - RF127)
-// ============================================================
 export const INITIAL_INVOICES = [
   {
-    id: 'FC-0001-00000412',
-    clientName: 'Federico Gómez',
-    clientDni: '38.452.129',
-    clientAddress: 'Av. San Martín 1420, Quilmes',
-    concept: 'Alquiler Cancha 1 (2 hs) - Reserva RES-2026-001',
-    items: [
-      { description: 'Alquiler 2 Horas Cancha 1 (Polvo de Ladrillo)', quantity: 1, unitPrice: 9600 }
+    "id": "FC-0001-00000118",
+    "clientName": "Juan Sánchez",
+    "clientDni": "35.678.912",
+    "clientAddress": "Mitre 1240, Quilmes",
+    "concept": "Alquiler de cancha - Reserva RES-2026-003",
+    "items": [
+      {
+        "description": "Alquiler 2 h Cancha 1 - Lionel Messi (Ladrillo)",
+        "quantity": 1,
+        "unitPrice": 9600
+      }
     ],
-    subtotal: 9600,
-    total: 9600,
-    paymentMethod: 'Mercado Pago (QR)',
-    relatedReceiptId: 'REC-2026-1049',
-    status: 'emitida',
-    date: '2026-08-20 14:35',
-    issuedBy: 'Administración General'
+    "subtotal": 9600,
+    "total": 9600,
+    "paymentMethod": "Mercado Pago",
+    "relatedReceiptId": "REC-2026-1004",
+    "status": "emitida",
+    "date": "2026-10-20 20:05",
+    "issuedBy": "Recepción del Club"
   },
   {
-    id: 'FC-0001-00000413',
-    clientName: 'Mariano Zabaleta',
-    clientDni: '35.123.890',
-    clientAddress: 'Av. Libertador 3200, CABA',
-    concept: 'Inscripción Gran Torneo Abierto de Primavera 2026',
-    items: [
-      { description: 'Inscripción Torneo Singles Masculino', quantity: 1, unitPrice: 7500 }
+    "id": "FC-0001-00000119",
+    "clientName": "Facundo Molina",
+    "clientDni": "33.790.221",
+    "clientAddress": "Garibaldi 640, Quilmes",
+    "concept": "Inscripción Liga Primavera Singles Caballeros",
+    "items": [
+      {
+        "description": "Inscripción a liga",
+        "quantity": 1,
+        "unitPrice": 15000
+      }
     ],
-    subtotal: 7500,
-    total: 7500,
-    paymentMethod: 'Tarjeta de Crédito',
-    relatedReceiptId: 'REC-2026-1046',
-    status: 'emitida',
-    date: '2026-08-21 10:12',
-    issuedBy: 'Administración General'
+    "subtotal": 15000,
+    "total": 15000,
+    "paymentMethod": "Tarjeta de Crédito",
+    "relatedReceiptId": "REC-2026-1017",
+    "status": "emitida",
+    "date": "2026-09-28 11:15",
+    "issuedBy": "Recepción del Club"
   },
   {
-    id: 'FC-0001-00000414',
-    clientName: 'Lucía Benítez',
-    clientDni: '40.112.334',
-    clientAddress: 'Calle Mitre 845, Florencio Varela',
-    concept: 'Cuota Mensual Escuela de Adultos - Octubre 2026',
-    items: [
-      { description: 'Cuota Clase Grupal Octubre', quantity: 1, unitPrice: 16000 }
+    "id": "FC-0001-00000120",
+    "clientName": "Melina Romo",
+    "clientDni": "39.104.556",
+    "clientAddress": "Av. Calchaquí 2350, Quilmes",
+    "concept": "Cuota octubre - Escuela de Adultos Nivel Intermedio",
+    "items": [
+      {
+        "description": "Cuota mensual clase grupal",
+        "quantity": 1,
+        "unitPrice": 16000
+      }
     ],
-    subtotal: 16000,
-    total: 16000,
-    paymentMethod: 'Tarjeta de Débito',
-    relatedReceiptId: null,
-    status: 'emitida',
-    date: '2026-10-02 09:40',
-    issuedBy: 'Recepción del Club'
+    "subtotal": 16000,
+    "total": 16000,
+    "paymentMethod": "Tarjeta de Débito",
+    "relatedReceiptId": "REC-2026-1018",
+    "status": "emitida",
+    "date": "2026-10-02 18:50",
+    "issuedBy": "Recepción del Club"
   }
 ];
 
-// ============================================================
-// REEMBOLSOS (RF131 - RF133)
-// ============================================================
 export const INITIAL_REFUNDS = [
   {
-    id: 'RMB-2026-0007',
-    clientName: 'Juan Ignacio Chela',
-    clientDni: '34.567.890',
-    relatedReservationId: 'RES-2026-008',
-    relatedReceiptId: 'REC-2026-1044',
-    reason: 'Cancelación de reserva con más de 6 hs de antelación (dentro del plazo reglamentario).',
-    refundType: 'total',
-    originalAmount: 4800,
-    refundAmount: 4800,
-    refundMethod: 'Devolución a Tarjeta de Débito',
-    date: '2026-09-18 11:20',
-    processedBy: 'Administración General'
+    "id": "RMB-2026-0003",
+    "clientName": "Juan Sánchez",
+    "clientDni": "35.678.912",
+    "relatedReservationId": "RES-2026-006",
+    "relatedReceiptId": "REC-2026-1007",
+    "reason": "Cancelación de reserva con más de 6 h de antelación.",
+    "refundType": "total",
+    "originalAmount": 2100,
+    "refundAmount": 2100,
+    "refundMethod": "Devolución a Mercado Pago",
+    "date": "2026-10-21 10:05",
+    "processedBy": "Sistema de Reservas"
   },
   {
-    id: 'RMB-2026-0008',
-    clientName: 'Romina Varela',
-    clientDni: '36.992.100',
-    relatedReservationId: null,
-    relatedReceiptId: 'REC-2026-1041',
-    reason: 'Suspensión de clase particular por lluvia. Reintegro parcial según política del club.',
-    refundType: 'parcial',
-    originalAmount: 5800,
-    refundAmount: 2900,
-    refundMethod: 'Crédito en cuenta de socio',
-    date: '2026-10-10 17:05',
-    processedBy: 'Recepción del Club'
+    "id": "RMB-2026-0004",
+    "clientName": "Matías Giménez",
+    "clientDni": "34.556.902",
+    "relatedReservationId": "RES-2026-012",
+    "relatedReceiptId": "REC-2026-1015",
+    "reason": "Cancelación con menos de 6 h de antelación. Se retiene el 50 % de la seña.",
+    "refundType": "parcial",
+    "originalAmount": 2100,
+    "refundAmount": 1050,
+    "refundMethod": "Devolución a Tarjeta de Débito",
+    "date": "2026-10-24 17:35",
+    "processedBy": "Sistema de Reservas"
   }
 ];
+

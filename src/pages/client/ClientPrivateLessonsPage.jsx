@@ -43,7 +43,7 @@ export default function ClientPrivateLessonsPage() {
     setMyLessons((pRes.data || []).filter(p => !user?.dni || p.studentDni === user.dni));
   };
 
-  // Un turno repetido es el mismo día y horario: del socio con cualquier docente, o del docente con otro socio.
+  // Un turno repetido es el mismo día y horario: del socio con cualquier profesor, o del profesor con otro socio.
   const conflictMessage = ({ coach, date: d, time: t }) => {
     const clash = findPrivateLessonConflict(allLessons, { coachId: coach?.id, studentDni: user?.dni, date: d, time: t });
     if (!clash) return null;
@@ -65,7 +65,7 @@ export default function ClientPrivateLessonsPage() {
     setRequestCoach(null);
   };
 
-  // La tarifa de la clase particular la fija el club, igual para todos los docentes.
+  // La tarifa de la clase particular la fija el club, igual para todos los profesores.
   const rate = Number(clubConfig.privateLessonHourlyRate) || DEFAULT_CLUB_CONFIG.privateLessonHourlyRate;
 
   const settleAfterPayment = async () => {

@@ -78,7 +78,7 @@ export default function CoachLayout() {
             >
               <Avatar user={user} rounded="rounded-lg" className={user?.photo ? '' : '!bg-tennis-700'} />
               <div className="hidden md:block text-left">
-                <div className="text-xs font-bold text-slate-900 leading-tight group-hover:text-tennis-700">{user?.name || 'Docente'}</div>
+                <div className="text-xs font-bold text-slate-900 leading-tight group-hover:text-tennis-700">{user?.name || 'Profesor'}</div>
                 <div className="text-[11px] text-slate-500 font-medium">{user?.rolBackend || 'Profesor'} • N° {user?.memberNumber || '—'}</div>
               </div>
             </button>

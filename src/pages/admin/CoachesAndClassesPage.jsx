@@ -174,7 +174,7 @@ export default function CoachesAndClassesPage() {
         experienceYears: Number(newCoachForm.experienceYears) || 1,
         hourlyRatePrivate: Number(newCoachForm.hourlyRatePrivate) || 5000,
         availableHours: newCoachForm.availableHours,
-        bio: newCoachForm.bio || 'Docente oficial habilitado por la institución.',
+        bio: newCoachForm.bio || 'Profesor oficial habilitado por la institución.',
         licenseDetails: {
           titleName: newCoachForm.titleName,
           institution: newCoachForm.institution,
@@ -186,7 +186,7 @@ export default function CoachesAndClassesPage() {
         }
       });
     } catch (err) {
-      notify({ title: 'Error al registrar docente', message: err.message || 'No se pudo registrar al docente.', variant: 'error' });
+      notify({ title: 'Error al registrar profesor', message: err.message || 'No se pudo registrar al profesor.', variant: 'error' });
       return;
     }
 
@@ -264,7 +264,7 @@ export default function CoachesAndClassesPage() {
         }
       });
     } catch (err) {
-      notify({ title: 'Error al modificar docente', message: err.message || 'No se pudo modificar al docente.', variant: 'error' });
+      notify({ title: 'Error al modificar profesor', message: err.message || 'No se pudo modificar al profesor.', variant: 'error' });
       return;
     }
     setShowEditCoachModal(false);
@@ -615,7 +615,7 @@ export default function CoachesAndClassesPage() {
                   showCertReport ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
                 }`}
               >
-                {showCertReport ? 'Ver Fichas de Docentes' : 'Reporte de Certificaciones'}
+                {showCertReport ? 'Ver Fichas de Profesores' : 'Reporte de Certificaciones'}
               </button>
               <button
                 type="button"
@@ -937,7 +937,7 @@ export default function CoachesAndClassesPage() {
                   <th className="p-3">Fecha y Horario</th>
                   <th className="p-3">Tipo</th>
                   <th className="p-3">Alumno / Socio</th>
-                  <th className="p-3">Docente Asignado</th>
+                  <th className="p-3">Profesor Asignado</th>
                   <th className="p-3">Cancha</th>
                   <th className="p-3">Arancel</th>
                   <th className="p-3">Estado</th>
@@ -1386,7 +1386,7 @@ export default function CoachesAndClassesPage() {
       <Modal
         isOpen={showDeleteCoachModal}
         onClose={() => setShowDeleteCoachModal(false)}
-        title="Confirmar Baja de Docente"
+        title="Confirmar Baja de Profesor"
         maxWidth="max-w-md"
       >
         <div className="space-y-4 text-xs">
@@ -1490,7 +1490,7 @@ export default function CoachesAndClassesPage() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="font-semibold text-slate-700 uppercase block mb-1">Docente Habilitado *</label>
+              <label className="font-semibold text-slate-700 uppercase block mb-1">Profesor Habilitado *</label>
               <select
                 value={newClassForm.coachId}
                 onChange={(e) => {
@@ -1623,7 +1623,7 @@ export default function CoachesAndClassesPage() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="font-semibold text-slate-700 uppercase block mb-1">Docente Asignado *</label>
+                <label className="font-semibold text-slate-700 uppercase block mb-1">Profesor Asignado *</label>
                 <select
                   value={classToEdit.coachId}
                   onChange={(e) => setClassToEdit({ ...classToEdit, coachId: e.target.value })}
@@ -2028,7 +2028,7 @@ export default function CoachesAndClassesPage() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="font-semibold text-slate-700 uppercase block mb-1">Docente Asignado *</label>
+                <label className="font-semibold text-slate-700 uppercase block mb-1">Profesor Asignado *</label>
                 <select
                   value={privateToEdit.coachId}
                   onChange={(e) => setPrivateToEdit({ ...privateToEdit, coachId: e.target.value })}

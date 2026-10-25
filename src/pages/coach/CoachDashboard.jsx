@@ -66,7 +66,7 @@ export default function CoachDashboard() {
       <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <span className="text-xs font-semibold text-tennis-700 uppercase tracking-wider block">
-            Bienvenido, {coachProfile?.name || user?.name || 'Prof. Santiago Álvarez'}
+            Bienvenido, {coachProfile?.name || user?.name}
           </span>
           <h1 className="text-xl font-bold text-slate-900 mt-0.5">
             Agenda del Día y Panel de Clases
