@@ -402,30 +402,6 @@ export default function CourtTimelineGrid({
         </table>
       </div>
 
-      {/* Selected Slot Notice Footer */}
-      {selectedCourt && selectedTimeSlot && (
-        <div className="p-4 bg-tennis-50 rounded-2xl border border-tennis-300 text-tennis-950 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
-          <div className="flex items-center gap-3">
-            <div>
-              <span className="text-[10px] font-black uppercase text-tennis-700">Turno Seleccionado en Grilla</span>
-              <div className="font-black text-sm text-tennis-950">
-                {selectedCourt.name} ({selectedCourt.surfaceType}) • {selectedTimeSlot}
-              </div>
-              <p className="text-xs text-tennis-800">
-                Fecha: {formattedDateTitle} • Costo Cancha: ${(selectedCourt.pricePerHour * slotDuration).toLocaleString('es-AR')}
-              </p>
-            </div>
-          </div>
-
-          <a
-            href="#booking-players-form"
-            className="px-4 py-2.5 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-black text-xs text-center shadow-md transition-all shrink-0"
-          >
-            Continuar con Jugadores y Seña 50% ↓
-          </a>
-        </div>
-      )}
-
     </div>
   );
 }
