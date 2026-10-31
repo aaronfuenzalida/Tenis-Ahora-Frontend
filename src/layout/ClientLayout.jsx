@@ -7,6 +7,7 @@ import usePortalPaths from '../utils/portalPaths';
 import Logo from './Logo';
 import Avatar from './Avatar';
 import ProfileModal from './ProfileModal';
+import { DEFAULT_COURT_AVAILABILITY } from '../api';
 
 export default function ClientLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -14,6 +15,12 @@ export default function ClientLayout() {
   const { user, isDemo, switchRole } = useAuth();
   const paths = usePortalPaths();
   const navigate = useNavigate();
+
+  // Horario general del club: se informa si está abierto según la hora actual.
+  const { openTime, closeTime } = DEFAULT_COURT_AVAILABILITY;
+  const now = new Date();
+  const nowHHMM = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  const isOpen = nowHHMM >= openTime && nowHHMM < closeTime;
 
   const handleToggleRole = () => {
     switchRole('admin');
@@ -52,9 +59,9 @@ export default function ClientLayout() {
             </div>
 
             <div className="hidden lg:flex items-center gap-2">
-              <span className="text-xs font-bold text-slate-600">Abierto</span>
+              <span className="text-xs font-bold text-slate-600">{isOpen ? 'Abierto' : 'Cerrado'}</span>
               <span className="text-slate-300">•</span>
-              <span className="text-xs text-slate-400">08:00 a 22:00 hs</span>
+              <span className="text-xs text-slate-400">{openTime} a {closeTime} hs</span>
             </div>
           </div>
 

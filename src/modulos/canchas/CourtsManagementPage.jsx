@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { courtsService, reservationsService, courtTypesService, clubConfigService, DEFAULT_CLUB_CONFIG } from '../../api';
+import { courtsService, reservationsService, courtTypesService, clubConfigService, DEFAULT_CLUB_CONFIG, maxBookingDate } from '../../api';
 import { Edit3, Trash2 } from 'lucide-react';
 import Modal from '../../ui/Modal';
 import CourtTimelineGrid from './CourtTimelineGrid';
@@ -17,7 +17,7 @@ export default function CourtsManagementPage() {
 
   // Tab: 'cards' vs 'timeline'
   const [activeTab, setActiveTab] = useState('cards');
-  const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(() => maxBookingDate(0));
   
   // Add court modal
   const [showAddModal, setShowAddModal] = useState(false);

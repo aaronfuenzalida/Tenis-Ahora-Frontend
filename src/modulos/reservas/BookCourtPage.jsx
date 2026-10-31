@@ -7,16 +7,14 @@ import ReceiptModal from '../caja/ReceiptModal';
 import PaymentFlowModal from '../caja/PaymentFlowModal';
 import CourtTimelineGrid from '../canchas/CourtTimelineGrid';
 import Stepper from '../../ui/Stepper';
-import { getSlotBlock } from '../canchas/CourtAvailabilityPanel';
-import { cleanDNI, findReservationConflict } from '../../utils/formatters';
+import { buildSlots, getSlotBlock } from '../canchas/CourtAvailabilityPanel';
+import { calculateHoursUntil, cleanDNI, findReservationConflict } from '../../utils/formatters';
 
 const STEPS = [
   { id: 'schedule', label: 'Cronograma' },
   { id: 'players', label: 'Jugadores' },
   { id: 'payment', label: 'Pago de seña' }
 ];
-
-const CARD_SLOTS = ['08:00 - 10:00', '10:00 - 12:00', '14:00 - 16:00', '16:00 - 18:00', '18:00 - 20:00', '20:00 - 22:00'];
 
 /**
  * Reserva de cancha en pasos: 1) cronograma  2) jugadores  3) pago de la seña.
@@ -172,6 +170,11 @@ export default function BookCourtPage() {
     return `${busy?.name || 'Un jugador'} ya tiene una reserva el ${clash.date} de ${clash.startTime} a ${clash.endTime} en ${clash.courtName}.`;
   };
 
+  // Motivo por el que una franja no se puede elegir: horario de la cancha (RD06) o turno que ya empezó.
+  const slotUnavailableReason = (court, slot) =>
+    getSlotBlock(court, selectedDate, slot) ||
+    (calculateHoursUntil(selectedDate, slot.split(' - ')[0]) <= 0 ? 'El horario ya pasó' : null);
+
   // ---- Navegación entre pasos ----
   const goToPlayers = () => {
     if (selectedDate < minDateStr || selectedDate > maxDateStr) {
@@ -182,7 +185,7 @@ export default function BookCourtPage() {
       notify({ variant: 'warning', message: 'Elegí una cancha y un horario disponible para continuar.' });
       return;
     }
-    const blockReason = getSlotBlock(selectedCourt, selectedDate, selectedTimeSlot);
+    const blockReason = slotUnavailableReason(selectedCourt, selectedTimeSlot);
     if (blockReason) {
       notify({ variant: 'warning', message: `El turno elegido no está disponible: ${blockReason}.` });
       return;
@@ -493,7 +496,7 @@ export default function BookCourtPage() {
                         <span>Duración:</span>
                         <select
                           value={durationHours}
-                          onChange={(e) => setDurationHours(Number(e.target.value))}
+                          onChange={(e) => { setDurationHours(Number(e.target.value)); setSelectedTimeSlot(''); }}
                           className="font-bold text-slate-800 bg-slate-100 px-2 py-1 rounded-lg outline-none"
                         >
                           <option value={1}>1 hora</option>
@@ -502,10 +505,9 @@ export default function BookCourtPage() {
                       </div>
                     </div>
                     <div className="grid grid-cols-2 gap-2 pt-1">
-                      {CARD_SLOTS.map((slot) => {
-                        const blockReason = getSlotBlock(selectedCourt, selectedDate, slot);
-                        const startHour = slot.split(' - ')[0];
-                        const [, endHour] = slot.split(' - ');
+                      {buildSlots(durationHours).map((slot) => {
+                        const blockReason = slotUnavailableReason(selectedCourt, slot);
+                        const [startHour, endHour] = slot.split(' - ');
                         const taken = Boolean(findReservationConflict(reservations, { courtId: selectedCourt.id, date: selectedDate, startTime: startHour, endTime: endHour }));
                         const isBooked = taken || Boolean(blockReason);
                         const isSelected = selectedTimeSlot === slot;

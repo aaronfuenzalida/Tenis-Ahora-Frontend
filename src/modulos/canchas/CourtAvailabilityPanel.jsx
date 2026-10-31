@@ -15,6 +15,18 @@ export function getAvailability(court) {
   return { ...DEFAULT_COURT_AVAILABILITY, ...(court?.availability || {}) };
 }
 
+// Franjas reservables de 1 o 2 horas ("HH:MM - HH:MM") dentro del horario general del club. Los días,
+// horarios y bloqueos propios de cada cancha se aplican después con getSlotBlock.
+export function buildSlots(hours, open = DEFAULT_COURT_AVAILABILITY.openTime, close = DEFAULT_COURT_AVAILABILITY.closeTime) {
+  const pad = (n) => String(n).padStart(2, '0');
+  const label = (min) => `${pad(Math.floor(min / 60))}:${pad(min % 60)}`;
+  const slots = [];
+  for (let from = toMinutes(open); from + hours * 60 <= toMinutes(close); from += hours * 60) {
+    slots.push(`${label(from)} - ${label(from + hours * 60)}`);
+  }
+  return slots;
+}
+
 // RD06: devuelve el motivo por el que el turno ("HH:MM - HH:MM") no se puede reservar, o null si está libre de bloqueos.
 export function getSlotBlock(court, dateStr, slot) {
   if (court?.status === 'mantenimiento') return court.maintenanceNotes || 'Cancha en mantenimiento';

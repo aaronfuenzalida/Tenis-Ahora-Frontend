@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { coachesAndClassesService, clubConfigService, DEFAULT_CLUB_CONFIG } from '../../api';
+import { coachesAndClassesService, clubConfigService, DEFAULT_CLUB_CONFIG, maxBookingDate } from '../../api';
 import { useAuth } from '../../auth/AuthContext';
 import Avatar from '../../layout/Avatar';
 import { useFeedback } from '../../ui/FeedbackContext';
@@ -22,7 +22,7 @@ export default function ClientPrivateLessonsPage() {
   const [clubConfig, setClubConfig] = useState(DEFAULT_CLUB_CONFIG);
 
   const [requestCoach, setRequestCoach] = useState(null);
-  const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState(() => maxBookingDate(0));
   const [time, setTime] = useState('11:00 - 12:00');
   const [notes, setNotes] = useState('');
   const [payment, setPayment] = useState(null); // { coach, date, time, notes }
@@ -208,7 +208,7 @@ export default function ClientPrivateLessonsPage() {
               <input
                 type="date"
                 required
-                min={new Date().toISOString().split('T')[0]}
+                min={maxBookingDate(0)}
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 className="w-full p-2 rounded-xl border border-slate-200"

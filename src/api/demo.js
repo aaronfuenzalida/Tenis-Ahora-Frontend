@@ -840,7 +840,7 @@ export const tournamentsMock = {
       phone: participantData.phone || '',
       partnerName: participantData.partnerName || '',
       partnerDni: participantData.partnerDni || '',
-      enrolledAt: new Date().toISOString().split('T')[0]
+      enrolledAt: maxBookingDate(0)
     };
     tournamentsStore = tournamentsStore.map(t => {
       if (t.id === trnId) {
@@ -884,7 +884,7 @@ export const tournamentsMock = {
         winner: null,
         status: 'programado',
         court: matchData.court || 'Cancha 1',
-        date: matchData.date || new Date().toISOString().split('T')[0]
+        date: matchData.date || maxBookingDate(0)
       };
       const target = bracket.find(r => r.round === roundName);
       if (target) {
@@ -1003,7 +1003,7 @@ export const leaguesMock = {
       phone: participantData.phone || '',
       partnerName: participantData.partnerName || '',
       partnerDni: participantData.partnerDni || '',
-      enrolledAt: new Date().toISOString().split('T')[0]
+      enrolledAt: maxBookingDate(0)
     };
     leaguesStore = leaguesStore.map(l => {
       if (l.id === leagueId) {
@@ -1133,7 +1133,7 @@ export const leaguesMock = {
           winner: null,
           status: 'programado',
           court: matchData.court || 'Cancha 1',
-          date: matchData.date || new Date().toISOString().split('T')[0]
+          date: matchData.date || maxBookingDate(0)
         };
         if (targetRound) {
           targetRound.matches = [...(targetRound.matches || []), newMatch];
@@ -1285,7 +1285,7 @@ export const coachesAndClassesMock = {
       name: studentData.name,
       dni: studentData.dni,
       phone: studentData.phone || '',
-      enrolledAt: new Date().toISOString().split('T')[0],
+      enrolledAt: maxBookingDate(0),
       attendance: Array(targetClass.sessions?.length || 8).fill('P')
     };
     classesStore = classesStore.map(cls => {
@@ -1578,7 +1578,7 @@ export const usersMock = {
       memberNumber: isAdmin
         ? `ADM-${String(usersStore.filter(u => u.role === 'admin').length + 1).padStart(3, '0')}`
         : `TA-${Math.floor(1000 + Math.random() * 9000)}`,
-      memberSince: new Date().toISOString().split('T')[0],
+      memberSince: maxBookingDate(0),
       activeDiscounts: userData.activeDiscounts || [],
       totalBookings: 0
     };

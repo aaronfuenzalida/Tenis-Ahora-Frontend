@@ -728,6 +728,7 @@ export const INITIAL_RESERVATIONS = [
 export const INITIAL_TOURNAMENTS = [
   {
     "id": "trn-01",
+    "competitionTypeId": "cmp-elim",
     "name": "Torneo Primavera 2026 Singles Caballeros",
     "category": "Masculino",
     "modality": "Singles",
@@ -1029,6 +1030,7 @@ export const INITIAL_TOURNAMENTS = [
   },
   {
     "id": "trn-02",
+    "competitionTypeId": "cmp-dobles",
     "name": "Torneo de Dobles Damas - Noviembre 2026",
     "category": "Femenino",
     "modality": "Pareja",
@@ -1083,6 +1085,7 @@ export const INITIAL_TOURNAMENTS = [
   },
   {
     "id": "trn-03",
+    "competitionTypeId": "cmp-elim",
     "name": "Torneo Invierno 2026 Singles Damas",
     "category": "Femenino",
     "modality": "Singles",
@@ -1246,6 +1249,7 @@ export const INITIAL_TOURNAMENTS = [
 export const INITIAL_LEAGUES = [
   {
     "id": "liga-01",
+    "competitionTypeId": "cmp-liga",
     "name": "Liga Primavera Singles Caballeros",
     "category": "Masculino",
     "modality": "Singles",
@@ -1591,6 +1595,7 @@ export const INITIAL_LEAGUES = [
   },
   {
     "id": "liga-02",
+    "competitionTypeId": "cmp-liga",
     "name": "Liga de Dobles Mixto",
     "category": "Mixto",
     "modality": "Pareja",

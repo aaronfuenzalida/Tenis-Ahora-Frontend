@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { getSlotBlock } from './CourtAvailabilityPanel';
+import { buildSlots, getSlotBlock } from './CourtAvailabilityPanel';
 import { DEFAULT_CLUB_CONFIG, maxBookingDate } from '../../api';
 import { calculateHoursUntil, findReservationConflict } from '../../utils/formatters';
 
@@ -17,36 +17,8 @@ export default function CourtTimelineGrid({
   const [surfaceFilter, setSurfaceFilter] = useState('ALL');
   const [slotDuration, setSlotDuration] = useState(2); // 1 or 2 hours
 
-  // 2-hour slots from 08:00 to 22:00
-  const twoHourSlots = [
-    '08:00 - 10:00',
-    '10:00 - 12:00',
-    '12:00 - 14:00',
-    '14:00 - 16:00',
-    '16:00 - 18:00',
-    '18:00 - 20:00',
-    '20:00 - 22:00'
-  ];
-
-  // 1-hour slots from 08:00 to 22:00
-  const oneHourSlots = [
-    '08:00 - 09:00',
-    '09:00 - 10:00',
-    '10:00 - 11:00',
-    '11:00 - 12:00',
-    '12:00 - 13:00',
-    '13:00 - 14:00',
-    '14:00 - 15:00',
-    '15:00 - 16:00',
-    '16:00 - 17:00',
-    '17:00 - 18:00',
-    '18:00 - 19:00',
-    '19:00 - 20:00',
-    '20:00 - 21:00',
-    '21:00 - 22:00'
-  ];
-
-  const activeSlots = slotDuration === 1 ? oneHourSlots : twoHourSlots;
+  // Franjas de 1 o 2 horas de 08:00 a 22:00
+  const activeSlots = buildSlots(slotDuration);
 
   // Filter courts by surface
   const filteredCourts = courts.filter(c => {
