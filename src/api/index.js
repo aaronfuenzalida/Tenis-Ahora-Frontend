@@ -1,7 +1,7 @@
 // Punto de entrada de los servicios: cada pantalla importa de acá y no sabe si está
 // hablando con la API real (http.js) o con la demo en memoria (demo.js).
-import api, { mensajeDeError, authService, courtsHttp, courtTypesHttp, stockHttp, reservationsHttp, tournamentsHttp, competitionTypesHttp, leaguesHttp, coachesAndClassesHttp, receiptsHttp, discountsHttp, documentsHttp, clubConfigHttp, invoicesHttp, refundsHttp, usersHttp } from './http';
-import { courtsMock, courtTypesMock, stockMock, reservationsMock, tournamentsMock, competitionTypesMock, leaguesMock, coachesAndClassesMock, receiptsMock, discountsMock, documentsMock, clubConfigMock, invoicesMock, refundsMock, usersMock } from './demo';
+import api, { mensajeDeError, authService, courtsHttp, courtTypesHttp, stockHttp, reservationsHttp, tournamentsHttp, competitionTypesHttp, leaguesHttp, coachesAndClassesHttp, receiptsHttp, discountsHttp, documentsHttp, clubConfigHttp, invoicesHttp, refundsHttp, usersHttp, paymentsHttp } from './http';
+import { courtsMock, courtTypesMock, stockMock, reservationsMock, tournamentsMock, competitionTypesMock, leaguesMock, coachesAndClassesMock, receiptsMock, discountsMock, documentsMock, clubConfigMock, invoicesMock, refundsMock, usersMock, paymentsMock } from './demo';
 import { isDemoPath } from '../utils/portalPaths';
 
 export { mensajeDeError, authService };
@@ -33,5 +33,6 @@ export const documentsService = withBackend(documentsMock, documentsHttp);
 export const invoicesService = withBackend(invoicesMock, invoicesHttp);
 export const refundsService = withBackend(refundsMock, refundsHttp);
 export const usersService = withBackend(usersMock, usersHttp);
+export const paymentsService = withBackend(paymentsMock, paymentsHttp);
 
 export default api;

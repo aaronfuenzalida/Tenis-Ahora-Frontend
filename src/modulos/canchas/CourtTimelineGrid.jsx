@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { getSlotBlock } from './CourtAvailabilityPanel';
 import { DEFAULT_CLUB_CONFIG, maxBookingDate } from '../../api';
+import { calculateHoursUntil, findReservationConflict } from '../../utils/formatters';
 
 export default function CourtTimelineGrid({
   courts = [],
@@ -54,8 +55,7 @@ export default function CourtTimelineGrid({
   });
 
   // Date calculation boundaries (antelación máxima del club, RD05)
-  const today = new Date();
-  const todayStr = today.toISOString().split('T')[0];
+  const todayStr = maxBookingDate(0);
   const maxDateStr = maxBookingDate(maxAdvanceBookingDays);
 
   const handlePrevDay = () => {
@@ -111,28 +111,23 @@ export default function CourtTimelineGrid({
       };
     }
 
-    // 2. Real reservations from reservations store
-    const startHour = slot.split(' - ')[0];
-    const matchRes = reservations.find(r => 
-      (r.courtId === court.id || r.courtName === court.name) && 
-      r.date === selectedDate &&
-      r.startTime === startHour
-    );
+    // 2. Reservas activas que se superponen con la franja
+    const [startHour, endHour] = slot.split(' - ');
+    const matchRes = findReservationConflict(reservations, { courtId: court.id, date: selectedDate, startTime: startHour, endTime: endHour });
     if (matchRes) {
       return {
         type: 'BOOKED',
         label: 'Reservado',
-        detail: `Turno Confirmado (${matchRes.status})`
+        detail: matchRes.status === 'pendiente_pago' ? 'Reserva pendiente de pago' : 'Turno reservado'
       };
     }
 
-    // 3. Demo booked slots (deterministic based on court id and hour string)
-    const hash = (court.id.charCodeAt(court.id.length - 1) + parseInt(slot, 10) + selectedDate.charCodeAt(selectedDate.length - 1)) % 7;
-    if (hash === 1 || hash === 3) {
+    // 3. Horario que ya pasó
+    if (calculateHoursUntil(selectedDate, startHour) <= 0) {
       return {
-        type: 'BOOKED',
-        label: 'Reservado',
-        detail: 'Alquiler Socio'
+        type: 'MAINTENANCE',
+        label: 'No disponible',
+        detail: 'El horario ya pasó'
       };
     }
 

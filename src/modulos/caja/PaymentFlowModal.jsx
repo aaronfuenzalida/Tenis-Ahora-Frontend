@@ -1,14 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Modal from '../../ui/Modal';
-import QRCode, { qrPayloads } from '../../ui/QRCode';
 import ReceiptModal from './ReceiptModal';
+import PaymentForm from './PaymentForm';
 import { receiptsService } from '../../api';
 
-export const PAYMENT_METHODS = [
-  { id: 'Mercado Pago (QR)', label: 'Billetera virtual QR' },
-  { id: 'Tarjeta de Débito', label: 'Tarjeta de débito' },
-  { id: 'Tarjeta de Crédito', label: 'Tarjeta de crédito' }
-];
+export { PAYMENT_METHODS } from './PaymentForm';
 
 function nowStamp() {
   const d = new Date();
@@ -22,8 +18,9 @@ export function newReceiptId() {
 
 /**
  * Arma el recibo oficial de un pago hecho desde el portal (inscripciones, clases, turnos).
+ * El medio de pago y la transacción los completa el backend con los datos del pago aprobado.
  */
-export function buildReceipt({ concept, items, amount, paymentMethod, client, relatedId, kind, cashierName }) {
+export function buildReceipt({ concept, items, amount, transaction, client, relatedId, kind, cashierName }) {
   const id = newReceiptId();
   return {
     id,
@@ -35,7 +32,8 @@ export function buildReceipt({ concept, items, amount, paymentMethod, client, re
     concept,
     items: items && items.length ? items : [{ description: concept, amount }],
     totalPaid: amount,
-    paymentMethod,
+    paymentMethod: transaction.paymentMethod,
+    transactionId: transaction.id,
     status: 'completado',
     date: nowStamp(),
     cashierName: cashierName || 'Portal del socio'
@@ -43,11 +41,13 @@ export function buildReceipt({ concept, items, amount, paymentMethod, client, re
 }
 
 /**
- * Flujo de pago en pasos para inscripciones a torneos, ligas, clases y turnos particulares:
- *   1) elegir medio de pago  2) pagar (QR real o tarjeta)  3) comprobante emitido.
+ * Flujo de pago: 1) pagar con tarjeta o QR (PaymentForm)  2) comprobante emitido.
  *
- * `onPaid(paymentMethod)` se ejecuta al acreditarse el pago, antes de emitir el recibo
- * (ahí el padre hace la inscripción). Si lanza un error, no se emite recibo y se muestra el mensaje.
+ * Sin `settle`, sirve para inscripciones a torneos, ligas, clases, turnos y cobros en mostrador:
+ * `onPaid(paymentMethod, transaction)` se ejecuta con el pago aprobado, antes de emitir el recibo (ahí
+ * el padre hace la inscripción); si lanza un error, no se emite recibo y se muestra el mensaje.
+ * Con `settle(transaction)`, el padre registra el cobro (por ejemplo la seña de una reserva) y
+ * devuelve el recibo que emitió el backend.
  * `onCompleted(receipt)` se llama cuando el recibo quedó registrado.
  */
 export default function PaymentFlowModal({
@@ -63,90 +63,55 @@ export default function PaymentFlowModal({
   summary,
   cashierName,
   onPaid,
+  settle,
   onCompleted
 }) {
-  const [step, setStep] = useState('method'); // method | qr | processing | done
-  const [paymentMethod, setPaymentMethod] = useState(PAYMENT_METHODS[0].id);
-  const [error, setError] = useState('');
   const [receipt, setReceipt] = useState(null);
   const [showReceipt, setShowReceipt] = useState(false);
+  const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
-      setStep('method');
-      setError('');
       setReceipt(null);
       setShowReceipt(false);
+      setProcessing(false);
     }
   }, [isOpen]);
 
-  const reference = useMemo(() => `${(kind || 'PAGO').toUpperCase()}-${Date.now()}`, [isOpen, kind]); // eslint-disable-line react-hooks/exhaustive-deps
-  const qrPayload = useMemo(() => qrPayloads.payment({ concept, amount, reference }), [concept, amount, reference]);
-
-  const settle = async () => {
-    setStep('processing');
-    setError('');
-    try {
-      const extra = await onPaid?.(paymentMethod);
-      const rec = buildReceipt({
+  // Si falla, el error sube a PaymentForm, que lo muestra y permite volver a pagar.
+  const handleApproved = async (transaction) => {
+    let rec;
+    if (settle) {
+      rec = await settle(transaction);
+    } else {
+      const extra = await onPaid?.(transaction.paymentMethod, transaction);
+      const draft = buildReceipt({
         concept,
         items,
         amount,
-        paymentMethod,
+        transaction,
         client,
         relatedId: extra?.relatedId || relatedId,
         kind,
         cashierName
       });
-      await receiptsService.create(rec);
-      setReceipt(rec);
-      setStep('done');
-      onCompleted?.(rec);
-    } catch (err) {
-      setError(err?.response?.data?.error || err?.message || 'No se pudo completar el pago.');
-      setStep('method');
+      const res = await receiptsService.create(draft);
+      rec = res?.data || draft;
     }
+    setReceipt(rec);
+    onCompleted?.(rec);
   };
 
-  const handlePay = () => {
-    if (paymentMethod === 'Mercado Pago (QR)') {
-      setStep('qr');
-    } else {
-      settle();
-    }
-  };
-
+  // Mientras se procesa el pago no se cierra: el cobro ya está en curso.
   const handleClose = () => {
-    if (step === 'processing') return;
-    onClose(step === 'done' ? receipt : null);
+    if (processing) return;
+    onClose(receipt);
   };
-
-  const steps = [
-    { id: 'method', label: 'Medio de pago' },
-    { id: 'qr', label: 'Pago' },
-    { id: 'done', label: 'Comprobante' }
-  ];
-  const stepIndex = step === 'method' ? 0 : step === 'done' ? 2 : 1;
 
   return (
     <>
       <Modal isOpen={isOpen} onClose={handleClose} title={title} maxWidth="max-w-md">
         <div className="space-y-5 text-xs">
-          {/* Indicador de pasos */}
-          <ol className="flex items-center gap-2">
-            {steps.map((s, idx) => (
-              <li key={s.id} className="flex items-center gap-2 flex-1">
-                <span className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-[11px] shrink-0 ${
-                  idx < stepIndex ? 'bg-tennis-600 text-white' : idx === stepIndex ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-400'
-                }`}>
-                  {idx + 1}
-                </span>
-                <span className={`font-bold truncate ${idx === stepIndex ? 'text-slate-900' : 'text-slate-400'}`}>{s.label}</span>
-                {idx < steps.length - 1 && <span className="flex-1 border-t border-slate-200" />}
-              </li>
-            ))}
-          </ol>
-
           {/* Resumen */}
           <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
             <div className="font-semibold text-slate-800">{concept}</div>
@@ -157,97 +122,16 @@ export default function PaymentFlowModal({
             </div>
           </div>
 
-          {error && (
-            <div className="p-3 bg-red-50 text-red-700 rounded-xl border border-red-200 font-semibold">{error}</div>
+          {!receipt && (
+            <PaymentForm amount={amount} concept={concept} onApproved={handleApproved} onCancel={handleClose} onProcessingChange={setProcessing} />
           )}
 
-          {/* Paso 1: medio de pago */}
-          {(step === 'method' || step === 'processing') && (
-            <div className="space-y-4">
-              <div>
-                <label className="font-bold text-slate-700 uppercase block mb-2">Elegí cómo pagar</label>
-                <div className="grid grid-cols-1 gap-2">
-                  {PAYMENT_METHODS.map(m => {
-                    const active = paymentMethod === m.id;
-                    return (
-                      <button
-                        key={m.id}
-                        type="button"
-                        disabled={step === 'processing'}
-                        onClick={() => setPaymentMethod(m.id)}
-                        className={`p-3 rounded-xl border text-left font-bold flex items-center gap-3 transition-all ${
-                          active
-                            ? 'bg-tennis-50 text-tennis-900 border-tennis-600 ring-1 ring-tennis-500'
-                            : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
-                        }`}
-                      >
-                        {m.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={handleClose}
-                  disabled={step === 'processing'}
-                  className="px-4 py-2 font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="button"
-                  onClick={handlePay}
-                  disabled={step === 'processing'}
-                  className="px-5 py-2 bg-tennis-600 hover:bg-tennis-700 disabled:opacity-50 text-white font-bold rounded-xl shadow-sm transition-colors"
-                >
-                  {step === 'processing'
-                    ? 'Procesando pago...'
-                    : paymentMethod === 'Mercado Pago (QR)'
-                    ? 'Continuar al QR'
-                    : `Pagar $${Number(amount || 0).toLocaleString('es-AR')}`}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Paso 2: QR real */}
-          {step === 'qr' && (
-            <div className="text-center space-y-3">
-              <p className="text-slate-600">Escaneá el código con tu billetera virtual.</p>
-              <div className="inline-block p-3 bg-white rounded-2xl border-2 border-dashed border-slate-300">
-                <div className="w-48 h-48">
-                  <QRCode value={qrPayload} size={192} />
-                </div>
-              </div>
-              <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setStep('method')}
-                  className="px-4 py-2 font-bold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors"
-                >
-                  Volver
-                </button>
-                <button
-                  type="button"
-                  onClick={settle}
-                  className="px-5 py-2 bg-tennis-600 hover:bg-tennis-700 text-white font-bold rounded-xl shadow-sm transition-colors"
-                >
-                  Ya pagué: confirmar acreditación
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Paso 3: comprobante */}
-          {step === 'done' && receipt && (
+          {receipt && (
             <div className="space-y-4 text-center">
               <div>
                 <h4 className="text-base font-extrabold text-slate-900">Pago acreditado</h4>
                 <p className="text-slate-600 mt-1">
-                  Se emitió el recibo <strong className="font-mono">{receipt.id}</strong>.{' '}
+                  Se emitió el recibo <strong className="font-mono">{receipt.id}</strong> (operación {receipt.transactionId}).{' '}
                   {kind === 'mostrador'
                     ? <>Quedó registrado en <strong>Recibos y Cobros</strong>.</>
                     : <>Lo vas a encontrar en <strong>Mis Pagos y Recibos</strong>.</>}
@@ -257,14 +141,14 @@ export default function PaymentFlowModal({
                 <button
                   type="button"
                   onClick={() => setShowReceipt(true)}
-                  className="px-4 py-2 rounded-xl bg-tennis-50 hover:bg-tennis-100 text-tennis-800 font-bold border border-tennis-200 transition-colors"
+                  className="px-4 py-2 rounded-xl bg-tennis-50 hover:bg-tennis-100 text-tennis-800 font-bold border border-tennis-200"
                 >
                   Ver recibo
                 </button>
                 <button
                   type="button"
                   onClick={handleClose}
-                  className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl shadow-sm transition-colors"
+                  className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl shadow-sm"
                 >
                   Listo
                 </button>

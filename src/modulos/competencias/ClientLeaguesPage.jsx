@@ -65,6 +65,11 @@ export default function ClientLeaguesPage() {
       notify({ variant: 'warning', message: 'El DNI de tu pareja no puede ser el tuyo.' });
       return;
     }
+    // Se valida antes del pago para no cobrar una inscripción que el club va a rechazar.
+    if (enrollForm.partnerDni && isEnrolledByDni(selectedLeague?.participants, enrollForm.partnerDni)) {
+      notify({ variant: 'warning', message: `${enrollForm.partnerName} ya está inscripto en "${selectedLeague.name}".` });
+      return;
+    }
     setShowEnrollModal(false);
     setPayment({ target: selectedLeague, participantData: { ...enrollForm } });
   };
@@ -291,7 +296,7 @@ export default function ClientLeaguesPage() {
               <MemberSelect
                 value={enrollForm.partnerDni}
                 placeholder="Seleccionar pareja"
-                excludeDnis={[enrollForm.dni]}
+                excludeDnis={[enrollForm.dni, ...(selectedLeague?.participants || []).flatMap(p => [p.dni, p.partnerDni])]}
                 onSelect={(m) => setEnrollForm({ ...enrollForm, partnerName: m?.name || '', partnerDni: m?.dni || '' })}
                 className="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white"
               />

@@ -74,6 +74,17 @@
     overflow: visible !important;
   }
 
+  /* Con un modal abierto se imprime solo el modal: la página de fondo no ocupa lugar y ninguna
+     transformación corre el área impresa (si no, el recibo salía desplazado y cortado). */
+  body:has(> .print-modal) > #root {
+    display: none !important;
+  }
+
+  .print-modal,
+  .print-modal * {
+    transform: none !important;
+  }
+
   .no-print {
     display: none !important;
   }

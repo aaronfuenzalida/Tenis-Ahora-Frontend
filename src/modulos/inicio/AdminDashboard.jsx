@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import usePortalPaths from '../../utils/portalPaths';
 import { courtsService, reservationsService, stockService, tournamentsService } from '../../api';
 import ReceiptModal from '../caja/ReceiptModal';
+import { RESERVATION_STATUS_LABELS } from '../../utils/formatters';
 
 export default function AdminDashboard() {
   const paths = usePortalPaths();
@@ -189,20 +190,19 @@ export default function AdminDashboard() {
                     </td>
                     <td className="py-2.5 px-3 text-center">
                       <span className={`text-[10px] font-bold ${
-                        res.status === 'finalizada' 
-                          ? 'text-slate-700' 
-                          : res.status === 'cancelada'
-                          ? 'text-slate-700'
-                          : 'text-tennis-800'
+                        res.status === 'confirmada' || res.status === 'en_juego' ? 'text-tennis-800' : 'text-slate-700'
                       }`}>
-                        {res.status === 'finalizada' ? 'Finalizada' : res.status === 'cancelada' ? 'Cancelada' : 'Confirmada'}
+                        {RESERVATION_STATUS_LABELS[res.status] || res.status}
                       </span>
                     </td>
                     <td className="py-2.5 px-3 text-right">
+                      {res.depositReceiptNumber && (
                       <button
                         type="button"
                         onClick={() => setSelectedReceipt({
                           id: res.depositReceiptNumber,
+                          reservationId: res.id,
+                          transactionId: res.depositTransactionId,
                           clientName: res.participants[0]?.name,
                           clientDni: res.participants[0]?.dni,
                           concept: `Reserva - ${res.courtName}`,
@@ -219,6 +219,7 @@ export default function AdminDashboard() {
                       >
                         Ver
                       </button>
+                      )}
                     </td>
                   </tr>
                 ))}

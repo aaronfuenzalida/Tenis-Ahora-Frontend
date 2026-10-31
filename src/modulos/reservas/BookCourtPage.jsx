@@ -3,8 +3,8 @@ import { useAuth } from '../../auth/AuthContext';
 import { useFeedback } from '../../ui/FeedbackContext';
 import { courtsService, stockService, reservationsService, clubConfigService, usersService, DEFAULT_CLUB_CONFIG, maxBookingDate } from '../../api';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
-import QRModal from '../../ui/QRModal';
 import ReceiptModal from '../caja/ReceiptModal';
+import PaymentFlowModal from '../caja/PaymentFlowModal';
 import CourtTimelineGrid from '../canchas/CourtTimelineGrid';
 import Stepper from '../../ui/Stepper';
 import { getSlotBlock } from '../canchas/CourtAvailabilityPanel';
@@ -41,7 +41,7 @@ export default function BookCourtPage() {
   // Paso 1: cronograma
   const [viewMode, setViewMode] = useState('timeline'); // 'timeline' | 'cards'
   const [selectedSurface, setSelectedSurface] = useState('ALL');
-  const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(() => maxBookingDate(0));
   const [selectedCourt, setSelectedCourt] = useState(null);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState('');
   const [durationHours, setDurationHours] = useState(2);
@@ -53,12 +53,12 @@ export default function BookCourtPage() {
     { name: '', dni: '', phone: '' }
   ]);
 
-  // Paso 3: pago
-  const [paymentMethod, setPaymentMethod] = useState('Mercado Pago (QR)');
-  const [showQRModal, setShowQRModal] = useState(false);
+  // Paso 3: pago. La reserva se registra pendiente de pago y se confirma al abonar la seña (RD01).
+  const [pendingReservation, setPendingReservation] = useState(null);
+  const [paymentTarget, setPaymentTarget] = useState(null); // reserva cuya seña se está pagando
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [generatedReceipt, setGeneratedReceipt] = useState(null);
-  const [bookingSuccess, setBookingSuccess] = useState(false);
+  const [confirmedReservation, setConfirmedReservation] = useState(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -123,8 +123,8 @@ export default function BookCourtPage() {
   const courtPricePerHour = selectedCourt ? selectedCourt.pricePerHour : 0;
   const courtTotal = courtPricePerHour * durationHours;
   const totalReservation = courtTotal;
-  const deposit50 = totalReservation * 0.5;
-  const remaining50 = totalReservation * 0.5;
+  const deposit50 = Math.round(totalReservation / 2);
+  const remaining50 = totalReservation - deposit50;
 
   // ---- Stock ----
   const ballStock = stock.find(s => s.category === 'Pelotas');
@@ -141,7 +141,15 @@ export default function BookCourtPage() {
   // Antelación máxima que fija el club
   const maxDays = clubConfig.maxAdvanceBookingDays;
   const maxDateStr = maxBookingDate(maxDays);
-  const minDateStr = new Date().toISOString().split('T')[0];
+  const minDateStr = maxBookingDate(0);
+
+  // Reservas propias registradas que todavía no tienen la seña abonada
+  // (la API ya devuelve solo las del socio; en la demo se filtran por el DNI del titular)
+  const myPending = myReservations.filter(r =>
+    r.status === 'pendiente_pago' &&
+    r.id !== pendingReservation?.id &&
+    (!user?.dni || cleanDNI(r.participants?.[0]?.dni || '') === cleanDNI(user.dni))
+  );
 
   // Reserva repetida: misma cancha en la misma franja, o un jugador que ya tiene reserva a esa hora.
   const conflictMessage = (withPlayers) => {
@@ -202,7 +210,12 @@ export default function BookCourtPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleProceedPayment = () => {
+  // Registra la reserva (queda pendiente de pago) y abre el cobro de la seña.
+  const handleProceedPayment = async () => {
+    if (pendingReservation) {
+      setPaymentTarget(pendingReservation);
+      return;
+    }
     if (!canBookWithStock) {
       notify({ variant: 'warning', message: 'No se puede reservar la cancha: no hay disponibilidad de red, pelotas o raquetas en stock.' });
       return;
@@ -212,49 +225,56 @@ export default function BookCourtPage() {
       notify({ variant: 'warning', message: clash });
       return;
     }
-    if (paymentMethod === 'Mercado Pago (QR)') {
-      setShowQRModal(true);
-    } else {
-      executeReservation();
-    }
-  };
-
-  const executeReservation = async () => {
     if (saving) return;
     setSaving(true);
-    const bookingPayload = {
-      courtId: selectedCourt.id,
-      courtName: selectedCourt.name,
-      surfaceType: selectedCourt.surfaceType,
-      date: selectedDate,
-      startTime: selectedTimeSlot.split(' - ')[0] || '10:00',
-      endTime: selectedTimeSlot.split(' - ')[1] || '12:00',
-      durationHours,
-      playersType,
-      participants: players,
-      equipmentAssigned: { nets: requiredNets, ballTubes: requiredBalls, rackets: requiredRackets },
-      courtCost: courtTotal,
-      equipmentCost: 0,
-      totalCost: totalReservation,
-      depositPaid: deposit50,
-      depositPaymentMethod: paymentMethod,
-      remainingBalance: remaining50
-    };
-
     try {
-      const res = await reservationsService.create(bookingPayload);
-      setGeneratedReceipt(res.receipt);
-      setBookingSuccess(true);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      const res = await reservationsService.create({
+        courtId: selectedCourt.id,
+        date: selectedDate,
+        startTime: selectedTimeSlot.split(' - ')[0],
+        durationHours,
+        playersType,
+        participants: players
+      });
+      setPendingReservation(res.data);
+      setPaymentTarget(res.data);
     } catch (err) {
-      notify({ variant: 'error', title: 'No se pudo confirmar la reserva', message: err?.response?.data?.error || err.message || 'Intentá nuevamente.' });
+      notify({ variant: 'error', title: 'No se pudo registrar la reserva', message: err?.response?.data?.error || err.message || 'Intentá nuevamente.' });
     } finally {
       setSaving(false);
     }
   };
 
+  // Cobra la seña de la reserva pendiente: el backend la confirma y emite el recibo.
+  const settleDeposit = async (transaction) => {
+    const res = await reservationsService.payDeposit(paymentTarget.id, transaction.id);
+    setConfirmedReservation(res.data);
+    setGeneratedReceipt(res.receipt);
+    return res.receipt;
+  };
+
+  const handlePaymentClosed = (receipt) => {
+    setPaymentTarget(null);
+    if (receipt) {
+      setPendingReservation(null);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handleCancelPending = async (reservation) => {
+    try {
+      await reservationsService.cancel(reservation.id);
+    } catch (err) {
+      notify({ variant: 'error', title: 'No se pudo cancelar la reserva', message: err?.response?.data?.error || err.message });
+      return;
+    }
+    if (reservation.id === pendingReservation?.id) setPendingReservation(null);
+    notify({ variant: 'success', title: 'Reserva cancelada', message: `La reserva ${reservation.id} se anuló sin cargo: no tenía la seña abonada.` });
+    loadData();
+  };
+
   const resetFlow = () => {
-    setBookingSuccess(false);
+    setConfirmedReservation(null);
     setGeneratedReceipt(null);
     setSelectedTimeSlot('');
     setStep(0);
@@ -268,20 +288,22 @@ export default function BookCourtPage() {
   }
 
   // ======================= Pantalla de éxito =======================
-  if (bookingSuccess) {
+  if (confirmedReservation && !paymentTarget) {
+    const done = confirmedReservation;
     return (
       <div className="space-y-6">
         <PageHeader />
         <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm text-center max-w-2xl mx-auto space-y-4">
-          <h2 className="text-2xl font-extrabold text-slate-900">¡Reserva confirmada!</h2>
+          <h2 className="text-2xl font-extrabold text-slate-900">Reserva confirmada</h2>
           <p className="text-sm text-slate-600">
-            Se registró el pago de la seña del 50%: <strong>${deposit50.toLocaleString('es-AR')}</strong>. El saldo de ${remaining50.toLocaleString('es-AR')} se abona en administración al terminar el partido.
+            Se registró el pago de la seña del 50%: <strong>${done.depositPaid?.toLocaleString('es-AR')}</strong>. El saldo de ${done.remainingBalance?.toLocaleString('es-AR')} se abona en administración al terminar el partido.
           </p>
 
           <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-left text-xs space-y-2">
-            <div className="flex justify-between font-bold text-slate-800"><span>Cancha:</span> <span>{selectedCourt?.name}</span></div>
-            <div className="flex justify-between text-slate-600"><span>Fecha y horario:</span> <span>{selectedDate} • {selectedTimeSlot} ({durationHours} hs)</span></div>
-            <div className="flex justify-between text-slate-600"><span>Jugadores:</span> <span className="text-right">{players.map(p => p.name).join(', ')}</span></div>
+            <div className="flex justify-between font-bold text-slate-800"><span>Reserva:</span> <span>{done.id}</span></div>
+            <div className="flex justify-between text-slate-800"><span>Cancha:</span> <span>{done.courtName}</span></div>
+            <div className="flex justify-between text-slate-600"><span>Fecha y horario:</span> <span>{done.date} • {done.startTime} a {done.endTime} ({done.durationHours} hs)</span></div>
+            <div className="flex justify-between text-slate-600"><span>Jugadores:</span> <span className="text-right">{(done.participants || []).map(p => p.name).join(', ')}</span></div>
             <div className="flex justify-between font-bold text-tennis-700 pt-2 border-t border-slate-200"><span>Comprobante:</span> <span>{generatedReceipt?.id}</span></div>
           </div>
 
@@ -291,7 +313,7 @@ export default function BookCourtPage() {
               onClick={() => setShowReceiptModal(true)}
               className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-bold text-sm shadow-md"
             >
-              Ver comprobante con QR
+              Ver comprobante
             </button>
             <button
               type="button"
@@ -312,8 +334,33 @@ export default function BookCourtPage() {
     <div className="space-y-6">
       <PageHeader />
 
-      {/* Indicador de pasos */}
-      <Stepper steps={STEPS} current={step} onStepClick={(idx) => setStep(idx)} />
+      {myPending.length > 0 && (
+        <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-3">
+          <div>
+            <h2 className="text-sm font-bold text-slate-900">Reservas pendientes de pago</h2>
+            <p className="text-[11px] text-slate-500">No están confirmadas hasta abonar la seña del 50%.</p>
+          </div>
+          {myPending.map(r => (
+            <div key={r.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-slate-100 text-xs">
+              <div>
+                <div className="font-bold text-slate-900">{r.id} • {r.courtName}</div>
+                <div className="text-slate-500">{r.date} • {r.startTime} a {r.endTime} • Seña ${r.depositAmount?.toLocaleString('es-AR')}</div>
+              </div>
+              <div className="flex gap-2 shrink-0">
+                <button type="button" onClick={() => handleCancelPending(r)} className="px-3 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-bold border border-slate-200">
+                  Cancelar
+                </button>
+                <button type="button" onClick={() => setPaymentTarget(r)} className="px-3 py-2 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-bold">
+                  Pagar seña
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Indicador de pasos: con una reserva ya registrada no se vuelve atrás */}
+      <Stepper steps={STEPS} current={step} onStepClick={(idx) => { if (!pendingReservation) setStep(idx); }} />
 
       {/* ======================= PASO 1: CRONOGRAMA ======================= */}
       {step === 0 && (
@@ -458,7 +505,8 @@ export default function BookCourtPage() {
                       {CARD_SLOTS.map((slot) => {
                         const blockReason = getSlotBlock(selectedCourt, selectedDate, slot);
                         const startHour = slot.split(' - ')[0];
-                        const taken = reservations.some(r => (r.courtId === selectedCourt.id || r.courtName === selectedCourt.name) && r.date === selectedDate && r.startTime === startHour);
+                        const [, endHour] = slot.split(' - ');
+                        const taken = Boolean(findReservationConflict(reservations, { courtId: selectedCourt.id, date: selectedDate, startTime: startHour, endTime: endHour }));
                         const isBooked = taken || Boolean(blockReason);
                         const isSelected = selectedTimeSlot === slot;
                         return (
@@ -568,7 +616,7 @@ export default function BookCourtPage() {
       {/* ======================= PASO 3: PAGO ======================= */}
       {step === 2 && (
         <div className="space-y-6 max-w-3xl mx-auto">
-          <SelectionSummary court={selectedCourt} date={selectedDate} slot={selectedTimeSlot} hours={durationHours} players={players} onEdit={() => setStep(0)} onEditPlayers={() => setStep(1)} />
+          <SelectionSummary court={selectedCourt} date={selectedDate} slot={selectedTimeSlot} hours={durationHours} players={players} onEdit={pendingReservation ? null : () => setStep(0)} onEditPlayers={pendingReservation ? null : () => setStep(1)} />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Equipamiento */}
@@ -601,25 +649,11 @@ export default function BookCourtPage() {
               ))}
             </div>
 
-            {/* Medio de pago y totales */}
+            {/* Totales */}
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-              <h3 className="text-xs font-bold uppercase text-slate-700">Medio de pago de la seña (50%)</h3>
-
-              <div className="grid grid-cols-3 gap-2">
-                {[
-                  { id: 'Mercado Pago (QR)', label: 'QR' },
-                  { id: 'Tarjeta de Débito', label: 'Débito' },
-                  { id: 'Tarjeta de Crédito', label: 'Crédito' }
-                ].map(method => (
-                  <button
-                    key={method.id}
-                    type="button"
-                    onClick={() => setPaymentMethod(method.id)}
-                    className={`p-2.5 rounded-xl text-center border text-xs font-bold transition-all ${paymentMethod === method.id ? 'bg-tennis-50 text-tennis-800 border-tennis-600 ring-1 ring-tennis-500' : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'}`}
-                  >
-                    {method.label}
-                  </button>
-                ))}
+              <div>
+                <h3 className="text-xs font-bold uppercase text-slate-700">Seña del 50%</h3>
+                <p className="text-[11px] text-slate-400">Se paga con tarjeta de débito, de crédito o con QR de billetera virtual.</p>
               </div>
 
               <div className="pt-3 border-t border-slate-100 text-xs space-y-2">
@@ -635,24 +669,42 @@ export default function BookCourtPage() {
             </div>
           </div>
 
-          <StepActions
-            onBack={() => setStep(1)}
-            backLabel="Volver a jugadores"
-            onNext={handleProceedPayment}
-            nextLabel={saving ? 'Confirmando...' : canBookWithStock ? `Pagar seña de $${deposit50.toLocaleString('es-AR')} y confirmar` : 'Sin stock de equipamiento'}
-            nextDisabled={!canBookWithStock || saving}
-          />
+          {pendingReservation ? (
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-3 text-xs">
+              <p className="text-slate-700">
+                La reserva <strong>{pendingReservation.id}</strong> quedó registrada como <strong>pendiente de pago</strong>: no se confirma hasta abonar la seña de ${pendingReservation.depositAmount?.toLocaleString('es-AR')}.
+              </p>
+              <div className="flex flex-col-reverse sm:flex-row justify-end gap-2">
+                <button type="button" onClick={() => handleCancelPending(pendingReservation)} className="px-4 py-3 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-bold text-sm border border-slate-200">
+                  Cancelar reserva
+                </button>
+                <button type="button" onClick={handleProceedPayment} className="px-6 py-3 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-extrabold text-sm shadow-md">
+                  Pagar seña de ${pendingReservation.depositAmount?.toLocaleString('es-AR')}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <StepActions
+              onBack={() => setStep(1)}
+              backLabel="Volver a jugadores"
+              onNext={handleProceedPayment}
+              nextLabel={saving ? 'Registrando reserva...' : canBookWithStock ? `Pagar seña de $${deposit50.toLocaleString('es-AR')}` : 'Sin stock de equipamiento'}
+              nextDisabled={!canBookWithStock || saving}
+            />
+          )}
         </div>
       )}
 
-      {/* QR para el pago de la seña */}
-      <QRModal
-        isOpen={showQRModal}
-        onClose={() => setShowQRModal(false)}
-        amount={deposit50}
-        concept={`Seña 50% - ${selectedCourt?.name}, ${selectedDate} ${selectedTimeSlot}`}
-        reference={`RES-${selectedCourt?.id}-${selectedDate}-${(selectedTimeSlot || '').split(' - ')[0]}`}
-        onPaymentSuccess={executeReservation}
+      {/* Cobro de la seña: confirma la reserva y emite el recibo */}
+      <PaymentFlowModal
+        isOpen={!!paymentTarget}
+        onClose={handlePaymentClosed}
+        title="Pago de la seña"
+        kind="reserva"
+        concept={paymentTarget ? `Seña 50% - ${paymentTarget.courtName}` : ''}
+        summary={paymentTarget ? `${paymentTarget.id} • ${paymentTarget.date} de ${paymentTarget.startTime} a ${paymentTarget.endTime}` : ''}
+        amount={paymentTarget?.depositAmount || 0}
+        settle={settleDeposit}
       />
     </div>
   );
@@ -686,7 +738,9 @@ function SelectionSummary({ court, date, slot, hours, players, onEdit, onEditPla
         )}
       </div>
       <div className="flex items-center gap-2 shrink-0">
-        <button type="button" onClick={onEdit} className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-bold border border-white/20">Cambiar turno</button>
+        {onEdit && (
+          <button type="button" onClick={onEdit} className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-bold border border-white/20">Cambiar turno</button>
+        )}
         {onEditPlayers && (
           <button type="button" onClick={onEditPlayers} className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-bold border border-white/20">Cambiar jugadores</button>
         )}

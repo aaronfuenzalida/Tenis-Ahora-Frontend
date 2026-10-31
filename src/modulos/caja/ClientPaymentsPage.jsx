@@ -17,7 +17,7 @@ export default function ClientPaymentsPage() {
     reservationsService.getAll().then(res => setReservations(res.data));
   }, []);
 
-  const pendingReservation = reservations.find(r => r.status === 'confirmada' && !r.remainingPaid);
+  const pendingReservation = reservations.find(r => (r.status === 'confirmada' || r.status === 'en_juego') && !r.remainingPaid);
 
   // Solo los comprobantes del socio logueado (la API ya los filtra; en la demo lo hacemos acá).
   const myDni = cleanDNI(user?.dni || '');

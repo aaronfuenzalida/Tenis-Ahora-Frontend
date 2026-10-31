@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { courtsService, reservationsService, stockService, coachesAndClassesService, receiptsService } from '../../api';
+import { RESERVATION_STATUS_LABELS } from '../../utils/formatters';
 
 // Date filter options
 const DATE_FILTERS = [
@@ -422,7 +423,7 @@ export default function ReportsPage() {
                       <td className="py-2.5 px-3 capitalize">{r.playersType}</td>
                       <td className="py-2.5 px-3 text-center">
                         <span className="text-[10px] font-bold text-tennis-800">
-                          {r.status}
+                          {RESERVATION_STATUS_LABELS[r.status] || r.status}
                         </span>
                       </td>
                     </tr>

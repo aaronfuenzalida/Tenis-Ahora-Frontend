@@ -107,10 +107,21 @@ export const reservationsHttp = {
   ...crud('/reservas'),
   // Turnos tomados de todo el club, sin datos de quién reservó (getAll solo trae las propias).
   getOccupancy: () => api.get('/reservas/ocupacion'),
+  // La reserva queda pendiente de pago hasta abonar la seña (RD01).
   create: (bookingData) => body(api.post('/reservas', bookingData)),
-  payRemainingBalance: (reservationId, paymentMethod = 'Mercado Pago (QR)') =>
-    api.post(`/reservas/${reservationId}/pagar-saldo`, { paymentMethod }),
+  payDeposit: (reservationId, transactionId) =>
+    body(api.post(`/reservas/${reservationId}/pagar-sena`, { transactionId })),
+  // Inicio del alquiler: descuenta del stock la red, las pelotas y las raquetas.
+  startRental: (reservationId) => api.post(`/reservas/${reservationId}/iniciar`),
+  // Fin del alquiler: cobra el saldo y devuelve el equipamiento al stock.
+  payRemainingBalance: (reservationId, transactionId) =>
+    body(api.post(`/reservas/${reservationId}/pagar-saldo`, { transactionId })),
   cancel: (reservationId) => body(api.post(`/reservas/${reservationId}/cancelar`))
+};
+
+// Pasarela simulada (tarjetas de prueba y QR de Mercado Pago): devuelve la transacción aprobada.
+export const paymentsHttp = {
+  create: (payment) => body(api.post('/pagos', payment))
 };
 
 // Torneos y ligas comparten las rutas de reglamento, inscripciones y enfrentamientos.

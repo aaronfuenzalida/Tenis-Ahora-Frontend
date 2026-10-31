@@ -106,11 +106,33 @@ al recargar la página vuelven al estado inicial.
   (o la tarjeta de la barra lateral). La foto se recorta en cuadrado y se guarda como data URL.
 - **Códigos QR**: carnet de socio, recibos y cobros con billetera virtual muestran QR reales
   (`qrcode.react`), con el texto codificado en `src/ui/QRCode.jsx`.
-- **Reserva por pasos**: cronograma → jugadores → pago de la seña, cada uno en su pantalla.
+- **Reserva por pasos**: cronograma → jugadores → pago de la seña, cada uno en su pantalla. La reserva
+  queda *pendiente de pago* hasta abonar la seña del 50 % (RD01); si se cierra el pago, se puede pagar o
+  cancelar después desde la misma pantalla. En *Control de Reservas* el personal cobra la seña, inicia el
+  alquiler (la red, las pelotas y las raquetas salen del stock) y al terminar cobra el saldo (vuelven al
+  stock).
 - **Portal del socio**: pantallas separadas para Torneos (`/app/torneos`), Ligas (`/app/ligas`), Clases y
   Entrenamientos grupales (`/app/clases`) y Clases Particulares (`/app/clases-particulares`).
 - **Inscripciones**: anotarse a un torneo, liga, clase grupal o turno particular lleva al pago
   (`PaymentFlowModal`), que al acreditarse registra la inscripción y emite el recibo visible en
   *Mis Pagos y Recibos*.
+- **Pagos**: todos los cobros (seña, saldo, inscripciones y mostrador) usan `PaymentForm`: tarjeta de
+  débito, tarjeta de crédito o QR de billetera virtual (RD11). La pasarela es simulada y solo acepta
+  tarjetas de prueba (ficticias):
+
+  | Tipo | Marca | Número | Código | Vencimiento |
+  |---|---|---|---|---|
+  | Crédito | Visa | `4509 9535 6623 3704` | `123` | `11/30` |
+  | Crédito | Mastercard | `5031 7557 3453 0604` | `123` | `11/30` |
+  | Crédito | American Express | `3711 803032 57522` | `1234` | `11/30` |
+  | Débito | Visa | `4002 7686 9439 5619` | `123` | `11/30` |
+  | Débito | Mastercard | `5287 3383 1025 3304` | `123` | `11/30` |
+
+  El nombre del titular define el resultado, igual que en el entorno de pruebas de Mercado Pago:
+  `APRO` (o cualquier otro nombre) aprueba; `FUND` (saldo insuficiente), `SECU` (código de seguridad),
+  `EXPI` (vencimiento), `CALL`, `FORM` y `OTHE` rechazan; `CONT` queda pendiente y no confirma la operación.
+
+- **Recibos**: el comprobante muestra la operación y la tarjeta (solo los últimos 4 dígitos) y se puede
+  imprimir o descargar como PDF con *Generar recibo digital (PDF)* (`src/utils/receiptPdf.js`, jsPDF).
 - **Avisos**: no se usan `alert`/`confirm` del navegador; los mensajes salen como modales
   (`useFeedback()` en `src/ui/FeedbackContext.jsx`).

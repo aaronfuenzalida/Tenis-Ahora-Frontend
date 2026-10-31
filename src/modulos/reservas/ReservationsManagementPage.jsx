@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { reservationsService, courtsService, clubConfigService, DEFAULT_CLUB_CONFIG, maxBookingDate } from '../../api';
 import { Search, Edit3, Trash2 } from 'lucide-react';
 import ReceiptModal from '../caja/ReceiptModal';
+import PaymentFlowModal from '../caja/PaymentFlowModal';
 import Modal from '../../ui/Modal';
 import TablePaginationBar, { TableSortHeader } from '../../ui/TablePaginationBar';
 import { useTablePagination } from '../../ui/useTablePagination';
-import { calculateHoursUntil, formatHoursMinutes } from '../../utils/formatters';
+import { calculateHoursUntil, formatHoursMinutes, RESERVATION_STATUS_LABELS } from '../../utils/formatters';
 import { useFeedback } from '../../ui/FeedbackContext';
-import usePortalPaths from '../../utils/portalPaths';
+import { useAuth } from '../../auth/AuthContext';
 
 export default function ReservationsManagementPage() {
   const { notify } = useFeedback();
+  const { user } = useAuth();
   const [reservations, setReservations] = useState([]);
   const [courts, setCourts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -23,9 +24,10 @@ export default function ReservationsManagementPage() {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [selectedReceipt, setSelectedReceipt] = useState(null);
 
-  // Remaining balance payment modal
-  const [selectedResForPayment, setSelectedResForPayment] = useState(null);
-  const [remainingPaymentMethod, setRemainingPaymentMethod] = useState('Mercado Pago (QR)');
+  // Cobro de la seña (reserva pendiente) o del saldo (alquiler en juego): { reservation, type: 'sena' | 'saldo' }
+  const [charge, setCharge] = useState(null);
+  // Inicio del alquiler: descuenta el equipamiento del stock
+  const [resToStart, setResToStart] = useState(null);
   
   // Cancellation modal: las horas de antelación salen del inicio del turno (RD02)
   const [selectedResForCancel, setSelectedResForCancel] = useState(null);
@@ -33,7 +35,6 @@ export default function ReservationsManagementPage() {
 
   // RD02 - RD05: políticas del club
   const [clubConfig, setClubConfig] = useState(DEFAULT_CLUB_CONFIG);
-  const paths = usePortalPaths();
 
   useEffect(() => {
     loadReservations();
@@ -78,7 +79,6 @@ export default function ReservationsManagementPage() {
         date: editForm.date,
         startTime: editForm.startTime,
         durationHours: Number(editForm.durationHours),
-        playersType: editForm.playersType,
         participants,
         notes: editForm.notes
       });
@@ -94,26 +94,66 @@ export default function ReservationsManagementPage() {
 
   const handleConfirmDelete = async () => {
     if (!resToDelete) return;
-    await reservationsService.delete(resToDelete.id);
+    try {
+      await reservationsService.delete(resToDelete.id);
+    } catch (err) {
+      notify({ variant: 'warning', title: 'No se pudo eliminar la reserva', message: err.message });
+      return;
+    }
     setResToDelete(null);
     loadReservations();
   };
 
-  const handlePayRemaining = async (e) => {
-    e.preventDefault();
-    await reservationsService.payRemainingBalance(selectedResForPayment.id, remainingPaymentMethod);
-    setSelectedResForPayment(null);
+  // Seña: confirma la reserva. Saldo: finaliza el alquiler y devuelve el equipamiento al stock.
+  const settleCharge = async (transaction) => {
+    const { reservation, type } = charge;
+    const res = type === 'sena'
+      ? await reservationsService.payDeposit(reservation.id, transaction.id)
+      : await reservationsService.payRemainingBalance(reservation.id, transaction.id);
+    return res.receipt;
+  };
+
+  const handleChargeClosed = (receipt) => {
+    const type = charge?.type;
+    setCharge(null);
+    if (!receipt) return;
     loadReservations();
-    notify({ variant: 'success', title: 'Cobro registrado', message: '¡Cobro del 50% restante liquidado y registrado en caja!' });
+    notify({
+      variant: 'success',
+      title: 'Cobro registrado',
+      message: type === 'sena'
+        ? `Seña cobrada: la reserva quedó confirmada (recibo ${receipt.id}).`
+        : `Saldo cobrado: el alquiler finalizó y el equipamiento volvió al stock (recibo ${receipt.id}).`
+    });
+  };
+
+  const handleStartRental = async () => {
+    try {
+      await reservationsService.startRental(resToStart.id);
+    } catch (err) {
+      notify({ variant: 'warning', title: 'No se pudo iniciar el alquiler', message: err.message });
+      return;
+    }
+    setResToStart(null);
+    loadReservations();
+    notify({ variant: 'success', title: 'Alquiler iniciado', message: 'La reserva está en juego y el equipamiento se descontó del stock.' });
   };
 
   const handleCancelReservation = async (e) => {
     e.preventDefault();
-    const result = await reservationsService.cancel(selectedResForCancel.id);
+    let result;
+    try {
+      result = await reservationsService.cancel(selectedResForCancel.id);
+    } catch (err) {
+      notify({ variant: 'warning', title: 'No se pudo cancelar la reserva', message: err.message });
+      return;
+    }
     setSelectedResForCancel(null);
     loadReservations();
-    
-    if (result.isWithinFreeWindow) {
+
+    if (!result.refund) {
+      notify({ variant: 'success', title: 'Cancelación procesada', message: 'La reserva no tenía la seña abonada: se anuló sin cargo ni reembolso.' });
+    } else if (result.isWithinFreeWindow) {
       notify({ variant: 'success', title: 'Cancelación procesada', message: `Cancelación con ${clubConfig.freeCancellationHours} hs o más de antelación. Se generó el reembolso ${result.refund?.id || ''} por ${(result.refund?.refundAmount || 0).toLocaleString('es-AR')}.` });
     } else {
       notify({ variant: 'warning', title: 'Cancelación procesada', message: `Cancelación con menos de ${clubConfig.freeCancellationHours} hs de antelación, fuera de plazo. Se aplicó el cargo ${result.penaltyReceipt?.id || ''} por ${(result.penaltyReceipt?.totalPaid || 0).toLocaleString('es-AR')} y se reintegra el resto como crédito (${result.refund?.id || ''}).` });
@@ -188,12 +228,6 @@ export default function ReservationsManagementPage() {
           <span className="font-bold text-tennis-800">
             Cancelación sin cargo: ≥ {clubConfig.freeCancellationHours} hs · Retención fuera de plazo: {clubConfig.lateCancellationRetentionPercent}% · Reservas hasta {clubConfig.maxAdvanceBookingDays} días
           </span>
-          <Link
-            to={`${paths.admin}/politicas`}
-            className="px-3 py-1.5 rounded-lg bg-white hover:bg-tennis-100 text-tennis-800 font-bold border border-tennis-200 no-print"
-          >
-            Modificar Políticas
-          </Link>
         </div>
       </div>
 
@@ -216,8 +250,8 @@ export default function ReservationsManagementPage() {
             />
           </div>
 
-          <div className="flex items-center gap-2">
-            {['ALL', 'confirmada', 'finalizada', 'cancelada'].map(status => (
+          <div className="flex flex-wrap items-center gap-2">
+            {['ALL', ...Object.keys(RESERVATION_STATUS_LABELS)].map(status => (
               <button
                 key={status}
                 type="button"
@@ -228,7 +262,7 @@ export default function ReservationsManagementPage() {
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                 }`}
               >
-                {status === 'ALL' ? 'Todas' : status.charAt(0).toUpperCase() + status.slice(1)}
+                {status === 'ALL' ? 'Todas' : RESERVATION_STATUS_LABELS[status]}
               </button>
             ))}
           </div>
@@ -312,27 +346,38 @@ export default function ReservationsManagementPage() {
                     </td>
 
                     <td className="py-3 px-3">
-                      <div className="font-black text-tennis-700">${res.depositPaid?.toLocaleString('es-AR')}</div>
-                      <button
-                        type="button"
-                        onClick={() => setSelectedReceipt({
-                          id: res.depositReceiptNumber,
-                          clientName: res.participants[0]?.name,
-                          clientDni: res.participants[0]?.dni,
-                          concept: `Seña 50% - ${res.courtName}`,
-                          items: [
-                            { description: `Alquiler ${res.courtName}`, amount: res.courtCost },
-                            { description: 'Equipamiento incluido: red, pelotas y raquetas', amount: 0 },
-                            { description: `Seña 50% Abonada`, amount: res.depositPaid }
-                          ],
-                          totalPaid: res.depositPaid,
-                          paymentMethod: res.depositPaymentMethod,
-                          date: res.date
-                        })}
-                        className="text-[10px] text-tennis-700 hover:underline flex items-center gap-0.5 mt-0.5"
-                      >
-                        Recibo #{res.depositReceiptNumber}
-                      </button>
+                      {res.status === 'pendiente_pago' || (res.status === 'cancelada' && !res.depositPaid) ? (
+                        <div className="text-slate-500">
+                          <div className="font-bold">${(res.depositAmount || 0).toLocaleString('es-AR')}</div>
+                          <div className="text-[10px]">Sin abonar</div>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="font-black text-tennis-700">${res.depositPaid?.toLocaleString('es-AR')}</div>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedReceipt({
+                              id: res.depositReceiptNumber,
+                              reservationId: res.id,
+                              clientName: res.participants[0]?.name,
+                              clientDni: res.participants[0]?.dni,
+                              concept: `Seña 50% - ${res.courtName}`,
+                              items: [
+                                { description: `Alquiler ${res.courtName}`, amount: res.courtCost },
+                                { description: 'Equipamiento incluido: red, pelotas y raquetas', amount: 0 },
+                                { description: `Seña 50% Abonada`, amount: res.depositPaid }
+                              ],
+                              totalPaid: res.depositPaid,
+                              paymentMethod: res.depositPaymentMethod,
+                              transactionId: res.depositTransactionId,
+                              date: res.date
+                            })}
+                            className="text-[10px] text-tennis-700 hover:underline flex items-center gap-0.5 mt-0.5"
+                          >
+                            Recibo #{res.depositReceiptNumber}
+                          </button>
+                        </>
+                      )}
                     </td>
 
                     <td className="py-3 px-3">
@@ -351,19 +396,15 @@ export default function ReservationsManagementPage() {
 
                     <td className="py-3 px-3 text-center">
                       <span className={`text-[10px] font-bold ${
-                        res.status === 'finalizada'
-                          ? 'text-slate-700'
-                          : res.status === 'cancelada'
-                          ? 'text-slate-700'
-                          : 'text-tennis-800'
+                        res.status === 'confirmada' || res.status === 'en_juego' ? 'text-tennis-800' : 'text-slate-700'
                       }`}>
-                        {res.status === 'finalizada' ? 'Finalizada' : res.status === 'cancelada' ? 'Cancelada' : 'Confirmada'}
+                        {RESERVATION_STATUS_LABELS[res.status] || res.status}
                       </span>
                     </td>
 
                     <td className="py-3 px-3 text-right no-print">
                       <div className="flex items-center justify-end gap-1.5">
-                        {res.status === 'confirmada' && !res.remainingPaid && (
+                        {(res.status === 'pendiente_pago' || res.status === 'confirmada') && (
                           <button
                             type="button"
                             onClick={() => handleOpenEdit(res)}
@@ -383,15 +424,34 @@ export default function ReservationsManagementPage() {
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         )}
-                        {res.status === 'confirmada' && !res.remainingPaid && (
+                        {res.status === 'en_juego' && (
+                          <button
+                            type="button"
+                            onClick={() => setCharge({ reservation: res, type: 'saldo' })}
+                            className="px-2.5 py-1 rounded-lg bg-tennis-600 hover:bg-tennis-700 text-white font-bold text-xs shadow-sm"
+                          >
+                            Finalizar y cobrar saldo
+                          </button>
+                        )}
+                        {(res.status === 'pendiente_pago' || res.status === 'confirmada') && (
                           <>
-                            <button
-                              type="button"
-                              onClick={() => setSelectedResForPayment(res)}
-                              className="px-2.5 py-1 rounded-lg bg-tennis-600 hover:bg-tennis-700 text-white font-bold text-xs shadow-sm flex items-center gap-1"
-                            >
-                              Cobrar 50%
-                            </button>
+                            {res.status === 'pendiente_pago' ? (
+                              <button
+                                type="button"
+                                onClick={() => setCharge({ reservation: res, type: 'sena' })}
+                                className="px-2.5 py-1 rounded-lg bg-tennis-600 hover:bg-tennis-700 text-white font-bold text-xs shadow-sm"
+                              >
+                                Cobrar seña
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => setResToStart(res)}
+                                className="px-2.5 py-1 rounded-lg bg-tennis-600 hover:bg-tennis-700 text-white font-bold text-xs shadow-sm"
+                              >
+                                Iniciar alquiler
+                              </button>
+                            )}
 
                             <button
                               type="button"
@@ -429,44 +489,34 @@ export default function ReservationsManagementPage() {
         />
       </div>
 
-      {/* Pay Remaining Balance Modal */}
-      <Modal
-        isOpen={!!selectedResForPayment}
-        onClose={() => setSelectedResForPayment(null)}
-        title={`Cobro de Saldo Restante (50%): ${selectedResForPayment?.id}`}
-        maxWidth="max-w-md"
-      >
-        <form onSubmit={handlePayRemaining} className="space-y-4 text-xs">
-          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-            <div className="text-slate-500">Cancha: <strong>{selectedResForPayment?.courtName}</strong></div>
-            <div className="text-slate-500">Socio: <strong>{selectedResForPayment?.participants[0]?.name}</strong></div>
-            <div className="text-slate-500">Seña 50% ya acreditada: <strong>${selectedResForPayment?.depositPaid?.toLocaleString('es-AR')}</strong></div>
-            <div className="mt-2 text-base font-extrabold text-slate-900 border-t pt-2 flex justify-between">
-              <span>Saldo Final a Cobrar (50%):</span>
-              <span className="text-tennis-700">${selectedResForPayment?.remainingBalance?.toLocaleString('es-AR')} ARS</span>
-            </div>
-          </div>
+      {/* Cobro de seña o saldo con tarjeta o QR */}
+      <PaymentFlowModal
+        isOpen={!!charge}
+        onClose={handleChargeClosed}
+        title={charge?.type === 'sena' ? `Cobro de seña (50%): ${charge?.reservation.id}` : `Cobro de saldo (50%): ${charge?.reservation.id || ''}`}
+        kind="mostrador"
+        concept={charge ? `${charge.type === 'sena' ? 'Seña' : 'Saldo'} 50% - ${charge.reservation.courtName}` : ''}
+        summary={charge ? `${charge.reservation.participants?.[0]?.name} • ${charge.reservation.date} de ${charge.reservation.startTime} a ${charge.reservation.endTime}` : ''}
+        amount={charge ? (charge.type === 'sena' ? charge.reservation.depositAmount : charge.reservation.remainingBalance) : 0}
+        cashierName={user?.name}
+        settle={settleCharge}
+      />
 
-          <div>
-            <label className="font-bold text-slate-700 uppercase block mb-1">Medio de Pago en Recepción:</label>
-            <select
-              value={remainingPaymentMethod}
-              onChange={(e) => setRemainingPaymentMethod(e.target.value)}
-              className="w-full p-2.5 rounded-xl border border-slate-200 outline-none bg-white font-bold text-slate-800"
-            >
-              <option value="Mercado Pago (QR)">Billetera virtual QR</option>
-              <option value="Tarjeta de Débito">Tarjeta de Débito</option>
-              <option value="Tarjeta de Crédito">Tarjeta de Crédito</option>
-            </select>
+      {/* Inicio del alquiler (TC_002) */}
+      <Modal isOpen={!!resToStart} onClose={() => setResToStart(null)} title={`Iniciar alquiler ${resToStart?.id || ''}`} maxWidth="max-w-md">
+        <div className="space-y-4 text-xs">
+          <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
+            <div className="font-bold text-slate-800">{resToStart?.courtName}</div>
+            <div className="text-slate-600">{resToStart?.date} de {resToStart?.startTime} a {resToStart?.endTime}</div>
           </div>
-
-          <button
-            type="submit"
-            className="w-full py-3 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-bold text-sm shadow-md"
-          >
-            Confirmar Cobro y Emitir Recibo Final
-          </button>
-        </form>
+          <p className="text-slate-600">
+            Se entregan y se descuentan del stock: 1 red, 1 tubo de pelotas y {resToStart?.equipmentAssigned?.rackets} raquetas. Vuelven al stock al cobrar el saldo.
+          </p>
+          <div className="flex justify-end gap-2 pt-2">
+            <button type="button" onClick={() => setResToStart(null)} className="px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-xl">Volver</button>
+            <button type="button" onClick={handleStartRental} className="px-4 py-2 bg-tennis-600 hover:bg-tennis-700 text-white font-bold rounded-xl">Iniciar alquiler</button>
+          </div>
+        </div>
       </Modal>
 
       {/* Cancellation Policy Modal */}
@@ -480,7 +530,7 @@ export default function ReservationsManagementPage() {
           <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
             <div className="font-bold text-slate-800">{selectedResForCancel?.courtName}</div>
             <div className="text-slate-600">Fecha y Turno: <strong>{selectedResForCancel?.date} ({selectedResForCancel?.startTime} hs)</strong></div>
-            <div className="text-slate-600">Seña 50% Abonada: <strong>${selectedResForCancel?.depositPaid?.toLocaleString('es-AR')}</strong></div>
+            <div className="text-slate-600">Seña 50% Abonada: <strong>${(selectedResForCancel?.depositPaid || 0).toLocaleString('es-AR')}</strong></div>
           </div>
 
           <div>
@@ -495,7 +545,11 @@ export default function ReservationsManagementPage() {
             </span>
           </div>
 
-          {hoursInAdvance >= clubConfig.freeCancellationHours ? (
+          {selectedResForCancel?.status === 'pendiente_pago' ? (
+            <div className="p-3 bg-slate-50 text-slate-800 rounded-xl border border-slate-200">
+              La reserva no tiene la seña abonada: se anula sin cargo ni reembolso.
+            </div>
+          ) : hoursInAdvance >= clubConfig.freeCancellationHours ? (
             <div className="p-3 bg-tennis-50 text-tennis-900 rounded-xl border border-tennis-200 space-y-1">
               <div className="font-bold flex items-center gap-1 text-tennis-800">
                 Cancelación dentro del plazo (&ge; {clubConfig.freeCancellationHours} hs)
@@ -572,7 +626,6 @@ export default function ReservationsManagementPage() {
                   <option value={1}>1 hora</option>
                   <option value={1.5}>1,5 horas</option>
                   <option value={2}>2 horas</option>
-                  <option value={3}>3 horas</option>
                 </select>
               </div>
             </div>
@@ -588,16 +641,13 @@ export default function ReservationsManagementPage() {
               </div>
             </div>
 
-            <div>
-              <label className="font-bold text-slate-700 uppercase block mb-1">Modalidad</label>
-              <select value={editForm.playersType} onChange={(e) => setEditForm({ ...editForm, playersType: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white">
-                <option value="singles">Singles (2 jugadores)</option>
-                <option value="dobles">Dobles (4 jugadores)</option>
-              </select>
-            </div>
-
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-slate-600">
-              La seña abonada (${resToEdit?.depositPaid?.toLocaleString('es-AR')}) se mantiene. El saldo final se recalcula según la cancha y duración elegidas.
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-slate-600 space-y-1">
+              <div>Modalidad: {resToEdit?.playersType === 'dobles' ? 'Dobles (4 jugadores)' : 'Singles (2 jugadores)'}.</div>
+              <div>
+                {resToEdit?.status === 'pendiente_pago'
+                  ? 'La seña se recalcula según la cancha y la duración elegidas.'
+                  : `La seña abonada ($${resToEdit?.depositPaid?.toLocaleString('es-AR')}) se mantiene. El saldo final se recalcula según la cancha y la duración elegidas.`}
+              </div>
             </div>
 
             <div className="flex justify-end gap-2 pt-2">

@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
 export default function Modal({ isOpen, onClose, title, children, maxWidth = 'max-w-2xl' }) {
@@ -18,8 +19,10 @@ export default function Modal({ isOpen, onClose, title, children, maxWidth = 'ma
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 print:static print:block print:p-0">
+  // Se monta en <body>: al imprimir, la página de fondo no ocupa lugar y el área impresa del modal
+  // (recibo, carnet, planilla) sale en la primera hoja (ver index.css).
+  return createPortal(
+    <div className="print-modal fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 print:static print:block print:p-0 print:overflow-visible">
       {/* Backdrop */}
       <div 
         className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
@@ -44,6 +47,7 @@ export default function Modal({ isOpen, onClose, title, children, maxWidth = 'ma
           {children}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

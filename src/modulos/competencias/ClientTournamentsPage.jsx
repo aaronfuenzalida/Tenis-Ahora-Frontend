@@ -61,6 +61,11 @@ export default function ClientTournamentsPage() {
       notify({ variant: 'warning', message: 'El DNI de tu pareja no puede ser el tuyo.' });
       return;
     }
+    // Se valida antes del pago para no cobrar una inscripción que el club va a rechazar.
+    if (partnerDni && isEnrolledByDni(selectedTournament?.participants, partnerDni)) {
+      notify({ variant: 'warning', message: `${partnerName} ya está inscripto en "${selectedTournament.name}".` });
+      return;
+    }
     setShowEnrollModal(false);
     setPayment({
       target: selectedTournament,
@@ -218,7 +223,7 @@ export default function ClientTournamentsPage() {
               <MemberSelect
                 value={partnerDni}
                 placeholder="Seleccionar pareja"
-                excludeDnis={[user?.dni]}
+                excludeDnis={[user?.dni, ...(selectedTournament?.participants || []).flatMap(p => [p.dni, p.partnerDni])]}
                 onSelect={(m) => { setPartnerName(m?.name || ''); setPartnerDni(m?.dni || ''); }}
                 className="w-full px-3 py-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white"
               />

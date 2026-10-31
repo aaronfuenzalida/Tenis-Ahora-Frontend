@@ -3,6 +3,15 @@
  * Aligned with TP Integral Tenis Ahora rules
  */
 
+// Estados de una reserva: pendiente de pago -> confirmada (seña) -> en juego -> finalizada (saldo).
+export const RESERVATION_STATUS_LABELS = {
+  pendiente_pago: 'Pendiente de pago',
+  confirmada: 'Confirmada',
+  en_juego: 'En juego',
+  finalizada: 'Finalizada',
+  cancelada: 'Cancelada'
+};
+
 /**
  * Format string as Argentinian DNI: XX.XXX.XXX or X.XXX.XXX
  */

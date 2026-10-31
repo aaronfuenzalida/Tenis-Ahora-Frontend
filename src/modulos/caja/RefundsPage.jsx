@@ -4,6 +4,7 @@ import Modal from '../../ui/Modal';
 import MemberSelect from '../../ui/MemberSelect';
 import { refundsService, reservationsService, receiptsService, clubConfigService, DEFAULT_CLUB_CONFIG } from '../../api';
 import { useFeedback } from '../../ui/FeedbackContext';
+import { RESERVATION_STATUS_LABELS } from '../../utils/formatters';
 
 export default function RefundsPage() {
   return (
@@ -235,7 +236,7 @@ function RefundsPanel() {
               <select value={form.relatedReservationId} onChange={(e) => fillFromReservation(e.target.value)} className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white">
                 <option value="">Sin reserva</option>
                 {reservations.map(r => (
-                  <option key={r.id} value={r.id}>{r.id} — {r.participants?.[0]?.name} — {r.status}</option>
+                  <option key={r.id} value={r.id}>{r.id} — {r.participants?.[0]?.name} — {RESERVATION_STATUS_LABELS[r.status] || r.status}</option>
                 ))}
               </select>
             </div>

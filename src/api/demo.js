@@ -3,6 +3,7 @@
 import { calculateHoursUntil, isEnrolledByDni, findPrivateLessonConflict, findReservationConflict, cleanDNI } from '../utils/formatters';
 import { checkFile, fileToBase64, saveBlob } from '../utils/files';
 import { DEFAULT_CLUB_CONFIG, DEFAULT_COURT_AVAILABILITY, maxBookingDate } from './club';
+import { getSlotBlock } from '../modulos/canchas/CourtAvailabilityPanel';
 import {
   INITIAL_COURTS,
   INITIAL_STOCK,
@@ -118,7 +119,12 @@ function checkBookingWindow(date) {
   }
 }
 
-const nowStamp = () => new Date().toISOString().replace('T', ' ').substring(0, 16);
+// Fecha y hora local (AAAA-MM-DD HH:MM), igual que la API.
+const nowStamp = () => {
+  const d = new Date();
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
 
 // Simulated delay helper
 const delay = (ms = 150) => new Promise(res => setTimeout(res, ms));
@@ -248,6 +254,12 @@ export const stockMock = {
   },
   async update(itemId, updatedData) {
     await delay();
+    const current = stockStore.find(i => i.id === itemId);
+    const nextTotal = Number(updatedData.totalStock ?? current?.totalStock);
+    const nextInUse = Number(updatedData.inUseStock ?? current?.inUseStock);
+    if (current && nextTotal < nextInUse) {
+      throw new Error(`El stock total no puede ser menor a lo que está prestado en canchas (${nextInUse}).`);
+    }
     stockStore = stockStore.map(item => {
       if (item.id === itemId) {
         const total = Number(updatedData.totalStock !== undefined ? updatedData.totalStock : item.totalStock);
@@ -273,6 +285,10 @@ export const stockMock = {
   },
   async updateStock(itemId, totalStock) {
     await delay();
+    const current = stockStore.find(i => i.id === itemId);
+    if (current && totalStock < (Number(current.inUseStock) || 0)) {
+      throw new Error(`El stock total no puede ser menor a lo que está prestado en canchas (${current.inUseStock}).`);
+    }
     stockStore = stockStore.map(item => {
       if (item.id === itemId) {
         const available = Math.max(0, totalStock - item.inUseStock);
@@ -289,6 +305,232 @@ export const stockMock = {
   }
 };
 
+// ---- Pagos: pasarela simulada, misma regla que la API (payments.go) ----
+// Solo tarjetas de prueba de Mercado Pago; el nombre del titular define el resultado.
+const TEST_CARDS = [
+  { number: '5031755734530604', brand: 'Mastercard', method: 'Tarjeta de Crédito', cvv: '123' },
+  { number: '4509953566233704', brand: 'Visa', method: 'Tarjeta de Crédito', cvv: '123' },
+  { number: '371180303257522', brand: 'American Express', method: 'Tarjeta de Crédito', cvv: '1234' },
+  { number: '5287338310253304', brand: 'Mastercard', method: 'Tarjeta de Débito', cvv: '123' },
+  { number: '4002768694395619', brand: 'Visa', method: 'Tarjeta de Débito', cvv: '123' }
+];
+
+const HOLDER_SCENARIOS = {
+  OTHE: 'Pago rechazado por error general.',
+  CALL: 'Pago rechazado: el titular tiene que autorizarlo con el emisor de la tarjeta.',
+  FUND: 'Pago rechazado por saldo insuficiente.',
+  SECU: 'Pago rechazado: el código de seguridad es inválido.',
+  EXPI: 'Pago rechazado por un problema con la fecha de vencimiento.',
+  FORM: 'Pago rechazado: los datos de la tarjeta son inválidos.',
+  CONT: 'El pago quedó pendiente de acreditación y la operación no se confirma (RD01).'
+};
+
+let paymentsStore = [];
+
+function authorizeCard(method, card = {}) {
+  const number = String(card.number || '').replace(/\D/g, '');
+  const test = TEST_CARDS.find(c => c.number === number);
+  if (!test) {
+    throw new Error('Solo se aceptan tarjetas de prueba (ficticias), por ejemplo Visa crédito 4509 9535 6623 3704 o Visa débito 4002 7686 9439 5619.');
+  }
+  if (test.method !== method) {
+    throw new Error(`La tarjeta ingresada es ${test.method.replace('Tarjeta ', '').toLowerCase()}: elegí ${test.method} como medio de pago.`);
+  }
+  const holder = String(card.holder || '').trim().toUpperCase();
+  if (!holder) throw new Error('Falta el nombre del titular de la tarjeta.');
+  const [mm, yy] = String(card.expiry || '').split('/').map(v => Number(v.trim()));
+  if (!mm || mm > 12 || Number.isNaN(yy)) throw new Error('El vencimiento de la tarjeta debe tener el formato MM/AA.');
+  const year = yy < 100 ? 2000 + yy : yy;
+  if (new Date() >= new Date(year, mm, 1)) throw new Error('Pago rechazado: la tarjeta está vencida.');
+  if (String(card.cvv || '').replace(/\D/g, '') !== test.cvv) throw new Error(HOLDER_SCENARIOS.SECU);
+  if (HOLDER_SCENARIOS[holder]) throw new Error(HOLDER_SCENARIOS[holder]);
+  return { cardBrand: test.brand, cardLast4: number.slice(-4) };
+}
+
+export const paymentsMock = {
+  async create({ paymentMethod, amount, concept, card } = {}) {
+    await delay();
+    const total = Math.round((Number(amount) || 0) * 100) / 100;
+    if (total <= 0) throw new Error('El importe a pagar debe ser mayor a cero.');
+    let cardData = {};
+    if (paymentMethod === 'Tarjeta de Débito' || paymentMethod === 'Tarjeta de Crédito') {
+      cardData = authorizeCard(paymentMethod, card);
+    } else if (paymentMethod !== 'Mercado Pago (QR)') {
+      throw new Error('El medio de pago debe ser Tarjeta de Débito, Tarjeta de Crédito o Mercado Pago (QR).');
+    }
+    let id;
+    do { id = `MP-${String(Math.floor(Math.random() * 1e8)).padStart(8, '0')}`; } while (paymentsStore.some(p => p.id === id));
+    const tx = { id, status: 'approved', paymentMethod, amount: total, concept: concept || '', createdAt: new Date().toISOString(), usedBy: null, ...cardData };
+    paymentsStore = [tx, ...paymentsStore];
+    return tx;
+  }
+};
+
+// Un pago aprobado se usa una sola vez y tiene que cubrir el importe a cobrar.
+function consumePayment(transactionId, amount, ref) {
+  if (!transactionId) throw new Error('Falta el pago: primero hay que abonar con tarjeta o billetera virtual (RD01).');
+  const tx = paymentsStore.find(p => p.id === transactionId);
+  if (!tx) throw new Error(`El pago ${transactionId} no existe.`);
+  if (tx.status !== 'approved') throw new Error(`El pago ${transactionId} no está aprobado.`);
+  if (tx.usedBy) throw new Error(`El pago ${transactionId} ya se usó en ${tx.usedBy}.`);
+  if (Math.abs(tx.amount - amount) >= 0.01) throw new Error(`El pago ${transactionId} es por $${tx.amount} y el importe a cobrar es $${amount}.`);
+  tx.usedBy = ref;
+  tx.usedAt = new Date().toISOString();
+  return tx;
+}
+
+const paymentFields = (tx) => ({
+  paymentMethod: tx.paymentMethod,
+  transactionId: tx.id,
+  ...(tx.cardLast4 ? { cardBrand: tx.cardBrand, cardLast4: tx.cardLast4 } : {})
+});
+
+const nextReceiptId = () => {
+  let id;
+  do { id = `REC-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`; } while (receiptsStore.some(r => r.id === id));
+  return id;
+};
+
+// ---- Reservas: mismas reglas que la API (business.go) ----
+// pendiente de pago -> confirmada (seña) -> en juego (equipamiento fuera del stock) -> finalizada (saldo).
+const MAX_RENTAL_HOURS = 2;
+
+const EQUIPMENT = [
+  { key: 'nets', category: 'Redes', label: 'redes' },
+  { key: 'ballTubes', category: 'Pelotas', label: 'pelotas' },
+  { key: 'rackets', category: 'Raquetas', label: 'raquetas' }
+];
+
+const equipmentFor = (playersType) => ({ nets: 1, ballTubes: 1, rackets: playersType === 'dobles' ? 4 : 2 });
+
+const withStockLevels = (item, inUse) => {
+  const available = Math.max(0, (Number(item.totalStock) || 0) - inUse);
+  return { ...item, inUseStock: inUse, availableStock: available, status: available <= 0 ? 'agotado' : 'disponible' };
+};
+
+// No se alquila una cancha sin red, pelotas y raquetas disponibles (TC_001).
+function checkEquipment(eq = {}) {
+  const missing = EQUIPMENT.flatMap(({ key, category, label }) => {
+    const have = stockStore.filter(i => i.category === category).reduce((acc, i) => acc + (Number(i.availableStock) || 0), 0);
+    return have < (eq[key] || 0) ? [`${label} (hay ${have}, se necesitan ${eq[key]})`] : [];
+  });
+  if (missing.length) throw new Error(`No hay stock suficiente para el alquiler: faltan ${missing.join(', ')}.`);
+}
+
+function takeEquipment(eq = {}) {
+  checkEquipment(eq);
+  const taken = [];
+  for (const { key, category } of EQUIPMENT) {
+    let need = eq[key] || 0;
+    stockStore = stockStore.map(item => {
+      if (need <= 0 || item.category !== category || item.availableStock <= 0) return item;
+      const qty = Math.min(need, item.availableStock);
+      need -= qty;
+      taken.push({ itemId: item.id, category, quantity: qty });
+      return withStockLevels(item, (Number(item.inUseStock) || 0) + qty);
+    });
+  }
+  return taken;
+}
+
+function returnEquipment(taken = []) {
+  for (const t of taken) {
+    stockStore = stockStore.map(item =>
+      item.id === t.itemId ? withStockLevels(item, Math.max(0, (Number(item.inUseStock) || 0) - t.quantity)) : item
+    );
+  }
+}
+
+const addHours = (start, hours) => {
+  const [h, m] = String(start).split(':').map(Number);
+  const total = h * 60 + (m || 0) + Math.round(hours * 60);
+  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+};
+
+function checkSchedule(date, startTime, hours) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date || '')) throw new Error('La fecha de la reserva no es válida (formato AAAA-MM-DD).');
+  if (!/^\d{1,2}:\d{2}$/.test(startTime || '')) throw new Error('El horario de inicio no es válido (formato HH:MM).');
+  if (!(hours > 0 && hours <= MAX_RENTAL_HOURS)) throw new Error(`La duración de un alquiler es de hasta ${MAX_RENTAL_HOURS} horas.`);
+  if (date < maxBookingDate(0)) throw new Error('La fecha de la reserva ya pasó.');
+  if (calculateHoursUntil(date, startTime) <= 0) throw new Error('El horario de la reserva ya pasó.');
+  checkBookingWindow(date);
+}
+
+function checkParticipants(res, court) {
+  const want = res.playersType === 'singles' ? 2 : res.playersType === 'dobles' ? 4 : 0;
+  if (!want) throw new Error('La modalidad debe ser singles (2 jugadores) o dobles (4 jugadores).');
+  const players = res.participants || [];
+  if (players.length !== want) throw new Error(`Una reserva de ${res.playersType} lleva los datos de ${want} jugadores (se cargaron ${players.length}).`);
+  const seen = new Set();
+  players.forEach((p, i) => {
+    const dni = cleanDNI(p.dni || '');
+    if (!String(p.name || '').trim() || !dni) throw new Error(`Falta el nombre o el DNI del jugador ${i + 1}.`);
+    if (seen.has(dni)) throw new Error(`El DNI ${p.dni} está repetido entre los jugadores.`);
+    seen.add(dni);
+  });
+  if (court?.capacity && want > court.capacity) throw new Error(`${court.name} admite hasta ${court.capacity} jugadores.`);
+}
+
+function checkCourt(res) {
+  const court = courtsStore.find(c => c.id === res.courtId);
+  if (!court) throw new Error('Falta elegir la cancha.');
+  if (court.status === 'mantenimiento') throw new Error('La cancha está bloqueada por mantenimiento y no admite reservas (RD06).');
+  return court;
+}
+
+// Costo con la tarifa de la cancha y seña del 50 %; una reserva confirmada conserva la seña pagada.
+function setCosts(res, court) {
+  const courtCost = (Number(court.pricePerHour) || 0) * res.durationHours;
+  let deposit = Number(res.depositPaid) || 0;
+  res.courtCost = courtCost;
+  res.equipmentCost = 0;
+  res.totalCost = courtCost;
+  if (res.status === 'pendiente_pago') {
+    deposit = Math.round(courtCost / 2);
+    res.depositAmount = deposit;
+  }
+  res.remainingBalance = Math.max(0, courtCost - deposit);
+}
+
+const rentalLine = (res) => `Alquiler ${res.durationHours} hs - ${res.courtName} - ${res.date} de ${res.startTime} a ${res.endTime}`;
+
+function addReservationReceipt(res, tx, concept, cashierName, items, total) {
+  const lead = res.participants?.[0] || {};
+  const receipt = {
+    id: nextReceiptId(),
+    reservationId: res.id,
+    clientName: lead.name || 'Socio Tenis Ahora',
+    clientDni: lead.dni || '00.000.000',
+    concept,
+    items,
+    totalPaid: total,
+    status: 'completado',
+    date: nowStamp(),
+    cashierName,
+    ...paymentFields(tx)
+  };
+  receiptsStore.unshift(receipt);
+  return receipt;
+}
+
+const RESERVATION_READ_ONLY = [
+  'status', 'depositAmount', 'depositPaid', 'depositPaymentMethod', 'depositTransactionId', 'depositReceiptNumber',
+  'remainingPaid', 'finalReceiptNumber', 'finalPaymentMethod', 'finalTransactionId', 'cancellationDetails',
+  'equipmentAssigned', 'equipmentTaken', 'courtName', 'surfaceType', 'courtCost', 'equipmentCost', 'totalCost',
+  'remainingBalance', 'endTime', 'createdAt', 'confirmedAt', 'startedAt', 'finishedAt'
+];
+
+function findReservation(reservationId) {
+  const res = reservationsStore.find(r => r.id === reservationId);
+  if (!res) throw new Error(`No existe la reserva ${reservationId}.`);
+  return res;
+}
+
+function saveReservation(next) {
+  reservationsStore = reservationsStore.map(r => (r.id === next.id ? next : r));
+  return next;
+}
+
 export const reservationsMock = {
   async getAll() {
     await delay();
@@ -298,135 +540,154 @@ export const reservationsMock = {
     await delay();
     return { data: reservationsStore.filter(r => r.status !== 'cancelada') };
   },
+  // RF020: la reserva queda pendiente de pago hasta abonar la seña (RD01).
   async create(bookingData) {
     await delay();
-    checkBookingWindow(bookingData.date);
-    checkReservationConflict(bookingData);
-    const newId = `RES-${new Date().getFullYear()}-${String(reservationsStore.length + 1).padStart(3, '0')}`;
-    const newRecId = `REC-50-${Math.floor(1000 + Math.random() * 9000)}`;
+    const res = {
+      courtId: bookingData.courtId,
+      date: bookingData.date,
+      startTime: bookingData.startTime,
+      durationHours: Number(bookingData.durationHours) || 0,
+      playersType: bookingData.playersType,
+      participants: bookingData.participants || [],
+      notes: bookingData.notes || ''
+    };
+    checkSchedule(res.date, res.startTime, res.durationHours);
+    res.endTime = addHours(res.startTime, res.durationHours);
+    const court = checkCourt(res);
+    const blockReason = getSlotBlock(court, res.date, `${res.startTime} - ${res.endTime}`);
+    if (blockReason) throw new Error(`La cancha no admite reservas en ese turno: ${blockReason} (RD06).`);
+    checkParticipants(res, court);
+    checkReservationConflict(res);
+    res.equipmentAssigned = equipmentFor(res.playersType);
+    checkEquipment(res.equipmentAssigned);
 
-    const newReservation = {
-      ...bookingData,
-      id: newId,
-      depositReceiptNumber: newRecId,
+    let n = reservationsStore.length + 1;
+    const idFor = (k) => `RES-${new Date().getFullYear()}-${String(k).padStart(3, '0')}`;
+    while (reservationsStore.some(r => r.id === idFor(n))) n++;
+    Object.assign(res, {
+      id: idFor(n),
+      courtName: `${court.name} (${court.surfaceType})`,
+      surfaceType: court.surfaceType,
+      status: 'pendiente_pago',
+      depositPaid: 0,
+      depositReceiptNumber: null,
       remainingPaid: false,
       finalReceiptNumber: null,
-      status: 'confirmada',
+      cancellationDetails: null,
       createdAt: new Date().toISOString()
-    };
-
-    reservationsStore.unshift(newReservation);
-
-    // Auto-generate deposit receipt
-    const depositReceipt = {
-      id: newRecId,
-      reservationId: newId,
-      clientName: bookingData.participants[0]?.name || 'Socio Tenis Ahora',
-      clientDni: bookingData.participants[0]?.dni || '00.000.000',
-      concept: `Seña 50% Obligatoria - ${bookingData.courtName}`,
-      items: [
-        { description: `Alquiler ${bookingData.durationHours}hs ${bookingData.courtName}`, amount: bookingData.courtCost },
-        { description: `Equipamiento incluido (Red, Pelotas, Raquetas)`, amount: 0 },
-        { description: `Total Turno`, amount: bookingData.totalCost },
-        { description: `Cobro de Seña 50% para Confirmación`, amount: bookingData.depositPaid }
-      ],
-      totalPaid: bookingData.depositPaid,
-      paymentMethod: bookingData.depositPaymentMethod || 'Mercado Pago (QR)',
-      status: 'completado',
-      date: new Date().toISOString().replace('T', ' ').substring(0, 16),
-      qrData: `https://mpago.la/pos/tenisahora/${newRecId.toLowerCase()}`,
-      cashierName: 'Cobro Digital Online'
-    };
-    receiptsStore.unshift(depositReceipt);
-
-    return { data: newReservation, receipt: depositReceipt };
-  },
-  async payRemainingBalance(reservationId, paymentMethod = 'Mercado Pago (QR)') {
-    await delay();
-    const finalRecId = `REC-FINAL-${Math.floor(1000 + Math.random() * 9000)}`;
-    let target = null;
-    
-    reservationsStore = reservationsStore.map(res => {
-      if (res.id === reservationId) {
-        target = {
-          ...res,
-          remainingPaid: true,
-          status: 'finalizada',
-          finalReceiptNumber: finalRecId
-        };
-        return target;
-      }
-      return res;
     });
-
-    if (target) {
-      const finalReceipt = {
-        id: finalRecId,
-        reservationId: target.id,
-        clientName: target.participants[0]?.name || 'Socio Tenis Ahora',
-        clientDni: target.participants[0]?.dni || '00.000.000',
-        concept: `Liquidación Final 50% Saldo - ${target.courtName}`,
-        items: [
-          { description: `Saldo restante 50% de turno finalizado`, amount: target.remainingBalance }
-        ],
-        totalPaid: target.remainingBalance,
-        paymentMethod,
-        status: 'completado',
-        date: new Date().toISOString().replace('T', ' ').substring(0, 16),
-        qrData: `https://mpago.la/pos/tenisahora/${finalRecId.toLowerCase()}`,
-        cashierName: 'Recepción del Club'
-      };
-      receiptsStore.unshift(finalReceipt);
-    }
-
-    return { data: target };
+    setCosts(res, court);
+    reservationsStore.unshift(res);
+    return { data: res };
   },
-  // RF021: modificar reserva (fecha, horario, cancha, jugadores)
+  // Seña del 50 %: confirma la reserva y emite el recibo (RD01).
+  async payDeposit(reservationId, transactionId) {
+    await delay();
+    const res = findReservation(reservationId);
+    if (res.status === 'cancelada') throw new Error('La reserva está cancelada.');
+    if (res.status !== 'pendiente_pago') throw new Error('La seña de esta reserva ya fue abonada.');
+    checkEquipment(res.equipmentAssigned);
+    const tx = consumePayment(transactionId, res.depositAmount, `reservas/${res.id}`);
+    const receipt = addReservationReceipt(res, tx, `Seña 50 % - ${res.courtName}`, 'Cobro digital online', [
+      { description: rentalLine(res), amount: res.courtCost },
+      { description: 'Equipamiento incluido (red, pelotas y raquetas)', amount: 0 },
+      { description: 'Total del turno', amount: res.totalCost },
+      { description: 'Seña 50 % para confirmar la reserva', amount: res.depositAmount }
+    ], res.depositAmount);
+    const next = saveReservation({
+      ...res,
+      status: 'confirmada',
+      depositPaid: res.depositAmount,
+      depositPaymentMethod: tx.paymentMethod,
+      depositTransactionId: tx.id,
+      depositReceiptNumber: receipt.id,
+      confirmedAt: new Date().toISOString()
+    });
+    return { data: next, receipt };
+  },
+  // Inicio del alquiler: descuenta el equipamiento del stock (TC_002).
+  async startRental(reservationId) {
+    await delay();
+    const res = findReservation(reservationId);
+    if (res.status === 'pendiente_pago') throw new Error('La reserva no tiene la seña abonada: no está confirmada (RD01).');
+    if (res.status !== 'confirmada') throw new Error('Solo se inicia el alquiler de una reserva confirmada.');
+    if (courtsStore.find(c => c.id === res.courtId)?.status === 'mantenimiento') {
+      throw new Error('La cancha está bloqueada por mantenimiento (RD06).');
+    }
+    const taken = takeEquipment(res.equipmentAssigned);
+    return { data: saveReservation({ ...res, status: 'en_juego', equipmentTaken: taken, startedAt: new Date().toISOString() }) };
+  },
+  // Fin del alquiler: cobra el saldo, emite el recibo final y devuelve el equipamiento (TC_002).
+  async payRemainingBalance(reservationId, transactionId) {
+    await delay();
+    const res = findReservation(reservationId);
+    if (res.status === 'finalizada') throw new Error('El saldo de esta reserva ya fue liquidado.');
+    if (res.status === 'cancelada') throw new Error('La reserva está cancelada.');
+    if (res.status !== 'en_juego') throw new Error('Primero hay que registrar el inicio del alquiler.');
+    const tx = consumePayment(transactionId, res.remainingBalance, `reservas/${res.id}`);
+    returnEquipment(res.equipmentTaken);
+    const receipt = addReservationReceipt(res, tx, `Saldo 50 % - ${res.courtName}`, 'Recepción del club', [
+      { description: rentalLine(res), amount: res.totalCost },
+      { description: `Seña abonada (recibo ${res.depositReceiptNumber})`, amount: res.depositPaid },
+      { description: 'Saldo restante al finalizar el partido', amount: res.remainingBalance }
+    ], res.remainingBalance);
+    const next = saveReservation({
+      ...res,
+      status: 'finalizada',
+      remainingPaid: true,
+      finalPaymentMethod: tx.paymentMethod,
+      finalTransactionId: tx.id,
+      finalReceiptNumber: receipt.id,
+      finishedAt: new Date().toISOString()
+    });
+    return { data: next, receipt };
+  },
+  // RF021: modificar reserva (fecha, horario, cancha, jugadores) antes de jugarse
   async update(reservationId, updatedData) {
     await delay();
-    const current = reservationsStore.find(r => r.id === reservationId);
-    if (current && updatedData.date && updatedData.date !== current.date) {
-      checkBookingWindow(updatedData.date);
+    const current = findReservation(reservationId);
+    if (current.status !== 'pendiente_pago' && current.status !== 'confirmada') {
+      throw new Error('Solo se modifican reservas pendientes de pago o confirmadas.');
     }
-    if (current && (updatedData.status || current.status) !== 'cancelada') {
-      const merged = { ...current, ...updatedData };
-      const dur = Number(merged.durationHours) || 1;
-      if (updatedData.startTime || updatedData.durationHours) {
-        const [h, m] = String(merged.startTime || '08:00').split(':').map(Number);
-        const totalMin = h * 60 + (m || 0) + Math.round(dur * 60);
-        merged.endTime = `${String(Math.floor(totalMin / 60)).padStart(2, '0')}:${String(totalMin % 60).padStart(2, '0')}`;
-      }
-      // Si cambia la cancha, el nombre guardado es el de la anterior: se compara solo por id.
-      if (updatedData.courtId && updatedData.courtId !== current.courtId) delete merged.courtName;
-      checkReservationConflict(merged, reservationId);
+    const patch = { ...updatedData };
+    RESERVATION_READ_ONLY.forEach(k => delete patch[k]);
+    const changed = (...keys) => keys.some(k => k in patch && JSON.stringify(patch[k]) !== JSON.stringify(current[k]));
+    const next = { ...current, ...patch };
+    const scheduleChanged = changed('date', 'startTime', 'durationHours');
+    const courtChanged = changed('courtId');
+    const playersChanged = changed('participants', 'playersType');
+    if (scheduleChanged) {
+      next.durationHours = Number(next.durationHours) || 0;
+      checkSchedule(next.date, next.startTime, next.durationHours);
+      next.endTime = addHours(next.startTime, next.durationHours);
     }
-    reservationsStore = reservationsStore.map(res => {
-      if (res.id !== reservationId) return res;
-      const next = { ...res, ...updatedData };
-      const dur = Number(next.durationHours) || 1;
-      if (updatedData.startTime || updatedData.durationHours) {
-        const [h, m] = String(next.startTime || '08:00').split(':').map(Number);
-        const totalMin = h * 60 + (m || 0) + Math.round(dur * 60);
-        next.endTime = `${String(Math.floor(totalMin / 60)).padStart(2, '0')}:${String(totalMin % 60).padStart(2, '0')}`;
-      }
-      const court = courtsStore.find(c => c.id === next.courtId);
-      if (court && (updatedData.courtId || updatedData.durationHours)) {
-        if (updatedData.courtId) {
-          next.courtName = `${court.name} (${court.surfaceType})`;
-          next.surfaceType = court.surfaceType;
-        }
-        next.courtCost = court.pricePerHour * dur;
-        next.totalCost = next.courtCost + (next.equipmentCost || 0);
-        next.remainingBalance = Math.max(0, next.totalCost - (next.depositPaid || 0));
-      }
-      next.updatedAt = new Date().toISOString();
-      return next;
-    });
-    return { data: reservationsStore.find(r => r.id === reservationId) };
+    const court = courtsStore.find(c => c.id === next.courtId);
+    if (!court) throw new Error(`La cancha ${next.courtId} no existe.`);
+    if (scheduleChanged || courtChanged) {
+      checkCourt(next);
+      const blockReason = getSlotBlock(court, next.date, `${next.startTime} - ${next.endTime}`);
+      if (blockReason) throw new Error(`La cancha no admite reservas en ese turno: ${blockReason} (RD06).`);
+    }
+    if (playersChanged || courtChanged) {
+      checkParticipants(next, court);
+      next.equipmentAssigned = equipmentFor(next.playersType);
+    }
+    if (scheduleChanged || courtChanged || playersChanged) checkReservationConflict(next, reservationId);
+    if (courtChanged) {
+      next.courtName = `${court.name} (${court.surfaceType})`;
+      next.surfaceType = court.surfaceType;
+    }
+    if (courtChanged || scheduleChanged) setCosts(next, court);
+    next.updatedAt = new Date().toISOString();
+    return { data: saveReservation(next) };
   },
   // RF023: eliminar reserva del registro
   async delete(reservationId) {
     await delay();
+    if (reservationsStore.find(r => r.id === reservationId)?.status === 'en_juego') {
+      throw new Error('No se puede eliminar una reserva en juego: primero hay que finalizar el alquiler.');
+    }
     reservationsStore = reservationsStore.filter(r => r.id !== reservationId);
     return { success: true };
   },
@@ -434,90 +695,91 @@ export const reservationsMock = {
     await delay();
     // RD02/RD03/RD04: con la antelación mínima del club corresponde reembolso; fuera de plazo se
     // aplica un cargo (retención de la seña). Las horas salen del inicio de la reserva, como en la API.
+    // Una reserva pendiente de pago se anula sin cargo porque no se abonó nada.
     const { freeCancellationHours, lateCancellationRetentionPercent } = clubConfigStore;
-    const target = reservationsStore.find(r => r.id === reservationId);
-    const hoursInAdvance = target ? Math.round(calculateHoursUntil(target.date, target.startTime) * 10) / 10 : 0;
+    const target = findReservation(reservationId);
+    if (target.status === 'cancelada') throw new Error('La reserva ya está cancelada.');
+    if (target.status !== 'pendiente_pago' && target.status !== 'confirmada') {
+      throw new Error('No se puede cancelar una reserva en juego o finalizada.');
+    }
+    const hoursInAdvance = Math.round(calculateHoursUntil(target.date, target.startTime) * 10) / 10;
+    if (target.status === 'pendiente_pago') {
+      const cancelled = saveReservation({
+        ...target,
+        status: 'cancelada',
+        cancellationDetails: { cancelledAt: new Date().toISOString(), hoursInAdvance, policyApplied: 'Reserva sin seña abonada: se anula sin cargo ni reembolso.' }
+      });
+      return { data: cancelled, isWithinFreeWindow: true, refund: null, penaltyReceipt: null };
+    }
     const isWithinFreeWindow = hoursInAdvance >= freeCancellationHours;
-    let cancelledRes = null;
-
-    reservationsStore = reservationsStore.map(res => {
-      if (res.id === reservationId) {
-        cancelledRes = {
-          ...res,
-          status: 'cancelada',
-          cancellationDetails: {
-            cancelledAt: new Date().toISOString(),
-            hoursInAdvance,
-            policyApplied: isWithinFreeWindow
-              ? `Cancelación anticipada (>=${freeCancellationHours}hs): Reembolso de seña según política.`
-              : `Cancelación tardía (<${freeCancellationHours}hs): Se aplica retención del ${lateCancellationRetentionPercent}% de seña por costo operativo.`
-          }
-        };
-        return cancelledRes;
+    const cancelledRes = saveReservation({
+      ...target,
+      status: 'cancelada',
+      cancellationDetails: {
+        cancelledAt: new Date().toISOString(),
+        hoursInAdvance,
+        policyApplied: isWithinFreeWindow
+          ? `Cancelación anticipada (>=${freeCancellationHours}hs): Reembolso de seña según política.`
+          : `Cancelación tardía (<${freeCancellationHours}hs): Se aplica retención del ${lateCancellationRetentionPercent}% de seña por costo operativo.`
       }
-      return res;
     });
 
     let refund = null;
     let penaltyReceipt = null;
-    if (cancelledRes) {
-      const lead = cancelledRes.participants?.[0] || {};
-      const deposit = Number(cancelledRes.depositPaid) || 0;
-      const refundId = `RMB-${new Date().getFullYear()}-${String(refundsStore.length + 9).padStart(4, '0')}`;
-      if (isWithinFreeWindow) {
-        refund = {
-          id: refundId,
-          clientName: lead.name || 'Socio Tenis Ahora',
-          clientDni: lead.dni || '00.000.000',
-          relatedReservationId: cancelledRes.id,
-          relatedReceiptId: cancelledRes.depositReceiptNumber || null,
-          reason: `Cancelación de reserva ${cancelledRes.id} con ${hoursInAdvance} hs de antelación (dentro del plazo reglamentario).`,
-          refundType: 'total',
-          originalAmount: deposit,
-          refundAmount: deposit,
-          refundMethod: `Devolución a ${cancelledRes.depositPaymentMethod || 'medio de pago original'}`,
-          status: 'pendiente',
-          date: nowStamp(),
-          processedBy: 'Sistema de Reservas'
-        };
-      } else {
-        const retained = Math.round(deposit * lateCancellationRetentionPercent / 100);
-        penaltyReceipt = {
-          id: `REC-CARGO-${Math.floor(1000 + Math.random() * 9000)}`,
-          reservationId: cancelledRes.id,
-          clientName: lead.name || 'Socio Tenis Ahora',
-          clientDni: lead.dni || '00.000.000',
-          concept: `Cargo por cancelación fuera de plazo - ${cancelledRes.courtName}`,
-          items: [
-            { description: `Seña abonada (${cancelledRes.id})`, amount: deposit },
-            { description: `Retención ${lateCancellationRetentionPercent}% por cancelación con menos de ${freeCancellationHours} hs`, amount: retained },
-            { description: 'Saldo reintegrado como crédito en cuenta', amount: deposit - retained }
-          ],
-          totalPaid: retained,
-          paymentMethod: 'Retención sobre seña',
-          status: 'completado',
-          date: nowStamp(),
-          cashierName: 'Sistema de Reservas'
-        };
-        receiptsStore.unshift(penaltyReceipt);
-        refund = {
-          id: refundId,
-          clientName: lead.name || 'Socio Tenis Ahora',
-          clientDni: lead.dni || '00.000.000',
-          relatedReservationId: cancelledRes.id,
-          relatedReceiptId: cancelledRes.depositReceiptNumber || null,
-          reason: `Cancelación fuera de plazo (${hoursInAdvance} hs). Se retiene el ${lateCancellationRetentionPercent}% de la seña y se reintegra el resto.`,
-          refundType: 'parcial',
-          originalAmount: deposit,
-          refundAmount: deposit - retained,
-          refundMethod: 'Crédito en cuenta de socio',
-          status: 'pendiente',
-          date: nowStamp(),
-          processedBy: 'Sistema de Reservas'
-        };
-      }
-      refundsStore.unshift(refund);
+    const lead = cancelledRes.participants?.[0] || {};
+    const deposit = Number(cancelledRes.depositPaid) || 0;
+    const refundId = `RMB-${new Date().getFullYear()}-${String(refundsStore.length + 9).padStart(4, '0')}`;
+    if (isWithinFreeWindow) {
+      refund = {
+        id: refundId,
+        clientName: lead.name || 'Socio Tenis Ahora',
+        clientDni: lead.dni || '00.000.000',
+        relatedReservationId: cancelledRes.id,
+        relatedReceiptId: cancelledRes.depositReceiptNumber || null,
+        reason: `Cancelación de reserva ${cancelledRes.id} con ${hoursInAdvance} hs de antelación (dentro del plazo reglamentario).`,
+        refundType: 'total',
+        originalAmount: deposit,
+        refundAmount: deposit,
+        refundMethod: `Devolución a ${cancelledRes.depositPaymentMethod || 'medio de pago original'}`,
+        date: nowStamp(),
+        processedBy: 'Sistema de Reservas'
+      };
+    } else {
+      const retained = Math.round(deposit * lateCancellationRetentionPercent / 100);
+      penaltyReceipt = {
+        id: nextReceiptId(),
+        reservationId: cancelledRes.id,
+        clientName: lead.name || 'Socio Tenis Ahora',
+        clientDni: lead.dni || '00.000.000',
+        concept: `Cargo por cancelación fuera de plazo - ${cancelledRes.courtName}`,
+        items: [
+          { description: `Seña abonada (${cancelledRes.id})`, amount: deposit },
+          { description: `Retención ${lateCancellationRetentionPercent}% por cancelación con menos de ${freeCancellationHours} hs`, amount: retained },
+          { description: 'Saldo reintegrado como crédito en cuenta', amount: deposit - retained }
+        ],
+        totalPaid: retained,
+        paymentMethod: 'Retención sobre seña',
+        status: 'completado',
+        date: nowStamp(),
+        cashierName: 'Sistema de Reservas'
+      };
+      receiptsStore.unshift(penaltyReceipt);
+      refund = {
+        id: refundId,
+        clientName: lead.name || 'Socio Tenis Ahora',
+        clientDni: lead.dni || '00.000.000',
+        relatedReservationId: cancelledRes.id,
+        relatedReceiptId: cancelledRes.depositReceiptNumber || null,
+        reason: `Cancelación fuera de plazo (${hoursInAdvance} hs). Se retiene el ${lateCancellationRetentionPercent}% de la seña y se reintegra el resto.`,
+        refundType: 'parcial',
+        originalAmount: deposit,
+        refundAmount: deposit - retained,
+        refundMethod: 'Crédito en cuenta de socio',
+        date: nowStamp(),
+        processedBy: 'Sistema de Reservas'
+      };
     }
+    refundsStore.unshift(refund);
 
     return { data: cancelledRes, isWithinFreeWindow, refund, penaltyReceipt };
   }
@@ -1131,10 +1393,15 @@ export const receiptsMock = {
     await delay();
     return { data: discountsStore };
   },
+  // Todo recibo corresponde a un cobro electrónico aprobado (RD11).
   async create(receiptData) {
     await delay();
-    receiptsStore = [receiptData, ...receiptsStore];
-    return { data: receiptData };
+    if (!(Number(receiptData.totalPaid) > 0)) throw new Error('El importe del recibo debe ser mayor a cero.');
+    const id = receiptsStore.some(r => r.id === receiptData.id) ? nextReceiptId() : receiptData.id;
+    const tx = consumePayment(receiptData.transactionId, Number(receiptData.totalPaid), `recibos/${id}`);
+    const receipt = { ...receiptData, id, ...paymentFields(tx) };
+    receiptsStore = [receipt, ...receiptsStore];
+    return { data: receipt };
   }
 };
 

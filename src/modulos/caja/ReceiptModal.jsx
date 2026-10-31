@@ -1,12 +1,28 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Modal from '../../ui/Modal';
 import Logo from '../../layout/Logo';
+import { downloadReceiptPdf, paymentMethodLabel } from '../../utils/receiptPdf';
 
 export default function ReceiptModal({ isOpen, onClose, receipt }) {
+  const [generating, setGenerating] = useState(false);
+  const [pdfError, setPdfError] = useState('');
+
   if (!receipt) return null;
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleDownloadPdf = async () => {
+    setGenerating(true);
+    setPdfError('');
+    try {
+      await downloadReceiptPdf(receipt);
+    } catch (err) {
+      setPdfError(err?.message || 'No se pudo generar el PDF.');
+    } finally {
+      setGenerating(false);
+    }
   };
 
   return (
@@ -42,7 +58,13 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
             <div className="text-right">
               <span className="text-[10px] text-slate-400 block uppercase font-bold">Fecha y Hora de Emisión:</span>
               <span className="font-bold text-slate-900 block font-mono text-[11px]">{receipt.date || new Date().toLocaleString()}</span>
-              <span className="text-slate-600 text-[11px]">Medio de Pago: <strong className="text-tennis-800">{receipt.paymentMethod}</strong></span>
+              <span className="text-slate-600 text-[11px] block">Medio de Pago: <strong className="text-tennis-800">{paymentMethodLabel(receipt)}</strong></span>
+              {receipt.transactionId && (
+                <span className="text-slate-600 text-[11px] block">Operación: <strong className="font-mono">{receipt.transactionId}</strong></span>
+              )}
+              {receipt.reservationId && (
+                <span className="text-slate-600 text-[11px] block">Reserva: <strong className="font-mono">{receipt.reservationId}</strong></span>
+              )}
             </div>
           </div>
 
@@ -126,8 +148,12 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
 
         </div>
 
+        {pdfError && (
+          <div className="p-3 bg-red-50 text-red-700 rounded-xl border border-red-200 text-xs font-semibold no-print">{pdfError}</div>
+        )}
+
         {/* Modal Actions (No Print) */}
-        <div className="mt-4 flex items-center justify-end gap-2 no-print border-t border-slate-100 pt-3">
+        <div className="mt-4 flex flex-wrap items-center justify-end gap-2 no-print border-t border-slate-100 pt-3">
           <button
             type="button"
             onClick={onClose}
@@ -138,9 +164,17 @@ export default function ReceiptModal({ isOpen, onClose, receipt }) {
           <button
             type="button"
             onClick={handlePrint}
-            className="px-5 py-2 text-xs font-bold text-white bg-tennis-600 hover:bg-tennis-700 rounded-xl shadow-md inline-flex items-center gap-1.5 transition-all"
+            className="px-4 py-2 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl"
           >
-            Imprimir Comprobante 
+            Imprimir
+          </button>
+          <button
+            type="button"
+            onClick={handleDownloadPdf}
+            disabled={generating}
+            className="px-5 py-2 text-xs font-bold text-white bg-tennis-600 hover:bg-tennis-700 disabled:opacity-50 rounded-xl shadow-md"
+          >
+            {generating ? 'Generando PDF...' : 'Generar recibo digital (PDF)'}
           </button>
         </div>
 

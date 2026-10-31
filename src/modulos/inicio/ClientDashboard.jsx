@@ -36,7 +36,11 @@ export default function ClientDashboard() {
   const myReservations = reservations.filter(r => !user?.dni || (r.participants || []).some(p => p.dni === user.dni));
   const upcomingBooking = myReservations.find(r => r.status === 'confirmada');
   const confirmedBookings = myReservations.filter(r => r.status === 'confirmada');
-  const pendingBalance = confirmedBookings.reduce((acc, r) => acc + (r.remainingBalance || 0), 0);
+  // Reservas registradas sin la seña abonada: no están confirmadas (RD01).
+  const unpaidBookings = myReservations.filter(r => r.status === 'pendiente_pago');
+  const pendingBalance = myReservations
+    .filter(r => r.status === 'confirmada' || r.status === 'en_juego')
+    .reduce((acc, r) => acc + (r.remainingBalance || 0), 0);
   const myTournament = tournaments.find(t => (t.participants || []).some(p => p.dni === user?.dni));
   const TOURNAMENT_STATUS = { inscripcion_abierta: 'Inscripción abierta', en_curso: 'En curso', finalizado: 'Finalizado' };
 
@@ -84,6 +88,19 @@ export default function ClientDashboard() {
           </div>
         </div>
       </div>
+
+      {unpaidBookings.length > 0 && (
+        <div className="p-4 bg-white rounded-2xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+          <p className="text-slate-700">
+            {unpaidBookings.length === 1
+              ? `La reserva ${unpaidBookings[0].id} está pendiente de pago: no se confirma hasta abonar la seña.`
+              : `Tenés ${unpaidBookings.length} reservas pendientes de pago: no se confirman hasta abonar la seña.`}
+          </p>
+          <Link to={paths.appReservas} className="px-4 py-2 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-bold text-center shrink-0">
+            Pagar seña
+          </Link>
+        </div>
+      )}
 
       {/* Quick Summary Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -194,6 +211,8 @@ export default function ClientDashboard() {
                       type="button"
                       onClick={() => setSelectedReceipt({
                         id: upcomingBooking.depositReceiptNumber,
+                        reservationId: upcomingBooking.id,
+                        transactionId: upcomingBooking.depositTransactionId,
                         clientName: user?.name,
                         clientDni: user?.dni,
                         concept: `Seña 50% Alquiler - ${upcomingBooking.courtName}`,
