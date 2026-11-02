@@ -42,18 +42,31 @@ export function isEnrolledByDni(participants = [], dni = '') {
 
 const normalizeTime = (t = '') => String(t).replace(/\s+/g, '').toLowerCase();
 
+// "10:00 - 11:00" -> [600, 660]; null si no tiene formato de rango.
+const timeRange = (t = '') => {
+  const m = /^\s*(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})\s*$/.exec(t);
+  return m ? [Number(m[1]) * 60 + Number(m[2]), Number(m[3]) * 60 + Number(m[4])] : null;
+};
+
+// Dos horarios chocan si se superponen; uno sin formato de rango solo choca con el mismo texto.
+const timesOverlap = (a, b) => {
+  const ra = timeRange(a);
+  const rb = timeRange(b);
+  if (!ra || !rb) return normalizeTime(a) === normalizeTime(b);
+  return ra[0] < rb[1] && rb[0] < ra[1];
+};
+
 /**
- * Devuelve el turno particular que choca con el pedido (mismo día y horario, sin cancelar):
+ * Devuelve el turno particular que choca con el pedido (mismo día y horario superpuesto, sin cancelar):
  * el mismo alumno con cualquier profesor, o el mismo profesor con cualquier alumno. Si no hay choque, null.
  */
 export function findPrivateLessonConflict(lessons = [], { coachId, studentDni, date, time, excludeId } = {}) {
   const dni = cleanDNI(studentDni || '');
-  const slot = normalizeTime(time);
   return lessons.find(l =>
     l.id !== excludeId &&
     l.status !== 'cancelada' &&
     l.date === date &&
-    normalizeTime(l.time) === slot &&
+    timesOverlap(l.time, time) &&
     ((dni && cleanDNI(l.studentDni || '') === dni) || (coachId && l.coachId === coachId))
   ) || null;
 }

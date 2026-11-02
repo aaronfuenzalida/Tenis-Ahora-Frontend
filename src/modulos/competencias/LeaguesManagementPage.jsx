@@ -87,7 +87,15 @@ export default function LeaguesManagementPage() {
   };
 
   const competitionTypeName = (id) => competitionTypes.find(t => t.id === id)?.name || 'Sin tipo asignado';
-  const typesFor = (scope) => competitionTypes.filter(t => t.active !== false && (t.appliesTo === scope || t.appliesTo === 'Ambos'));
+  // keepId mantiene en la lista el tipo ya asignado aunque después se haya desactivado.
+  const typesFor = (scope, keepId) => competitionTypes.filter(t => t.id === keepId || (t.active !== false && (t.appliesTo === scope || t.appliesTo === 'Ambos')));
+
+  // Cupo permitido: el rango del tipo de competencia, nunca menos que los inscriptos.
+  const capacityRange = (typeId, enrolled = 0) => {
+    const type = competitionTypes.find(t => t.id === typeId);
+    const max = Number(type?.maxParticipants) || undefined;
+    return { min: Math.max(Number(type?.minParticipants) || 2, enrolled, 2), max };
+  };
 
   const loadLeagues = async () => {
     const res = await leaguesService.getAll();
@@ -159,7 +167,12 @@ export default function LeaguesManagementPage() {
   const handleSaveEditLeague = async (e) => {
     e.preventDefault();
     if (!selectedLeague || !editLeagueForm) return;
-    await leaguesService.update(selectedLeague.id, editLeagueForm);
+    try {
+      await leaguesService.update(selectedLeague.id, editLeagueForm);
+    } catch (err) {
+      notify({ title: 'Error al modificar liga', message: err.message || 'No se pudo modificar la liga.', variant: 'error' });
+      return;
+    }
     setShowEditLeagueModal(false);
     await loadLeagues();
   };
@@ -242,12 +255,17 @@ export default function LeaguesManagementPage() {
     e.preventDefault();
     if (!selectedLeague || !selectedLeagueMatch) return;
     const fullScore = [matchSet1, matchSet2, matchSet3].filter(Boolean).join(', ');
-    await leaguesService.updateMatchScore(
-      selectedLeague.id,
-      selectedLeagueMatch.id,
-      fullScore,
-      matchWinner
-    );
+    try {
+      await leaguesService.updateMatchScore(
+        selectedLeague.id,
+        selectedLeagueMatch.id,
+        fullScore,
+        matchWinner
+      );
+    } catch (err) {
+      notify({ variant: 'warning', title: 'No se pudo guardar el resultado', message: err.message || 'Intentá nuevamente.' });
+      return;
+    }
     setShowMatchScoreModal(false);
     setSelectedLeagueMatch(null);
     await loadLeagues();
@@ -709,7 +727,10 @@ export default function LeaguesManagementPage() {
             <select
               required
               value={newLeagueForm.competitionTypeId}
-              onChange={(e) => setNewLeagueForm({ ...newLeagueForm, competitionTypeId: e.target.value })}
+              onChange={(e) => {
+                const type = competitionTypes.find(t => t.id === e.target.value);
+                setNewLeagueForm({ ...newLeagueForm, competitionTypeId: e.target.value, maxParticipants: Number(type?.maxParticipants) || newLeagueForm.maxParticipants });
+              }}
               className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white"
             >
               <option value="">Seleccione un tipo...</option>
@@ -765,6 +786,18 @@ export default function LeaguesManagementPage() {
                 required
                 value={newLeagueForm.registrationFee}
                 onChange={(e) => setNewLeagueForm({ ...newLeagueForm, registrationFee: Number(e.target.value) })}
+                className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
+              />
+            </div>
+
+            <div>
+              <label className="font-semibold text-slate-700 uppercase block mb-1">Cupo Máximo *</label>
+              <input
+                type="number"
+                required
+                {...capacityRange(newLeagueForm.competitionTypeId)}
+                value={newLeagueForm.maxParticipants}
+                onChange={(e) => setNewLeagueForm({ ...newLeagueForm, maxParticipants: Number(e.target.value) })}
                 className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
               />
             </div>
@@ -850,8 +883,8 @@ export default function LeaguesManagementPage() {
                 className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white"
               >
                 <option value="">Seleccione un tipo...</option>
-                {typesFor('Liga').map(t => (
-                  <option key={t.id} value={t.id}>{t.name} — {t.format}</option>
+                {typesFor('Liga', editLeagueForm.competitionTypeId).map(t => (
+                  <option key={t.id} value={t.id}>{t.name} — {t.format}{t.active === false ? ' (inactivo)' : ''}</option>
                 ))}
               </select>
             </div>
@@ -911,6 +944,7 @@ export default function LeaguesManagementPage() {
                 <input
                   type="number"
                   required
+                  {...capacityRange(editLeagueForm.competitionTypeId, selectedLeague?.participants?.length || 0)}
                   value={editLeagueForm.maxParticipants}
                   onChange={(e) => setEditLeagueForm({ ...editLeagueForm, maxParticipants: Number(e.target.value) })}
                   className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
@@ -1144,6 +1178,7 @@ export default function LeaguesManagementPage() {
 
             <div>
               <label className="font-semibold text-slate-700 uppercase block mb-1">Puntuación por Sets *</label>
+              <p className="text-[11px] text-slate-500 mb-2">Con los games del ganador primero, por ejemplo 6-4, 3-6, 6-2.</p>
               <div className="grid grid-cols-3 gap-2">
                 <div>
                   <span className="text-[11px] text-slate-500 block mb-1">Set 1 *</span>

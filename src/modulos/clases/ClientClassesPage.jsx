@@ -28,12 +28,22 @@ export default function ClientClassesPage() {
   // La API no le manda la lista de alumnos al socio, solo `enrolled`; el Modo Demo sí trae la lista.
   const alreadyIn = (cls) => !!cls?.enrolled || isEnrolledByDni(cls?.students, user?.dni);
 
-  const startEnrollment = (cls) => {
-    if (alreadyIn(cls)) {
-      notify({ variant: 'warning', message: `Ya estás inscripto en "${cls.name}".` });
+  const isFull = (cls) => (cls.students?.length || cls.currentEnrolled || 0) >= Math.min(Number(cls.maxCapacity) || 30, 30);
+
+  // El cupo se revisa con la clase recién leída: si se llenó desde que se abrió la página, no se cobra.
+  const startEnrollment = async (cls) => {
+    const res = await coachesAndClassesService.getClasses();
+    setClasses(res.data);
+    const fresh = (res.data || []).find(c => c.id === cls.id) || cls;
+    if (alreadyIn(fresh)) {
+      notify({ variant: 'warning', message: `Ya estás inscripto en "${fresh.name}".` });
       return;
     }
-    setPayment({ cls });
+    if (isFull(fresh)) {
+      notify({ variant: 'warning', message: `"${fresh.name}" no tiene cupos disponibles.` });
+      return;
+    }
+    setPayment({ cls: fresh });
   };
 
   const settleAfterPayment = async () => {
@@ -82,7 +92,6 @@ export default function ClientClassesPage() {
         {visible.map(cls => {
           const capacity = Math.min(Number(cls.maxCapacity) || 30, 30);
           const enrolled = cls.students?.length || cls.currentEnrolled || 0;
-          const isFull = enrolled >= capacity;
 
           return (
             <div key={cls.id} className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm flex flex-col justify-between space-y-4">
@@ -106,7 +115,7 @@ export default function ClientClassesPage() {
                 <div className="w-full py-2 px-3 rounded-xl bg-tennis-50 text-tennis-800 font-semibold text-xs text-center border border-tennis-200">
                   Ya estás inscripto
                 </div>
-              ) : isFull ? (
+              ) : isFull(cls) ? (
                 <button type="button" disabled className="w-full py-2 px-3 rounded-xl bg-slate-200 text-slate-400 font-semibold text-xs cursor-not-allowed">
                   Cupo completo
                 </button>

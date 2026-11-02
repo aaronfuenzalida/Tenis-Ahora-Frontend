@@ -1,17 +1,62 @@
 import React, { useState } from 'react';
 import Modal from '../../ui/Modal';
 
-const ROUND_NAMES = ['Octavos de final', 'Cuartos de final', 'Semifinales', 'Final'];
+const ROUND_NAMES = ['Dieciseisavos de final', 'Octavos de final', 'Cuartos de final', 'Semifinales', 'Final'];
 
-/** Tamaño del cuadro según el cupo del torneo: 16 (desde octavos) u 8 (desde cuartos). */
+/**
+ * Tamaño del cuadro según el cupo del torneo: la potencia de 2 que alcanza para todos, hasta 32
+ * (desde dieciseisavos). La API no acepta torneos de más de 32 participantes.
+ */
 export function bracketSize(tournament) {
-  return (tournament?.maxParticipants || 8) > 8 ? 16 : 8;
+  const capacity = Math.min(Math.max(Number(tournament?.maxParticipants) || 8, 2), 32);
+  return 2 ** Math.ceil(Math.log2(capacity));
 }
 
-/** Arma el cuadro completo a partir de los inscriptos (los lugares vacíos quedan "A definir"). */
+// Lugar vacío del cuadro: quien lo tiene enfrente pasa de ronda sin jugar.
+const BYE = 'Libre';
+const isPlaceholder = (p = '') => /^(Ganador|A definir)/.test(p);
+
+/**
+ * Resuelve los partidos con un lugar libre: el rival pasa de ronda (o el lugar libre, si eran dos) y
+ * se completa la ronda siguiente. Se recalculan siempre, así una corrección de resultado previa los
+ * vuelve a resolver con el jugador correcto.
+ */
+function advanceByes(rounds) {
+  rounds.forEach((r, rIdx) => r.matches.forEach((m, mIdx) => {
+    if ((m.p1 !== BYE && m.p2 !== BYE) || isPlaceholder(m.p1) || isPlaceholder(m.p2)) return;
+    const winner = m.p1 === BYE ? (m.p2 === BYE ? null : m.p2) : m.p1;
+    Object.assign(m, { winner, score: winner ? 'Pase libre' : '', status: 'finalizado' });
+    const target = rounds[rIdx + 1]?.matches[Math.floor(mIdx / 2)];
+    if (target) target[mIdx % 2 === 0 ? 'p1' : 'p2'] = winner || BYE;
+  }));
+  return rounds;
+}
+
+/**
+ * Al cambiar el ganador de un partido, lo que se jugó después con el ganador anterior deja de valer:
+ * el partido siguiente vuelve a esperar al "Ganador partido N" y se borra su resultado, y lo mismo en
+ * cadena hacia la final. matchNumber(rIdx, mIdx) da el número correlativo de cada partido.
+ */
+function invalidateFrom(rounds, rIdx, mIdx, matchNumber) {
+  const tIdx = Math.floor(mIdx / 2);
+  const target = rounds[rIdx + 1]?.matches[tIdx];
+  if (!target) return;
+  const wasPlayed = target.status === 'finalizado';
+  target[mIdx % 2 === 0 ? 'p1' : 'p2'] = `Ganador partido ${matchNumber(rIdx, mIdx)}`;
+  Object.assign(target, { score: '', winner: null, status: 'pendiente' });
+  if (wasPlayed) invalidateFrom(rounds, rIdx + 1, tIdx, matchNumber);
+}
+
+/**
+ * Arma el cuadro completo a partir de los inscriptos. Con el cupo incompleto, los primeros juegan
+ * entre sí y el resto pasa de ronda con un lugar libre, así ningún partido queda sin rival y el
+ * cuadro siempre llega a la final. Con el cupo lleno, los cruces son en orden de inscripción.
+ */
 export function buildBracketFromParticipants(participants = [], size = 8) {
   const names = participants.slice(0, size).map(p => (p.partnerName ? `${p.name} / ${p.partnerName}` : p.name));
-  while (names.length < size) names.push('A definir');
+  const playedFirst = Math.max(names.length - size / 2, 0) * 2;
+  const slots = names.flatMap((n, i) => (i < playedFirst ? [n] : [n, BYE]));
+  while (slots.length < size) slots.push(BYE);
 
   const rounds = [];
   let matchNumber = 1;
@@ -20,13 +65,13 @@ export function buildBracketFromParticipants(participants = [], size = 8) {
     const list = [];
     for (let i = 0; i < matches; i++) {
       list.push(round === 0
-        ? { id: `m${matchNumber}`, p1: names[i * 2], p2: names[i * 2 + 1], score: '', winner: null, status: 'programado' }
+        ? { id: `m${matchNumber}`, p1: slots[i * 2], p2: slots[i * 2 + 1], score: '', winner: null, status: 'programado' }
         : { id: `m${matchNumber}`, p1: `Ganador partido ${firstOfPrev + i * 2}`, p2: `Ganador partido ${firstOfPrev + i * 2 + 1}`, score: '', winner: null, status: 'pendiente' });
       matchNumber++;
     }
     rounds.push({ round: ROUND_NAMES[ROUND_NAMES.length - Math.log2(size) + round], matches: list });
   }
-  return rounds;
+  return advanceByes(rounds);
 }
 
 /**
@@ -44,6 +89,8 @@ export default function TournamentBracketTree({ tournament, isAdmin = false, onU
 
   const size = bracketSize(tournament);
   const bracket = Array.isArray(tournament.bracket) && tournament.bracket.length >= 2 ? tournament.bracket : null;
+  // Con menos de dos inscriptos no hay partidos que sortear.
+  const canBuild = (tournament.participants?.length || 0) >= 2;
 
   const update = (newBracket) => {
     onUpdateTournament?.({ ...tournament, bracket: newBracket });
@@ -57,7 +104,7 @@ export default function TournamentBracketTree({ tournament, isAdmin = false, onU
         <p className="text-xs text-slate-500">
           Inscriptos: {tournament.participants?.length || 0} de {tournament.maxParticipants || 8}. El fixture se define al cerrar la inscripción.
         </p>
-        {isAdmin && (
+        {isAdmin && canBuild && (
           <button
             type="button"
             onClick={() => update(buildBracketFromParticipants(tournament.participants, size))}
@@ -91,6 +138,7 @@ export default function TournamentBracketTree({ tournament, isAdmin = false, onU
     if (!selectedMatch) return;
     const fullScore = [set1, set2, set3].map(s => s.trim()).filter(Boolean).join(', ');
     const winnerName = selectedWinner;
+    const winnerChanged = !!selectedMatch.winner && selectedMatch.winner !== winnerName;
     const next = JSON.parse(JSON.stringify(bracket));
 
     let rIdx = -1;
@@ -106,18 +154,19 @@ export default function TournamentBracketTree({ tournament, isAdmin = false, onU
     }));
 
     if (rIdx >= 0 && rIdx < lastRound) {
+      if (winnerChanged) invalidateFrom(next, rIdx, mIdx, matchNumber);
       const target = next[rIdx + 1].matches[Math.floor(mIdx / 2)];
       if (mIdx % 2 === 0) target.p1 = winnerName; else target.p2 = winnerName;
       target.status = target.status === 'finalizado' ? target.status : 'programado';
     }
 
-    update(next);
+    update(advanceByes(next));
     setSelectedMatch(null);
   };
 
   const handleResetBracket = () => update(buildBracketFromParticipants(tournament.participants, size));
 
-  const canEdit = (m) => isAdmin && !/^(Ganador|A definir)/.test(m.p1) && !/^(Ganador|A definir)/.test(m.p2);
+  const canEdit = (m) => isAdmin && ![m.p1, m.p2].some(p => isPlaceholder(p) || p === BYE);
 
   const columns = bracket.map(() => '1fr').join(' 2.5rem ');
 
@@ -127,7 +176,7 @@ export default function TournamentBracketTree({ tournament, isAdmin = false, onU
         <div className="text-xs text-slate-500">
           Eliminación directa a {size}. {tournament.modality} • {tournament.surfaceRequired}
         </div>
-        {isAdmin && (
+        {isAdmin && canBuild && (
           <button
             type="button"
             onClick={handleResetBracket}
@@ -262,7 +311,7 @@ function Connector() {
 
 function MatchCard({ match, index, isFinal = false, editable, onEdit }) {
   const finished = match.status === 'finalizado';
-  const placeholder = (name) => /^(Ganador|A definir)/.test(name || '');
+  const placeholder = (name) => isPlaceholder(name || '') || name === BYE;
 
   const row = (name) => {
     const isWinner = finished && match.winner === name;

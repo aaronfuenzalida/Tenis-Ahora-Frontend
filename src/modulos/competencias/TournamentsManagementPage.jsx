@@ -70,7 +70,15 @@ export default function TournamentsManagementPage() {
   };
 
   const competitionTypeName = (id) => competitionTypes.find(t => t.id === id)?.name || 'Sin tipo asignado';
-  const typesFor = (scope) => competitionTypes.filter(t => t.active !== false && (t.appliesTo === scope || t.appliesTo === 'Ambos'));
+  // keepId mantiene en la lista el tipo ya asignado aunque después se haya desactivado.
+  const typesFor = (scope, keepId) => competitionTypes.filter(t => t.id === keepId || (t.active !== false && (t.appliesTo === scope || t.appliesTo === 'Ambos')));
+
+  // Cupo permitido: el rango del tipo de competencia, nunca menos que los inscriptos ni más de 32 (el cuadro más grande).
+  const capacityRange = (typeId, enrolled = 0) => {
+    const type = competitionTypes.find(t => t.id === typeId);
+    const max = Math.min(Number(type?.maxParticipants) || 32, 32);
+    return { min: Math.max(Number(type?.minParticipants) || 2, enrolled, 2), max };
+  };
 
   const loadTournaments = async () => {
     const res = await tournamentsService.getAll();
@@ -142,7 +150,12 @@ export default function TournamentsManagementPage() {
   const handleSaveEditTournament = async (e) => {
     e.preventDefault();
     if (!selectedTournament || !editTrnForm) return;
-    await tournamentsService.update(selectedTournament.id, editTrnForm);
+    try {
+      await tournamentsService.update(selectedTournament.id, editTrnForm);
+    } catch (err) {
+      notify({ title: 'Error al modificar torneo', message: err.message || 'No se pudo modificar el torneo.', variant: 'error' });
+      return;
+    }
     setShowEditTrnModal(false);
     await loadTournaments();
   };
@@ -507,7 +520,10 @@ export default function TournamentsManagementPage() {
             <select
               required
               value={newTrnForm.competitionTypeId}
-              onChange={(e) => setNewTrnForm({ ...newTrnForm, competitionTypeId: e.target.value })}
+              onChange={(e) => {
+                const type = competitionTypes.find(t => t.id === e.target.value);
+                setNewTrnForm({ ...newTrnForm, competitionTypeId: e.target.value, maxParticipants: Number(type?.maxParticipants) || newTrnForm.maxParticipants });
+              }}
               className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white"
             >
               <option value="">Seleccione un tipo...</option>
@@ -562,6 +578,18 @@ export default function TournamentsManagementPage() {
                 required
                 value={newTrnForm.registrationFee}
                 onChange={(e) => setNewTrnForm({ ...newTrnForm, registrationFee: Number(e.target.value) })}
+                className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
+              />
+            </div>
+
+            <div>
+              <label className="font-semibold text-slate-700 uppercase block mb-1">Cupo Máximo *</label>
+              <input
+                type="number"
+                required
+                {...capacityRange(newTrnForm.competitionTypeId)}
+                value={newTrnForm.maxParticipants}
+                onChange={(e) => setNewTrnForm({ ...newTrnForm, maxParticipants: Number(e.target.value) })}
                 className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
               />
             </div>
@@ -647,8 +675,8 @@ export default function TournamentsManagementPage() {
                 className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white"
               >
                 <option value="">Seleccione un tipo...</option>
-                {typesFor('Torneo').map(t => (
-                  <option key={t.id} value={t.id}>{t.name} — {t.format}</option>
+                {typesFor('Torneo', editTrnForm.competitionTypeId).map(t => (
+                  <option key={t.id} value={t.id}>{t.name} — {t.format}{t.active === false ? ' (inactivo)' : ''}</option>
                 ))}
               </select>
             </div>
@@ -707,6 +735,7 @@ export default function TournamentsManagementPage() {
                 <input
                   type="number"
                   required
+                  {...capacityRange(editTrnForm.competitionTypeId, selectedTournament?.participants?.length || 0)}
                   value={editTrnForm.maxParticipants}
                   onChange={(e) => setEditTrnForm({ ...editTrnForm, maxParticipants: Number(e.target.value) })}
                   className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"

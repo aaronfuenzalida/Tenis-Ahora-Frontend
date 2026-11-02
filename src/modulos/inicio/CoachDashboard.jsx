@@ -34,19 +34,17 @@ export default function CoachDashboard() {
     const currentCoach = cRes.data.find(c => c.id === user?.coachId);
     setCoachProfile(currentCoach);
 
-    // Classes assigned to this coach
-    const myClasses = clRes.data.filter(c => c.coachId === currentCoach?.id || c.coachName === currentCoach?.name);
-    setClasses(myClasses.length > 0 ? myClasses : clRes.data);
-
-    // Private lessons for this coach
-    const myLessons = prvRes.data.filter(p => p.coachId === currentCoach?.id || p.coachName === currentCoach?.name);
-    setPrivateLessons(myLessons.length > 0 ? myLessons : prvRes.data);
+    setClasses(onlyMine(clRes.data));
+    setPrivateLessons(onlyMine(prvRes.data));
   };
+
+  // La API ya filtra por profesional; la demo trae todo lo del club.
+  const onlyMine = (list) => list.filter(c => c.coachId === user?.coachId);
 
   const handleToggleAttendance = async (classId, studentId, sessionIndex) => {
     await coachesAndClassesService.toggleStudentAttendance(classId, studentId, sessionIndex);
     const clRes = await coachesAndClassesService.getClasses();
-    setClasses(clRes.data);
+    setClasses(onlyMine(clRes.data));
     const updated = clRes.data.find(c => c.id === classId);
     if (updated) setSelectedClassForAttendance(updated);
   };
@@ -261,7 +259,7 @@ export default function CoachDashboard() {
 onEnrollStudent={async (classId, studentData) => {
           await coachesAndClassesService.enrollStudent(classId, studentData);
           const clRes = await coachesAndClassesService.getClasses();
-          setClasses(clRes.data);
+          setClasses(onlyMine(clRes.data));
           const updated = clRes.data.find(c => c.id === classId);
           if (updated) setSelectedClassForAttendance(updated);
         }}

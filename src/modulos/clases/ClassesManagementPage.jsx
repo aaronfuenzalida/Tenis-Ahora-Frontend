@@ -42,6 +42,15 @@ export default function ClassesManagementPage() {
     loadClasses();
   }, []);
 
+  // Un profesor solo da clases y un entrenador solo entrenamientos.
+  const coachesFor = (kind, list = coaches) => list.filter(c => (c.type === 'Entrenador' ? 'entrenamiento' : 'clase') === (kind || 'clase'));
+  // Al cambiar el tipo, el profesional pasa al primero que lo puede dar (si el elegido no puede).
+  const withKind = (form, kind, list = coaches) => {
+    const options = coachesFor(kind, list);
+    const coach = options.find(c => c.id === form.coachId) || options[0];
+    return { ...form, kind, coachId: coach?.id || '', coachName: coach?.name || '' };
+  };
+
   const loadClasses = async () => {
     const [cRes, clRes, ctRes] = await Promise.all([
       coachesAndClassesService.getCoaches(),
@@ -53,11 +62,7 @@ export default function ClassesManagementPage() {
     setCourtTypes(ctRes.data);
 
     if (cRes.data.length > 0 && !newClassForm.coachId) {
-      setNewClassForm(prev => ({
-        ...prev,
-        coachId: cRes.data[0].id,
-        coachName: cRes.data[0].name
-      }));
+      setNewClassForm(prev => withKind(prev, prev.kind, cRes.data));
     }
   };
 
@@ -235,7 +240,7 @@ export default function ClassesManagementPage() {
             <button
               type="button"
               onClick={() => {
-                setNewClassForm(prev => ({ ...prev, kind: classKindFilter }));
+                setNewClassForm(prev => withKind(prev, classKindFilter));
                 setShowAddClassModal(true);
               }}
               className="px-3.5 py-2 bg-tennis-600 hover:bg-tennis-700 text-white font-semibold text-xs rounded-xl shadow-sm flex items-center gap-1.5 self-start sm:self-auto"
@@ -348,7 +353,7 @@ export default function ClassesManagementPage() {
             <label className="font-semibold text-slate-700 uppercase block mb-1">Tipo de Actividad *</label>
             <select
               value={newClassForm.kind}
-              onChange={(e) => setNewClassForm({ ...newClassForm, kind: e.target.value })}
+              onChange={(e) => setNewClassForm(withKind(newClassForm, e.target.value))}
               className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white"
             >
               <option value="clase">Clase</option>
@@ -371,6 +376,7 @@ export default function ClassesManagementPage() {
             <div>
               <label className="font-semibold text-slate-700 uppercase block mb-1">Profesional Habilitado *</label>
               <select
+                required
                 value={newClassForm.coachId}
                 onChange={(e) => {
                   const sel = coaches.find(c => c.id === e.target.value);
@@ -382,7 +388,8 @@ export default function ClassesManagementPage() {
                 }}
                 className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white"
               >
-                {coaches.map(c => (
+                {coachesFor(newClassForm.kind).length === 0 && <option value="">No hay profesionales para este tipo</option>}
+                {coachesFor(newClassForm.kind).map(c => (
                   <option key={c.id} value={c.id}>{c.name} ({c.type || 'Profesor'})</option>
                 ))}
               </select>
@@ -482,7 +489,7 @@ export default function ClassesManagementPage() {
               <label className="font-semibold text-slate-700 uppercase block mb-1">Tipo de Actividad *</label>
               <select
                 value={classToEdit.kind}
-                onChange={(e) => setClassToEdit({ ...classToEdit, kind: e.target.value })}
+                onChange={(e) => setClassToEdit(withKind(classToEdit, e.target.value))}
                 className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white"
               >
                 <option value="clase">Clase</option>
@@ -504,11 +511,13 @@ export default function ClassesManagementPage() {
               <div>
                 <label className="font-semibold text-slate-700 uppercase block mb-1">Profesional Asignado *</label>
                 <select
+                  required
                   value={classToEdit.coachId}
                   onChange={(e) => setClassToEdit({ ...classToEdit, coachId: e.target.value })}
                   className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white"
                 >
-                  {coaches.map(c => (
+                  {coachesFor(classToEdit.kind).length === 0 && <option value="">No hay profesionales para este tipo</option>}
+                  {coachesFor(classToEdit.kind).map(c => (
                     <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
                 </select>
@@ -518,7 +527,7 @@ export default function ClassesManagementPage() {
                 <label className="font-semibold text-slate-700 uppercase block mb-1">Cupo Máximo (≤{capacityLimitFor(classToEdit.courtAssigned)}) *</label>
                 <input
                   type="number"
-                  min={1}
+                  min={Math.max(1, classes.find(c => c.id === classToEdit.id)?.students?.length || 0)}
                   max={capacityLimitFor(classToEdit.courtAssigned)}
                   required
                   value={classToEdit.maxCapacity}

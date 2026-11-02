@@ -31,21 +31,36 @@ export default function ClientPrivateLessonsPage() {
     load();
   }, []);
 
+  // Los turnos propios van primero para que un choque con uno de ellos se informe como propio; la
+  // ocupación trae los del resto del club sin datos del alumno.
+  const lessonsToCheck = (mine, occupancy) => [...mine, ...(occupancy || [])];
+
   const load = async () => {
-    const [cRes, pRes, cfgRes] = await Promise.all([
+    const [cRes, pRes, oRes, cfgRes] = await Promise.all([
       coachesAndClassesService.getCoaches(),
       coachesAndClassesService.getPrivateClasses(),
+      coachesAndClassesService.getPrivateOccupancy(),
       clubConfigService.get()
     ]);
+    const mine = (pRes.data || []).filter(p => !user?.dni || p.studentDni === user.dni);
     setClubConfig(cfgRes.data);
     setCoaches(cRes.data);
-    setAllLessons(pRes.data || []);
-    setMyLessons((pRes.data || []).filter(p => !user?.dni || p.studentDni === user.dni));
+    setAllLessons(lessonsToCheck(mine, oRes.data));
+    setMyLessons(mine);
+  };
+
+  // RD08/RD09: mismo criterio que la API, para no cobrar un turno con un profesional que no puede darlo.
+  const licenseIssue = (coach) => {
+    const lic = coach?.licenseDetails || {};
+    if (!lic.document?.id) return `${coach.name} no tiene cargado el título habilitante.`;
+    if (lic.status !== 'habilitado') return `El título habilitante de ${coach.name} no está habilitado.`;
+    if ((lic.expiryDate || '') < maxBookingDate(0)) return `El título habilitante de ${coach.name} está vencido.`;
+    return null;
   };
 
   // Un turno repetido es el mismo día y horario: del socio con cualquier profesor, o del profesor con otro socio.
-  const conflictMessage = ({ coach, date: d, time: t }) => {
-    const clash = findPrivateLessonConflict(allLessons, { coachId: coach?.id, studentDni: user?.dni, date: d, time: t });
+  const conflictMessage = ({ coach, date: d, time: t }, lessons = allLessons) => {
+    const clash = findPrivateLessonConflict(lessons, { coachId: coach?.id, studentDni: user?.dni, date: d, time: t });
     if (!clash) return null;
     const mine = user?.dni && (clash.studentDni || '').replace(/\D/g, '') === String(user.dni).replace(/\D/g, '');
     return mine
@@ -53,10 +68,19 @@ export default function ClientPrivateLessonsPage() {
       : `${coach.name} ya tiene un turno el ${clash.date} a las ${clash.time}. Elegí otro horario.`;
   };
 
-  const handleRequest = (e) => {
+  // Todo lo que la API valida al registrar el turno se revisa antes de cobrar, con la ocupación al día.
+  const handleRequest = async (e) => {
     e.preventDefault();
     if (!requestCoach) return;
-    const msg = conflictMessage({ coach: requestCoach, date, time });
+    const issue = licenseIssue(requestCoach);
+    if (issue) {
+      notify({ variant: 'warning', message: issue });
+      return;
+    }
+    const oRes = await coachesAndClassesService.getPrivateOccupancy();
+    const lessons = lessonsToCheck(myLessons, oRes.data);
+    setAllLessons(lessons);
+    const msg = conflictMessage({ coach: requestCoach, date, time }, lessons);
     if (msg) {
       notify({ variant: 'warning', message: msg });
       return;

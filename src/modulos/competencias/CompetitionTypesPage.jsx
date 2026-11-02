@@ -122,7 +122,13 @@ function CompetitionTypesPanel({ tournaments = [], leagues = [], onChange }) {
 
   const handleDelete = async () => {
     if (!toDelete) return;
-    await competitionTypesService.delete(toDelete.id);
+    try {
+      await competitionTypesService.delete(toDelete.id);
+    } catch (err) {
+      setToDelete(null);
+      notify({ variant: 'warning', title: 'No se pudo eliminar', message: err.message || 'Intentá nuevamente.' });
+      return;
+    }
     setToDelete(null);
     await load();
     if (onChange) onChange();

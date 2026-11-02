@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { coachesAndClassesService, clubConfigService, DEFAULT_CLUB_CONFIG } from '../../api';
+import { coachesAndClassesService, clubConfigService, DEFAULT_CLUB_CONFIG, maxBookingDate } from '../../api';
+import { calculateHoursUntil } from '../../utils/formatters';
 import Modal from '../../ui/Modal';
 import MemberSelect from '../../ui/MemberSelect';
 import { useFeedback } from '../../ui/FeedbackContext';
@@ -23,7 +24,7 @@ export default function PrivateLessonsManagementPage() {
     studentName: '',
     studentDni: '',
     studentPhone: '',
-    date: '2026-10-20',
+    date: maxBookingDate(0),
     time: '11:00 - 12:00',
     courtAssigned: 'Cancha 1 (Ladrillo)',
     hourlyRate: 6500,
@@ -33,6 +34,18 @@ export default function PrivateLessonsManagementPage() {
   useEffect(() => {
     loadPrivateClasses();
   }, []);
+
+  // Un profesor solo da clases y un entrenador solo entrenamientos.
+  const coachesFor = (kind, list = coaches) => list.filter(c => (c.type === 'Entrenador' ? 'entrenamiento' : 'clase') === (kind || 'clase'));
+  // Al cambiar el tipo, el profesional pasa al primero que lo puede dar (si el elegido no puede).
+  const withKind = (form, kind, list = coaches) => {
+    const options = coachesFor(kind, list);
+    const coach = options.find(c => c.id === form.coachId) || options[0];
+    return { ...form, kind, coachId: coach?.id || '', coachName: coach?.name || '' };
+  };
+
+  // Un turno cancelado, dictado o que ya empezó no se cancela (la API lo rechaza).
+  const canCancel = (prv) => !['cancelada', 'finalizada'].includes(prv.status) && calculateHoursUntil(prv.date, prv.time || '') > 0;
 
   const loadPrivateClasses = async () => {
     const [cRes, prvRes, cfgRes] = await Promise.all([
@@ -45,12 +58,7 @@ export default function PrivateLessonsManagementPage() {
     setPrivateClasses(prvRes.data);
 
     if (cRes.data.length > 0 && !newPrivateForm.coachId) {
-      setNewPrivateForm(prev => ({
-        ...prev,
-        coachId: cRes.data[0].id,
-        coachName: cRes.data[0].name,
-        hourlyRate: cfgRes.data.privateLessonHourlyRate
-      }));
+      setNewPrivateForm(prev => ({ ...withKind(prev, prev.kind, cRes.data), hourlyRate: cfgRes.data.privateLessonHourlyRate }));
     }
   };
 
@@ -72,12 +80,12 @@ export default function PrivateLessonsManagementPage() {
     setShowAddPrivateModal(false);
     setNewPrivateForm({
       kind: 'clase',
-      coachId: coaches[0]?.id || '',
-      coachName: coaches[0]?.name || '',
+      coachId: coachesFor('clase')[0]?.id || '',
+      coachName: coachesFor('clase')[0]?.name || '',
       studentName: '',
       studentDni: '',
       studentPhone: '',
-      date: '2026-10-20',
+      date: maxBookingDate(0),
       time: '11:00 - 12:00',
       courtAssigned: 'Cancha 1 (Ladrillo)',
       hourlyRate: clubConfig.privateLessonHourlyRate,
@@ -111,7 +119,11 @@ export default function PrivateLessonsManagementPage() {
 
   const handleCancelPrivate = async (id) => {
     if (await confirm({ title: 'Cancelar clase particular', message: 'Confirma la cancelación de esta clase particular?', confirmLabel: 'Cancelar clase', danger: true })) {
-      await coachesAndClassesService.cancelPrivateClass(id);
+      try {
+        await coachesAndClassesService.cancelPrivateClass(id);
+      } catch (err) {
+        notify({ variant: 'warning', title: 'No se pudo cancelar', message: err.message || 'Intentá nuevamente.' });
+      }
       await loadPrivateClasses();
     }
   };
@@ -238,7 +250,7 @@ export default function PrivateLessonsManagementPage() {
                           >
                             Modificar
                           </button>
-                          {!isCancelled && (
+                          {canCancel(prv) && (
                             <button
                               type="button"
                               onClick={() => handleCancelPrivate(prv.id)}
@@ -281,7 +293,7 @@ export default function PrivateLessonsManagementPage() {
             <label className="font-semibold text-slate-700 uppercase block mb-1">Tipo de Turno *</label>
             <select
               value={newPrivateForm.kind}
-              onChange={(e) => setNewPrivateForm({ ...newPrivateForm, kind: e.target.value })}
+              onChange={(e) => setNewPrivateForm(withKind(newPrivateForm, e.target.value))}
               className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white"
             >
               <option value="clase">Clase Particular</option>
@@ -292,6 +304,7 @@ export default function PrivateLessonsManagementPage() {
             <div>
               <label className="font-semibold text-slate-700 uppercase block mb-1">Profesor / Entrenador *</label>
               <select
+                required
                 value={newPrivateForm.coachId}
                 onChange={(e) => {
                   const sel = coaches.find(c => c.id === e.target.value);
@@ -303,7 +316,8 @@ export default function PrivateLessonsManagementPage() {
                 }}
                 className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white"
               >
-                {coaches.map(c => (
+                {coachesFor(newPrivateForm.kind).length === 0 && <option value="">No hay profesionales para este tipo</option>}
+                {coachesFor(newPrivateForm.kind).map(c => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
@@ -334,6 +348,7 @@ export default function PrivateLessonsManagementPage() {
               <input
                 type="date"
                 required
+                min={maxBookingDate(0)}
                 value={newPrivateForm.date}
                 onChange={(e) => setNewPrivateForm({ ...newPrivateForm, date: e.target.value })}
                 className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
@@ -420,7 +435,7 @@ export default function PrivateLessonsManagementPage() {
               <label className="font-semibold text-slate-700 uppercase block mb-1">Tipo de Turno *</label>
               <select
                 value={privateToEdit.kind || 'clase'}
-                onChange={(e) => setPrivateToEdit({ ...privateToEdit, kind: e.target.value })}
+                onChange={(e) => setPrivateToEdit(withKind(privateToEdit, e.target.value))}
                 className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white"
               >
                 <option value="clase">Clase Particular</option>
@@ -431,11 +446,13 @@ export default function PrivateLessonsManagementPage() {
               <div>
                 <label className="font-semibold text-slate-700 uppercase block mb-1">Profesional Asignado *</label>
                 <select
+                  required
                   value={privateToEdit.coachId}
                   onChange={(e) => setPrivateToEdit({ ...privateToEdit, coachId: e.target.value })}
                   className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white"
                 >
-                  {coaches.map(c => (
+                  {coachesFor(privateToEdit.kind).length === 0 && <option value="">No hay profesionales para este tipo</option>}
+                  {coachesFor(privateToEdit.kind).map(c => (
                     <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
                 </select>

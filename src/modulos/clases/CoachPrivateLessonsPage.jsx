@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { coachesAndClassesService, clubConfigService, DEFAULT_CLUB_CONFIG } from '../../api';
+import { coachesAndClassesService, clubConfigService, DEFAULT_CLUB_CONFIG, maxBookingDate } from '../../api';
 import MemberSelect from '../../ui/MemberSelect';
 import { useAuth } from '../../auth/AuthContext';
 import { useFeedback } from '../../ui/FeedbackContext';
 import { Edit } from 'lucide-react';
 import Modal from '../../ui/Modal';
-import { findPrivateLessonConflict } from '../../utils/formatters';
+import { calculateHoursUntil, findPrivateLessonConflict } from '../../utils/formatters';
 
 export default function CoachPrivateLessonsPage() {
   const { user } = useAuth();
@@ -24,7 +24,7 @@ export default function CoachPrivateLessonsPage() {
     studentName: '',
     studentDni: '',
     studentPhone: '',
-    date: '2026-10-22',
+    date: maxBookingDate(0),
     time: '11:00 - 12:00',
     courtAssigned: 'Cancha 1 (Ladrillo)',
     hourlyRate: 6500,
@@ -90,7 +90,7 @@ const clash = conflictMessage(newLessonForm);
       studentName: '',
       studentDni: '',
       studentPhone: '',
-      date: '2026-10-22',
+      date: maxBookingDate(0),
       time: '11:00 - 12:00',
       courtAssigned: 'Cancha 1 (Ladrillo)',
       hourlyRate: clubConfig.privateLessonHourlyRate,
@@ -125,9 +125,16 @@ const clash = conflictMessage(newLessonForm);
     await loadLessons();
   };
 
+  // Un turno cancelado, dictado o que ya empezó no se cancela (la API lo rechaza).
+  const canCancel = (lesson) => !['cancelada', 'finalizada'].includes(lesson.status) && calculateHoursUntil(lesson.date, lesson.time || '') > 0;
+
   const handleCancelLesson = async (id) => {
     if (await confirm({ title: 'Cancelar clase particular', message: 'Confirma la cancelación de esta clase particular?', confirmLabel: 'Cancelar clase', danger: true })) {
-      await coachesAndClassesService.cancelPrivateClass(id);
+      try {
+        await coachesAndClassesService.cancelPrivateClass(id);
+      } catch (err) {
+        notify({ variant: 'warning', title: 'No se pudo cancelar', message: err.message || 'Intentá nuevamente.' });
+      }
       await loadLessons();
     }
   };
@@ -223,7 +230,7 @@ const clash = conflictMessage(newLessonForm);
                       >
                         Modificar
                       </button>
-                      {!isCancelled && (
+                      {canCancel(lesson) && (
                         <button
                           type="button"
                           onClick={() => handleCancelLesson(lesson.id)}
@@ -278,6 +285,7 @@ const clash = conflictMessage(newLessonForm);
               <input
                 type="date"
                 required
+                min={maxBookingDate(0)}
                 value={newLessonForm.date}
                 onChange={(e) => setNewLessonForm({ ...newLessonForm, date: e.target.value })}
                 className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"

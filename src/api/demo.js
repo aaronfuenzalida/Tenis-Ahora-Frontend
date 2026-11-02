@@ -88,13 +88,100 @@ function normalizeLicense(lic = {}) {
 
 // RD09: un profesor sin título vigente no puede tener clases ni turnos a cargo.
 function checkCoachQualified(coachId) {
+  if (!coachId) throw new Error('Falta el profesional a cargo.');
   const coach = coachesStore.find(c => c.id === coachId);
-  if (!coach) return;
+  if (!coach) throw new Error(`No existe el profesional ${coachId}.`);
   const lic = coach.licenseDetails || {};
   const today = maxBookingDate(0);
   if (!lic.document?.id) throw new Error(`${coach.name} no tiene cargado el documento del título habilitante.`);
   if (lic.status !== 'habilitado') throw new Error(`El título habilitante de ${coach.name} no está habilitado.`);
   if ((lic.expiryDate || '') < today) throw new Error(`El título habilitante de ${coach.name} venció el ${lic.expiryDate}.`);
+}
+
+// Sets de un resultado escrito con los games del ganador primero ("6-4, 3-6, 6-2" -> 2 ganados, 1 perdido).
+function setsOf(score = '') {
+  let won = 0;
+  let lost = 0;
+  for (const [, x, y] of String(score).matchAll(/(\d+)\s*-\s*(\d+)/g)) {
+    if (Number(x) > Number(y)) won++;
+    else if (Number(y) > Number(x)) lost++;
+  }
+  return { won, lost };
+}
+
+// Rehace la tabla con todos los partidos finalizados (3 puntos por victoria y los sets reales), igual
+// que leagueStandings de la API: corregir un resultado deja la tabla como si se hubiera cargado bien.
+function leagueStandings(league) {
+  const rows = new Map();
+  for (const st of league.standings || []) {
+    if (st.name && !rows.has(st.name)) {
+      rows.set(st.name, { name: st.name, pj: 0, pg: 0, pp: 0, sf: 0, sc: 0, dif: 0, points: 0 });
+    }
+  }
+  for (const round of league.fixtures || []) {
+    for (const m of round.matches || []) {
+      const loser = m.winner === m.p1 ? m.p2 : m.winner === m.p2 ? m.p1 : '';
+      if (m.status !== 'finalizado' || !m.winner || !loser) continue;
+      const { won, lost } = setsOf(m.score);
+      const w = rows.get(m.winner);
+      const l = rows.get(loser);
+      if (w) Object.assign(w, { pj: w.pj + 1, pg: w.pg + 1, points: w.points + 3, sf: w.sf + won, sc: w.sc + lost, dif: w.dif + won - lost });
+      if (l) Object.assign(l, { pj: l.pj + 1, pp: l.pp + 1, sf: l.sf + lost, sc: l.sc + won, dif: l.dif + lost - won });
+    }
+  }
+  return [...rows.values()]
+    .sort((a, b) => (b.points - a.points) || (b.dif - a.dif))
+    .map((s, idx) => ({ rank: idx + 1, ...s }));
+}
+
+// Un profesor solo da clases y un entrenador solo entrenamientos.
+function checkCoachKind({ coachId, kind }) {
+  const coach = coachesStore.find(c => c.id === coachId);
+  if (!coach) return;
+  const want = coach.type === 'Entrenador' ? 'entrenamiento' : 'clase';
+  if ((kind || 'clase') !== want) {
+    throw new Error(`${coach.name} es ${String(coach.type || 'Profesor').toLowerCase()}: solo puede tener ${want}s.`);
+  }
+}
+
+// Inicio de un turno particular ("2026-11-10" + "10:00 - 11:00"), o null si no tiene ese formato.
+function lessonStart({ date, time } = {}) {
+  const m = /^\s*(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})\s*$/.exec(time || '');
+  if (!m || !/^\d{4}-\d{2}-\d{2}$/.test(date || '')) return null;
+  return new Date(`${date}T${m[1].padStart(2, '0')}:${m[2]}:00`);
+}
+
+// Alumno y horario con formato de rango; fecha y horario se controlan al dar de alta o al cambiarlos.
+function checkPrivateLessonData(data, existing) {
+  if (!String(data.studentName || '').trim() || !String(data.studentDni || '').replace(/\D/g, '')) {
+    throw new Error('Faltan los datos del alumno (nombre y DNI).');
+  }
+  const m = /^\s*(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})\s*$/.exec(data.time || '');
+  if (!m || Number(m[3]) * 60 + Number(m[4]) <= Number(m[1]) * 60 + Number(m[2])) {
+    throw new Error('El horario va con formato HH:MM - HH:MM y tiene que terminar después de empezar.');
+  }
+  if (existing && existing.date === data.date && existing.time === data.time) return;
+  const start = lessonStart(data);
+  if (!start) throw new Error('La fecha del turno no es válida (formato AAAA-MM-DD).');
+  if (start <= new Date()) throw new Error('La fecha y el horario del turno ya pasaron.');
+}
+
+// Mismo criterio que checkCompetitionCapacity de la API.
+const MAX_BRACKET_SIZE = 32;
+function checkCompetitionCapacity(kind, data, existing) {
+  const capacity = Number(data.maxParticipants) || 0;
+  const enrolled = (data.participants || []).length;
+  if (capacity < 2) throw new Error('El cupo tiene que ser de al menos 2 participantes.');
+  if (capacity < enrolled) throw new Error(`El cupo no puede ser menor a los ${enrolled} inscriptos.`);
+  if (kind === 'torneo' && capacity > MAX_BRACKET_SIZE) throw new Error(`El cuadro de un torneo admite hasta ${MAX_BRACKET_SIZE} participantes.`);
+  if (existing && Number(existing.maxParticipants) === capacity && existing.competitionTypeId === data.competitionTypeId) return;
+  const type = competitionTypesStore.find(t => t.id === data.competitionTypeId);
+  if (!type) return;
+  const lo = Number(type.minParticipants) || 0;
+  const hi = Number(type.maxParticipants) || 0;
+  if ((lo && capacity < lo) || (hi && capacity > hi)) {
+    throw new Error(`El tipo "${type.name}" admite entre ${lo} y ${hi} participantes.`);
+  }
 }
 
 // internalRulesDocument: undefined no lo cambia, null lo quita.
@@ -792,6 +879,7 @@ export const tournamentsMock = {
   },
   async create(trnData) {
     await delay();
+    checkCompetitionCapacity('torneo', trnData);
     const newTrn = {
       ...trnData,
       id: `trn-${Date.now()}`,
@@ -806,6 +894,8 @@ export const tournamentsMock = {
   },
   async update(trnId, updatedData) {
     await delay();
+    const current = tournamentsStore.find(t => t.id === trnId);
+    if (current) checkCompetitionCapacity('torneo', { ...current, ...updatedData }, current);
     tournamentsStore = tournamentsStore.map(t =>
       t.id === trnId ? { ...t, ...updatedData } : t
     );
@@ -827,6 +917,7 @@ export const tournamentsMock = {
     await delay();
     const trn = tournamentsStore.find(t => t.id === trnId);
     if (!trn) throw new Error('El torneo no existe.');
+    if (trn.status !== 'inscripcion_abierta') throw new Error('La inscripción a este torneo está cerrada.');
     if (isEnrolledByDni(trn.participants, participantData.dni) || isEnrolledByDni(trn.participants, participantData.partnerDni)) {
       throw new Error('Ya hay una inscripción a este torneo con ese DNI.');
     }
@@ -942,6 +1033,10 @@ export const competitionTypesMock = {
   },
   async delete(typeId) {
     await delay();
+    const type = competitionTypesStore.find(t => t.id === typeId);
+    if (tournamentsStore.some(t => t.competitionTypeId === typeId) || leaguesStore.some(l => l.competitionTypeId === typeId)) {
+      throw new Error(`No se puede eliminar "${type?.name}": hay torneos o ligas de ese tipo. Se puede desactivar.`);
+    }
     competitionTypesStore = competitionTypesStore.filter(t => t.id !== typeId);
     return { success: true };
   }
@@ -954,6 +1049,7 @@ export const leaguesMock = {
   },
   async create(leagueData) {
     await delay();
+    checkCompetitionCapacity('liga', leagueData);
     const newLeague = {
       ...leagueData,
       id: `liga-${Date.now()}`,
@@ -969,6 +1065,8 @@ export const leaguesMock = {
   },
   async update(leagueId, updatedData) {
     await delay();
+    const current = leaguesStore.find(l => l.id === leagueId);
+    if (current) checkCompetitionCapacity('liga', { ...current, ...updatedData }, current);
     leaguesStore = leaguesStore.map(l =>
       l.id === leagueId ? { ...l, ...updatedData } : l
     );
@@ -990,6 +1088,7 @@ export const leaguesMock = {
     await delay();
     const league = leaguesStore.find(l => l.id === leagueId);
     if (!league) throw new Error('La liga no existe.');
+    if (league.status !== 'inscripcion_abierta') throw new Error('La inscripción a esta liga está cerrada.');
     if (isEnrolledByDni(league.participants, participantData.dni) || isEnrolledByDni(league.participants, participantData.partnerDni)) {
       throw new Error('Ya hay una inscripción a esta liga con ese DNI.');
     }
@@ -1056,54 +1155,22 @@ export const leaguesMock = {
   },
   async updateMatchScore(leagueId, matchId, score, winner) {
     await delay();
+    const league = leaguesStore.find(l => l.id === leagueId);
+    const match = (league?.fixtures || []).flatMap(f => f.matches || []).find(m => m.id === matchId);
+    if (!match) throw new Error(`No existe el enfrentamiento ${matchId}.`);
+    if (!winner) throw new Error('Debe indicar el ganador.');
+    if (winner !== match.p1 && winner !== match.p2) throw new Error('El ganador debe ser uno de los dos jugadores del partido.');
+    const { won, lost } = setsOf(score);
+    if (won <= lost) {
+      throw new Error('El resultado tiene que darle más sets al ganador. Se carga con los games del ganador primero, por ejemplo 6-4, 3-6, 6-2.');
+    }
     leaguesStore = leaguesStore.map(l => {
-      if (l.id === leagueId) {
-        let p1Name = null;
-        let p2Name = null;
-        const nextFixtures = (l.fixtures || []).map(f => ({
-          ...f,
-          matches: (f.matches || []).map(m => {
-            if (m.id === matchId) {
-              p1Name = m.p1;
-              p2Name = m.p2;
-              return { ...m, score, winner, status: 'finalizado' };
-            }
-            return m;
-          })
-        }));
-
-        let nextStandings = [...(l.standings || [])];
-        if (winner && (p1Name || p2Name)) {
-          const loser = (winner === p1Name) ? p2Name : p1Name;
-          nextStandings = nextStandings.map(s => {
-            if (s.name === winner) {
-              return {
-                ...s,
-                pj: (s.pj || 0) + 1,
-                pg: (s.pg || 0) + 1,
-                points: (s.points || 0) + 3,
-                sf: (s.sf || 0) + 2,
-                dif: (s.dif || 0) + 2
-              };
-            }
-            if (s.name === loser) {
-              return {
-                ...s,
-                pj: (s.pj || 0) + 1,
-                pp: (s.pp || 0) + 1,
-                sc: (s.sc || 0) + 2,
-                dif: (s.dif || 0) - 2
-              };
-            }
-            return s;
-          });
-          nextStandings.sort((a, b) => (b.points - a.points) || (b.dif - a.dif));
-          nextStandings = nextStandings.map((s, idx) => ({ ...s, rank: idx + 1 }));
-        }
-
-        return { ...l, fixtures: nextFixtures, standings: nextStandings };
-      }
-      return l;
+      if (l.id !== leagueId) return l;
+      const fixtures = (l.fixtures || []).map(f => ({
+        ...f,
+        matches: (f.matches || []).map(m => (m.id === matchId ? { ...m, score, winner, status: 'finalizado' } : m))
+      }));
+      return { ...l, fixtures, standings: leagueStandings({ ...l, fixtures }) };
     });
     return { success: true };
   },
@@ -1115,7 +1182,7 @@ export const leaguesMock = {
         ...f,
         matches: (f.matches || []).map(m => (m.id === matchId ? { ...m, ...updatedData } : m))
       }));
-      return { ...l, fixtures };
+      return { ...l, fixtures, standings: leagueStandings({ ...l, fixtures }) };
     });
     return { success: true };
   },
@@ -1180,6 +1247,13 @@ export const coachesAndClassesMock = {
   },
   async deleteCoach(coachId) {
     await delay();
+    // RD08/RD09: una clase o un turno pendiente no puede quedar sin profesional a cargo.
+    const coach = coachesStore.find(c => c.id === coachId);
+    const nc = classesStore.filter(c => c.coachId === coachId).length;
+    const nl = privateClassesStore.filter(p => p.coachId === coachId && p.status !== 'cancelada' && (p.date || '') >= maxBookingDate(0)).length;
+    if (nc + nl > 0) {
+      throw new Error(`No se puede eliminar a ${coach?.name}: tiene a cargo ${nc} clases o entrenamientos grupales y ${nl} turnos particulares pendientes. Primero hay que reasignarlos.`);
+    }
     coachesStore = coachesStore.filter(c => c.id !== coachId);
     return { success: true };
   },
@@ -1208,6 +1282,7 @@ export const coachesAndClassesMock = {
     if (classData.maxCapacity > 30) {
       throw new Error('El cupo reglamentario máximo es de hasta 30 alumnos.');
     }
+    checkCoachKind({ coachId: classData.coachId, kind: classData.kind || 'clase' });
     checkCoachQualified(classData.coachId);
     const newClass = {
       ...classData,
@@ -1227,6 +1302,13 @@ export const coachesAndClassesMock = {
       throw new Error('El cupo reglamentario máximo es de hasta 30 alumnos.');
     }
     const currentClass = classesStore.find(c => c.id === classId);
+    if (currentClass) {
+      checkCoachKind({ ...currentClass, ...updatedData });
+      const enrolled = (currentClass.students || []).length;
+      if (updatedData.maxCapacity && Number(updatedData.maxCapacity) < enrolled) {
+        throw new Error(`El cupo no puede ser menor a los ${enrolled} alumnos inscriptos.`);
+      }
+    }
     if (currentClass && updatedData.coachId && updatedData.coachId !== currentClass.coachId) {
       checkCoachQualified(updatedData.coachId);
     }
@@ -1286,7 +1368,8 @@ export const coachesAndClassesMock = {
       dni: studentData.dni,
       phone: studentData.phone || '',
       enrolledAt: maxBookingDate(0),
-      attendance: Array(targetClass.sessions?.length || 8).fill('P')
+      // Las sesiones arrancan sin registrar: la asistencia la toma después el profesional.
+      attendance: Array(targetClass.sessions?.length || 1).fill('-')
     };
     classesStore = classesStore.map(cls => {
       if (cls.id === classId) {
@@ -1343,8 +1426,19 @@ export const coachesAndClassesMock = {
     await delay();
     return { data: privateClassesStore };
   },
+  // Turnos tomados de todo el club, sin datos del alumno (getPrivateClasses del socio solo trae los suyos).
+  async getPrivateOccupancy() {
+    await delay();
+    return {
+      data: privateClassesStore
+        .filter(p => p.status !== 'cancelada')
+        .map(({ id, coachId, coachName, date, time, status }) => ({ id, coachId, coachName, date, time, status }))
+    };
+  },
   async createPrivateClass(data) {
     await delay();
+    checkPrivateLessonData(data);
+    checkCoachKind({ coachId: data.coachId, kind: data.kind || 'clase' });
     checkCoachQualified(data.coachId);
     checkPrivateLessonConflict(data);
     const newPrv = {
@@ -1359,6 +1453,10 @@ export const coachesAndClassesMock = {
   async updatePrivateClass(id, updatedData) {
     await delay();
     const current = privateClassesStore.find(p => p.id === id);
+    if (current) {
+      checkPrivateLessonData({ ...current, ...updatedData }, current);
+      checkCoachKind({ ...current, ...updatedData });
+    }
     if (current && updatedData.coachId && updatedData.coachId !== current.coachId) {
       checkCoachQualified(updatedData.coachId);
     }
@@ -1372,6 +1470,11 @@ export const coachesAndClassesMock = {
   },
   async cancelPrivateClass(id) {
     await delay();
+    const lesson = privateClassesStore.find(p => p.id === id);
+    if (lesson?.status === 'cancelada') throw new Error('El turno ya está cancelado.');
+    if (lesson?.status === 'finalizada') throw new Error('El turno ya se dictó: no se puede cancelar.');
+    const start = lessonStart(lesson);
+    if (start && start <= new Date()) throw new Error('El turno ya pasó: no se puede cancelar.');
     privateClassesStore = privateClassesStore.map(p =>
       p.id === id ? { ...p, status: 'cancelada' } : p
     );

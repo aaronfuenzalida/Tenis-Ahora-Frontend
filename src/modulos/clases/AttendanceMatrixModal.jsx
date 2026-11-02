@@ -280,7 +280,7 @@ export default function AttendanceMatrixModal({
                   const pCount = attList.filter(a => a === 'P').length;
                   const aCount = attList.filter(a => a === 'A').length;
                   const evaluated = pCount + aCount;
-                  const percentage = evaluated > 0 ? Math.round((pCount / evaluated) * 100) : 100;
+                  const percentage = evaluated > 0 ? `${Math.round((pCount / evaluated) * 100)}%` : '-';
 
                   return (
                     <tr key={student.id} className="hover:bg-slate-50/80 transition-colors">
@@ -328,7 +328,7 @@ export default function AttendanceMatrixModal({
 
                       {/* Percentage */}
                       <td className="py-2.5 px-3 text-center border-l border-slate-100 font-black text-xs text-slate-800">
-                        {percentage}%
+                        {percentage}
                       </td>
                     </tr>
                   );

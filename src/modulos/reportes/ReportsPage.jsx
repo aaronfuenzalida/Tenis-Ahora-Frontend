@@ -509,16 +509,17 @@ export default function ReportsPage() {
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {cls.students.map(st => {
-                        const total = st.attendance.length;
+                        // Solo cuentan las sesiones registradas: "-" es una sesión sin tomar.
+                        const total = st.attendance.filter(a => a === 'P' || a === 'A').length;
                         const present = st.attendance.filter(a => a === 'P').length;
-                        const percent = total > 0 ? Math.round((present / total) * 100) : 100;
+                        const percent = total > 0 ? `${Math.round((present / total) * 100)}%` : '-';
 
                         return (
                           <tr key={st.id}>
                             <td className="py-2 px-3 font-semibold text-slate-800">{st.name}</td>
                             <td className="py-2 px-3 text-slate-500 font-mono">{st.dni}</td>
                             <td className="py-2 px-3 text-center">{present} / {total} Clases</td>
-                            <td className="py-2 px-3 text-right font-bold text-tennis-700 font-mono">{percent}%</td>
+                            <td className="py-2 px-3 text-right font-bold text-tennis-700 font-mono">{percent}</td>
                           </tr>
                         );
                       })}

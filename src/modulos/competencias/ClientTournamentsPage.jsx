@@ -35,26 +35,38 @@ export default function ClientTournamentsPage() {
 
   const alreadyEnrolled = (trn) => isEnrolledByDni(trn?.participants, user?.dni);
   const isFull = (trn) => (trn?.participants?.length || trn?.currentEnrolled || 0) >= (Number(trn?.maxParticipants) || Infinity);
+  const isClosed = (trn) => trn?.status !== 'inscripcion_abierta';
+
+  // Mismo orden de controles que la API, para avisar antes de cobrar.
+  const enrollBlock = (trn) => {
+    if (alreadyEnrolled(trn)) return `Ya estás inscripto en "${trn.name}".`;
+    if (isClosed(trn)) return `La inscripción a "${trn.name}" está cerrada.`;
+    if (isFull(trn)) return `"${trn.name}" no tiene cupos disponibles.`;
+    return null;
+  };
 
   const openEnroll = (trn) => {
     setSelectedTournament(trn);
-    if (alreadyEnrolled(trn)) {
-      notify({ variant: 'warning', message: `Ya estás inscripto en "${trn.name}".` });
-      return;
-    }
-    if (isFull(trn)) {
-      notify({ variant: 'warning', message: `"${trn.name}" no tiene cupos disponibles.` });
+    const block = enrollBlock(trn);
+    if (block) {
+      notify({ variant: 'warning', message: block });
       return;
     }
     setShowEnrollModal(true);
   };
 
-  // La inscripción se concreta al acreditarse el pago del arancel.
-  const handleEnroll = (e) => {
+  // La inscripción se concreta al acreditarse el pago del arancel. Se revisa con datos recién leídos,
+  // por si cerró la inscripción o se llenó el cupo desde que se abrió la página.
+  const handleEnroll = async (e) => {
     e.preventDefault();
-    if (alreadyEnrolled(selectedTournament)) {
+    const res = await tournamentsService.getAll();
+    setTournaments(res.data);
+    const fresh = (res.data || []).find(x => x.id === selectedTournament?.id) || selectedTournament;
+    setSelectedTournament(fresh);
+    const block = enrollBlock(fresh);
+    if (block) {
       setShowEnrollModal(false);
-      notify({ variant: 'warning', message: `Ya estás inscripto en "${selectedTournament.name}".` });
+      notify({ variant: 'warning', message: block });
       return;
     }
     if (partnerDni && user?.dni && partnerDni.replace(/\D/g, '') === String(user.dni).replace(/\D/g, '')) {
@@ -62,13 +74,13 @@ export default function ClientTournamentsPage() {
       return;
     }
     // Se valida antes del pago para no cobrar una inscripción que el club va a rechazar.
-    if (partnerDni && isEnrolledByDni(selectedTournament?.participants, partnerDni)) {
-      notify({ variant: 'warning', message: `${partnerName} ya está inscripto en "${selectedTournament.name}".` });
+    if (partnerDni && isEnrolledByDni(fresh?.participants, partnerDni)) {
+      notify({ variant: 'warning', message: `${partnerName} ya está inscripto en "${fresh.name}".` });
       return;
     }
     setShowEnrollModal(false);
     setPayment({
-      target: selectedTournament,
+      target: fresh,
       participantData: { name: user?.name, dni: user?.dni, phone: user?.phone, partnerName, partnerDni }
     });
   };
@@ -98,7 +110,7 @@ export default function ClientTournamentsPage() {
       {/* Lista de torneos */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {tournaments.length === 0 && (
-            <div className="md:col-span-2 xl:col-span-3 p-6 text-center text-xs text-slate-400 bg-white rounded-2xl border border-slate-200">No hay torneos con inscripción abierta.</div>
+            <div className="md:col-span-2 xl:col-span-3 p-6 text-center text-xs text-slate-400 bg-white rounded-2xl border border-slate-200">No hay torneos registrados.</div>
           )}
           {tournaments.map(trn => {
             const isSelected = selectedTournament?.id === trn.id;
@@ -123,9 +135,9 @@ export default function ClientTournamentsPage() {
                     <div className="w-full py-2 px-3 rounded-xl bg-tennis-50 text-tennis-800 font-semibold text-xs text-center border border-tennis-200">
                       Ya estás inscripto
                     </div>
-                  ) : isFull(trn) ? (
+                  ) : isClosed(trn) || isFull(trn) ? (
                     <div className="w-full py-2 px-3 rounded-xl bg-slate-100 text-slate-500 font-semibold text-xs text-center border border-slate-200">
-                      Sin cupos
+                      {isClosed(trn) ? 'Inscripción cerrada' : 'Sin cupos'}
                     </div>
                   ) : (
                     <button

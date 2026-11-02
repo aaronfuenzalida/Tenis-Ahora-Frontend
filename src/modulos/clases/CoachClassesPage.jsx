@@ -18,17 +18,16 @@ export default function CoachClassesPage() {
 
   const loadClasses = async () => {
     const clRes = await coachesAndClassesService.getClasses();
-    const cRes = await coachesAndClassesService.getCoaches();
-    const currentCoach = cRes.data.find(c => c.id === user?.coachId);
-
-    const myClasses = clRes.data.filter(c => c.coachId === currentCoach?.id || c.coachName === currentCoach?.name);
-    setClasses(myClasses.length > 0 ? myClasses : clRes.data);
+    setClasses(onlyMine(clRes.data));
   };
+
+  // La API ya filtra por profesional; la demo trae todas las clases del club.
+  const onlyMine = (list) => list.filter(c => c.coachId === user?.coachId);
 
   const handleToggleAttendance = async (classId, studentId, sessionIndex) => {
     await coachesAndClassesService.toggleStudentAttendance(classId, studentId, sessionIndex);
     const clRes = await coachesAndClassesService.getClasses();
-    setClasses(clRes.data);
+    setClasses(onlyMine(clRes.data));
     const updated = clRes.data.find(c => c.id === classId);
     if (updated) setSelectedClassForAttendance(updated);
   };
@@ -130,7 +129,7 @@ export default function CoachClassesPage() {
 onEnrollStudent={async (classId, studentData) => {
           await coachesAndClassesService.enrollStudent(classId, studentData);
           const clRes = await coachesAndClassesService.getClasses();
-          setClasses(clRes.data);
+          setClasses(onlyMine(clRes.data));
           const updated = clRes.data.find(c => c.id === classId);
           if (updated) setSelectedClassForAttendance(updated);
         }}
@@ -180,13 +179,13 @@ onEnrollStudent={async (classId, studentData) => {
                       const att = st.attendance || [];
                       const p = att.filter(a => a === 'P').length;
                       const tot = att.filter(a => a === 'P' || a === 'A').length;
-                      const pct = tot > 0 ? Math.round((p / tot) * 100) : 100;
+                      const pct = tot > 0 ? `${Math.round((p / tot) * 100)}%` : '-';
                       return (
                         <tr key={st.id} className="hover:bg-slate-50">
                           <td className="p-2.5 font-semibold text-slate-900">{st.name}</td>
                           <td className="p-2.5 text-slate-600">{st.dni}</td>
                           <td className="p-2.5 text-center font-medium text-slate-700">
-                            {p}/{tot} ({pct}%)
+                            {p}/{tot} ({pct})
                           </td>
                         </tr>
                       );

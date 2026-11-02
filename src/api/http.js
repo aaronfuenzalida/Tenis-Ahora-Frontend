@@ -172,6 +172,8 @@ export const coachesAndClassesHttp = {
     body(api.post(`/clases/${classId}/asistencia/registrar`, { studentId, status })),
 
   getPrivateClasses: privateClasses.getAll,
+  // Turnos tomados de todo el club, sin datos del alumno (getPrivateClasses del socio solo trae los suyos).
+  getPrivateOccupancy: () => api.get('/clases-particulares/ocupacion'),
   createPrivateClass: privateClasses.create,
   updatePrivateClass: privateClasses.update,
   cancelPrivateClass: (id) => body(api.post(`/clases-particulares/${id}/cancelar`)),

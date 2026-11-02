@@ -78,9 +78,10 @@ export default function AttendanceSheetModal({ isOpen, onClose, classItem }) {
               </thead>
               <tbody className="divide-y divide-slate-200">
                 {students.map((st, idx) => {
+                  // Solo cuentan las sesiones registradas: "-" es una sesión sin tomar.
                   const presents = st.attendance?.filter(a => a === 'P').length || 0;
-                  const total = st.attendance?.length || 1;
-                  const pct = Math.round((presents / total) * 100);
+                  const total = st.attendance?.filter(a => a === 'P' || a === 'A').length || 0;
+                  const pct = total > 0 ? `${Math.round((presents / total) * 100)}%` : '-';
 
                   return (
                     <tr key={st.id || idx} className="hover:bg-slate-50 print:hover:bg-transparent">
@@ -98,7 +99,7 @@ export default function AttendanceSheetModal({ isOpen, onClose, classItem }) {
                         const val = st.attendance?.[sIdx];
                         return (
                           <td key={sIdx} className="py-2 px-1 border-r border-slate-300 text-center font-bold">
-                            {val ? (
+                            {val && val !== '-' ? (
                               <span className={`inline-block w-4 h-4 rounded text-[9px] leading-4 ${
                                 val === 'P' ? 'bg-tennis-100 text-tennis-800' : 'bg-slate-100 text-slate-800'
                               }`}>
@@ -111,7 +112,7 @@ export default function AttendanceSheetModal({ isOpen, onClose, classItem }) {
                         );
                       })}
                       <td className="py-2 px-2 text-center font-bold text-tennis-800">
-                        {pct}%
+                        {pct}
                       </td>
                     </tr>
                   );

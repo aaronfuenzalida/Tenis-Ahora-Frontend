@@ -39,26 +39,43 @@ export default function ClientLeaguesPage() {
 
   const alreadyEnrolled = (liga) => isEnrolledByDni(liga?.participants, user?.dni);
   const isFull = (liga) => (liga?.participants?.length || liga?.currentEnrolled || 0) >= (Number(liga?.maxParticipants) || Infinity);
+  const isClosed = (liga) => liga?.status !== 'inscripcion_abierta';
+
+  // Mismo orden de controles que la API, para avisar antes de cobrar.
+  const enrollBlock = (liga) => {
+    if (alreadyEnrolled(liga)) return `Ya estás inscripto en "${liga.name}".`;
+    if (isClosed(liga)) return `La inscripción a "${liga.name}" está cerrada.`;
+    if (isFull(liga)) return `"${liga.name}" no tiene cupos disponibles.`;
+    return null;
+  };
 
   const openEnroll = (liga) => {
     setSelectedLeague(liga);
-    if (alreadyEnrolled(liga)) {
-      notify({ variant: 'warning', message: `Ya estás inscripto en "${liga.name}".` });
-      return;
-    }
-    if (isFull(liga)) {
-      notify({ variant: 'warning', message: `"${liga.name}" no tiene cupos disponibles.` });
+    const block = enrollBlock(liga);
+    if (block) {
+      notify({ variant: 'warning', message: block });
       return;
     }
     setShowEnrollModal(true);
   };
 
-  // La inscripción se concreta al acreditarse el pago del arancel.
-  const handleEnroll = (e) => {
+  // La inscripción se concreta al acreditarse el pago del arancel. Se revisa con datos recién leídos,
+  // por si cerró la inscripción o se llenó el cupo desde que se abrió la página.
+  const handleEnroll = async (e) => {
     e.preventDefault();
-    if (alreadyEnrolled(selectedLeague) || isEnrolledByDni(selectedLeague?.participants, enrollForm.dni)) {
+    const res = await leaguesService.getAll();
+    setLeagues(res.data);
+    const fresh = (res.data || []).find(x => x.id === selectedLeague?.id) || selectedLeague;
+    setSelectedLeague(fresh);
+    const block = enrollBlock(fresh);
+    if (block) {
       setShowEnrollModal(false);
-      notify({ variant: 'warning', message: `Ya hay una inscripción a "${selectedLeague.name}" con ese DNI.` });
+      notify({ variant: 'warning', message: block });
+      return;
+    }
+    if (isEnrolledByDni(fresh?.participants, enrollForm.dni)) {
+      setShowEnrollModal(false);
+      notify({ variant: 'warning', message: `Ya hay una inscripción a "${fresh.name}" con ese DNI.` });
       return;
     }
     if (enrollForm.partnerDni && enrollForm.partnerDni.replace(/\D/g, '') === String(enrollForm.dni).replace(/\D/g, '')) {
@@ -66,12 +83,12 @@ export default function ClientLeaguesPage() {
       return;
     }
     // Se valida antes del pago para no cobrar una inscripción que el club va a rechazar.
-    if (enrollForm.partnerDni && isEnrolledByDni(selectedLeague?.participants, enrollForm.partnerDni)) {
-      notify({ variant: 'warning', message: `${enrollForm.partnerName} ya está inscripto en "${selectedLeague.name}".` });
+    if (enrollForm.partnerDni && isEnrolledByDni(fresh?.participants, enrollForm.partnerDni)) {
+      notify({ variant: 'warning', message: `${enrollForm.partnerName} ya está inscripto en "${fresh.name}".` });
       return;
     }
     setShowEnrollModal(false);
-    setPayment({ target: selectedLeague, participantData: { ...enrollForm } });
+    setPayment({ target: fresh, participantData: { ...enrollForm } });
   };
 
   const enrollAfterPayment = async () => {
@@ -99,7 +116,7 @@ export default function ClientLeaguesPage() {
         {/* Lista de ligas */}
         <div className="lg:col-span-4 space-y-4">
           {leagues.length === 0 && (
-            <div className="p-6 text-center text-xs text-slate-400 bg-white rounded-2xl border border-slate-200">No hay ligas con inscripción abierta.</div>
+            <div className="p-6 text-center text-xs text-slate-400 bg-white rounded-2xl border border-slate-200">No hay ligas registradas.</div>
           )}
           {leagues.map(liga => {
             const isSelected = selectedLeague?.id === liga.id;
@@ -124,9 +141,9 @@ export default function ClientLeaguesPage() {
                     <div className="w-full py-2 px-3 rounded-xl bg-tennis-50 text-tennis-800 font-semibold text-xs text-center border border-tennis-200">
                       Ya estás inscripto
                     </div>
-                  ) : isFull(liga) ? (
+                  ) : isClosed(liga) || isFull(liga) ? (
                     <div className="w-full py-2 px-3 rounded-xl bg-slate-100 text-slate-500 font-semibold text-xs text-center border border-slate-200">
-                      Sin cupos
+                      {isClosed(liga) ? 'Inscripción cerrada' : 'Sin cupos'}
                     </div>
                   ) : (
                     <button
