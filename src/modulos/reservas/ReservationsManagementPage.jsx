@@ -7,7 +7,8 @@ import Modal from '../../ui/Modal';
 import MemberSelect from '../../ui/MemberSelect';
 import TablePaginationBar, { TableSortHeader } from '../../ui/TablePaginationBar';
 import { useTablePagination } from '../../ui/useTablePagination';
-import { calculateHoursUntil, formatHoursMinutes, RESERVATION_STATUS_LABELS } from '../../utils/formatters';
+import { buildSlots, getSlotBlock } from '../canchas/CourtAvailabilityPanel';
+import { calculateHoursUntil, findReservationConflict, formatHoursMinutes, RESERVATION_STATUS_LABELS } from '../../utils/formatters';
 import { useFeedback } from '../../ui/FeedbackContext';
 import { useAuth } from '../../auth/AuthContext';
 
@@ -64,6 +65,16 @@ export default function ReservationsManagementPage() {
 
   const setNewPlayer = (index, member) => {
     setNewForm(prev => ({ ...prev, players: prev.players.map((p, i) => (i === index ? member : p)) }));
+  };
+
+  // Motivo por el que una franja de la cancha elegida no se puede reservar: horario o mantenimiento
+  // de la cancha (RD06), turno que ya pasó u otra reserva en la misma franja.
+  const newSlotUnavailableReason = (slot) => {
+    const [startTime, endTime] = slot.split(' - ');
+    const court = courts.find(c => c.id === newForm.courtId);
+    return getSlotBlock(court, newForm.date, slot) ||
+      (calculateHoursUntil(newForm.date, startTime) <= 0 ? 'El horario ya pasó' : null) ||
+      (findReservationConflict(reservations, { courtId: newForm.courtId, date: newForm.date, startTime, endTime }) ? 'Turno ocupado' : null);
   };
 
   const handleNewPlayersType = (playersType) => {
@@ -657,7 +668,7 @@ export default function ReservationsManagementPage() {
               <select
                 required
                 value={newForm.courtId}
-                onChange={(e) => setNewForm({ ...newForm, courtId: e.target.value })}
+                onChange={(e) => setNewForm({ ...newForm, courtId: e.target.value, startTime: '' })}
                 className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white"
               >
                 {courts.map(c => (
@@ -668,22 +679,39 @@ export default function ReservationsManagementPage() {
               </select>
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="font-bold text-slate-700 uppercase block mb-1">Fecha *</label>
-                <input type="date" required min={maxBookingDate(0)} max={maxBookingDate(clubConfig.maxAdvanceBookingDays)} value={newForm.date} onChange={(e) => setNewForm({ ...newForm, date: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600" />
-              </div>
-              <div>
-                <label className="font-bold text-slate-700 uppercase block mb-1">Inicio *</label>
-                <input type="time" required value={newForm.startTime} onChange={(e) => setNewForm({ ...newForm, startTime: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600" />
+                <input type="date" required min={maxBookingDate(0)} max={maxBookingDate(clubConfig.maxAdvanceBookingDays)} value={newForm.date} onChange={(e) => setNewForm({ ...newForm, date: e.target.value, startTime: '' })} className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600" />
               </div>
               <div>
                 <label className="font-bold text-slate-700 uppercase block mb-1">Duración (hs) *</label>
-                <select value={newForm.durationHours} onChange={(e) => setNewForm({ ...newForm, durationHours: Number(e.target.value) })} className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white">
+                <select value={newForm.durationHours} onChange={(e) => setNewForm({ ...newForm, durationHours: Number(e.target.value), startTime: '' })} className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white">
                   <option value={1}>1 hora</option>
-                  <option value={1.5}>1,5 horas</option>
                   <option value={2}>2 horas</option>
                 </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="font-bold text-slate-700 uppercase block mb-1">Horario *</label>
+              <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                {buildSlots(newForm.durationHours).map(slot => {
+                  const reason = newSlotUnavailableReason(slot);
+                  const isSelected = newForm.startTime === slot.split(' - ')[0];
+                  return (
+                    <button
+                      key={slot}
+                      type="button"
+                      title={reason || undefined}
+                      disabled={Boolean(reason)}
+                      onClick={() => setNewForm({ ...newForm, startTime: slot.split(' - ')[0] })}
+                      className={`p-2 rounded-xl text-center font-bold border ${reason ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed line-through' : isSelected ? 'bg-tennis-600 text-white border-tennis-700' : 'bg-white text-slate-700 border-slate-200 hover:border-tennis-400'}`}
+                    >
+                      {slot}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -710,7 +738,7 @@ export default function ReservationsManagementPage() {
 
             <div className="flex justify-end gap-2 pt-2">
               <button type="button" onClick={() => setNewForm(null)} className="px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-xl">Cancelar</button>
-              <button type="submit" className="px-4 py-2 bg-tennis-600 hover:bg-tennis-700 text-white font-bold rounded-xl">Registrar y cobrar seña</button>
+              <button type="submit" disabled={!newForm.startTime} className="px-4 py-2 bg-tennis-600 hover:bg-tennis-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-xl">Registrar y cobrar seña</button>
             </div>
           </form>
         )}
@@ -753,7 +781,6 @@ export default function ReservationsManagementPage() {
                 <label className="font-bold text-slate-700 uppercase block mb-1">Duración (hs) *</label>
                 <select value={editForm.durationHours} onChange={(e) => setEditForm({ ...editForm, durationHours: Number(e.target.value) })} className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white">
                   <option value={1}>1 hora</option>
-                  <option value={1.5}>1,5 horas</option>
                   <option value={2}>2 horas</option>
                 </select>
               </div>
