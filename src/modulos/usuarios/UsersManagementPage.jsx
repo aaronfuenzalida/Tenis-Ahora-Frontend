@@ -26,7 +26,9 @@ export default function UsersManagementPage() {
     email: '',
     phone: '',
     address: '',
-    role: 'client'
+    role: 'client',
+    password: '',
+    confirmPassword: ''
   });
   const [formData, setFormData] = useState({
     name: '',
@@ -86,10 +88,15 @@ export default function UsersManagementPage() {
       notify({ variant: 'warning', message: 'Por favor ingrese un correo electrónico válido.' });
       return;
     }
+    if (createData.password !== createData.confirmPassword) {
+      notify({ variant: 'warning', message: 'Las contraseñas no coinciden.' });
+      return;
+    }
+    const { confirmPassword, ...newUser } = createData;
     try {
-      await usersService.create(createData);
+      await usersService.create(newUser);
       setShowCreateModal(false);
-      setCreateData({ name: '', dni: '', email: '', phone: '', address: '', role: 'client' });
+      setCreateData({ name: '', dni: '', email: '', phone: '', address: '', role: 'client', password: '', confirmPassword: '' });
       loadUsers();
       notify({ variant: 'success', title: 'Usuario registrado', message: '¡Usuario registrado correctamente!' });
     } catch (err) {
@@ -488,6 +495,33 @@ export default function UsersManagementPage() {
               onChange={(e) => setCreateData({ ...createData, address: e.target.value })}
               className="w-full p-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
             />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="font-bold text-slate-700 uppercase block mb-1">Contraseña *</label>
+              <input
+                type="password"
+                required
+                minLength={4}
+                autoComplete="new-password"
+                value={createData.password}
+                onChange={(e) => setCreateData({ ...createData, password: e.target.value })}
+                className="w-full p-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
+              />
+            </div>
+            <div>
+              <label className="font-bold text-slate-700 uppercase block mb-1">Confirmar Contraseña *</label>
+              <input
+                type="password"
+                required
+                minLength={4}
+                autoComplete="new-password"
+                value={createData.confirmPassword}
+                onChange={(e) => setCreateData({ ...createData, confirmPassword: e.target.value })}
+                className="w-full p-2 rounded-xl border border-slate-200 outline-none focus:border-tennis-600"
+              />
+            </div>
           </div>
 
           <div>

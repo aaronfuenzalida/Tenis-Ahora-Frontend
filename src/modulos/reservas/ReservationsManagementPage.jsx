@@ -4,6 +4,7 @@ import { Search, Edit3, Trash2 } from 'lucide-react';
 import ReceiptModal from '../caja/ReceiptModal';
 import PaymentFlowModal from '../caja/PaymentFlowModal';
 import Modal from '../../ui/Modal';
+import MemberSelect from '../../ui/MemberSelect';
 import TablePaginationBar, { TableSortHeader } from '../../ui/TablePaginationBar';
 import { useTablePagination } from '../../ui/useTablePagination';
 import { calculateHoursUntil, formatHoursMinutes, RESERVATION_STATUS_LABELS } from '../../utils/formatters';
@@ -16,6 +17,9 @@ export default function ReservationsManagementPage() {
   const [reservations, setReservations] = useState([]);
   const [courts, setCourts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Alta de reserva desde administración (RF020); players guarda los socios elegidos, el primero es el titular
+  const [newForm, setNewForm] = useState(null);
 
   // Edit / delete reservation (RF021 / RF023)
   const [resToEdit, setResToEdit] = useState(null);
@@ -45,6 +49,49 @@ export default function ReservationsManagementPage() {
     setReservations(res.data);
     setCourts(cRes.data || []);
     setClubConfig(cfgRes.data);
+  };
+
+  const handleOpenNew = () => {
+    setNewForm({
+      courtId: courts.find(c => c.status !== 'mantenimiento')?.id || '',
+      date: maxBookingDate(0),
+      startTime: '',
+      durationHours: 1,
+      playersType: 'singles',
+      players: [null, null]
+    });
+  };
+
+  const setNewPlayer = (index, member) => {
+    setNewForm(prev => ({ ...prev, players: prev.players.map((p, i) => (i === index ? member : p)) }));
+  };
+
+  const handleNewPlayersType = (playersType) => {
+    const count = playersType === 'dobles' ? 4 : 2;
+    setNewForm(prev => ({ ...prev, playersType, players: Array.from({ length: count }, (_, i) => prev.players[i] || null) }));
+  };
+
+  // La reserva se registra pendiente de pago y se confirma al cobrar la seña (RD01). Si el cobro se
+  // cierra sin pagar, queda pendiente y se cobra después con "Cobrar seña".
+  const handleCreateReservation = async (e) => {
+    e.preventDefault();
+    let res;
+    try {
+      res = await reservationsService.create({
+        courtId: newForm.courtId,
+        date: newForm.date,
+        startTime: newForm.startTime,
+        durationHours: Number(newForm.durationHours),
+        playersType: newForm.playersType,
+        participants: newForm.players.map(p => ({ name: p.name, dni: p.dni, phone: '', memberNumber: p.memberNumber }))
+      });
+    } catch (err) {
+      notify({ variant: 'warning', title: 'No se pudo registrar la reserva', message: err.message || 'Intentá nuevamente.' });
+      return;
+    }
+    setNewForm(null);
+    loadReservations();
+    setCharge({ reservation: res.data, type: 'sena' });
   };
 
   const handleOpenEdit = (res) => {
@@ -210,13 +257,22 @@ export default function ReservationsManagementPage() {
             Control de Reservas y Liquidación de Saldos
           </h1>
         </div>
-        <button
-          type="button"
-          onClick={() => window.print()}
-          className="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs border border-slate-200 shadow-sm flex items-center gap-1.5 transition-colors no-print"
-        >
-          Imprimir Reporte de Reservas
-        </button>
+        <div className="flex items-center gap-2 no-print">
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs border border-slate-200 shadow-sm flex items-center gap-1.5 transition-colors"
+          >
+            Imprimir Reporte de Reservas
+          </button>
+          <button
+            type="button"
+            onClick={handleOpenNew}
+            className="px-4 py-2.5 rounded-xl bg-tennis-600 hover:bg-tennis-700 text-white font-bold text-xs shadow-sm flex items-center gap-1.5 transition-colors"
+          >
+            Nueva Reserva
+          </button>
+        </div>
       </div>
 
       {/* Rules Pill */}
@@ -585,6 +641,79 @@ export default function ReservationsManagementPage() {
             </button>
           </div>
         </form>
+      </Modal>
+
+      {/* New Reservation Modal (RF020) */}
+      <Modal
+        isOpen={!!newForm}
+        onClose={() => setNewForm(null)}
+        title="Nueva Reserva"
+        maxWidth="max-w-lg"
+      >
+        {newForm && (
+          <form onSubmit={handleCreateReservation} className="space-y-4 text-xs">
+            <div>
+              <label className="font-bold text-slate-700 uppercase block mb-1">Cancha *</label>
+              <select
+                required
+                value={newForm.courtId}
+                onChange={(e) => setNewForm({ ...newForm, courtId: e.target.value })}
+                className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white"
+              >
+                {courts.map(c => (
+                  <option key={c.id} value={c.id} disabled={c.status === 'mantenimiento'}>
+                    {c.name} ({c.surfaceType}) — ${c.pricePerHour?.toLocaleString('es-AR')}/h{c.status === 'mantenimiento' ? ' — EN MANTENIMIENTO' : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className="font-bold text-slate-700 uppercase block mb-1">Fecha *</label>
+                <input type="date" required min={maxBookingDate(0)} max={maxBookingDate(clubConfig.maxAdvanceBookingDays)} value={newForm.date} onChange={(e) => setNewForm({ ...newForm, date: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600" />
+              </div>
+              <div>
+                <label className="font-bold text-slate-700 uppercase block mb-1">Inicio *</label>
+                <input type="time" required value={newForm.startTime} onChange={(e) => setNewForm({ ...newForm, startTime: e.target.value })} className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600" />
+              </div>
+              <div>
+                <label className="font-bold text-slate-700 uppercase block mb-1">Duración (hs) *</label>
+                <select value={newForm.durationHours} onChange={(e) => setNewForm({ ...newForm, durationHours: Number(e.target.value) })} className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white">
+                  <option value={1}>1 hora</option>
+                  <option value={1.5}>1,5 horas</option>
+                  <option value={2}>2 horas</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="font-bold text-slate-700 uppercase block mb-1">Modalidad *</label>
+              <select value={newForm.playersType} onChange={(e) => handleNewPlayersType(e.target.value)} className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-tennis-600 bg-white">
+                <option value="singles">Singles (2 jugadores)</option>
+                <option value="dobles">Dobles (4 jugadores)</option>
+              </select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              {newForm.players.map((p, idx) => (
+                <div key={idx}>
+                  <label className="font-bold text-slate-700 uppercase block mb-1">Jugador {idx + 1}{idx === 0 && ' (titular)'} *</label>
+                  <MemberSelect
+                    value={p?.dni || ''}
+                    excludeDnis={newForm.players.filter((_, i) => i !== idx).map(o => o?.dni)}
+                    onSelect={(m) => setNewPlayer(idx, m)}
+                  />
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button type="button" onClick={() => setNewForm(null)} className="px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-xl">Cancelar</button>
+              <button type="submit" className="px-4 py-2 bg-tennis-600 hover:bg-tennis-700 text-white font-bold rounded-xl">Registrar y cobrar seña</button>
+            </div>
+          </form>
+        )}
       </Modal>
 
       {/* Edit Reservation Modal (RF021) */}
